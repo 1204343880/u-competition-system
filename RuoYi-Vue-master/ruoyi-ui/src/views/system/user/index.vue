@@ -1,6 +1,6 @@
 <template>
   <div class="app-container tree-sidebar-manage-wrap">
-    <tree-panel title="组织机构" :tree-data="deptOptions" search-placeholder="请输入部门名称" storage-key="dept-sidebar-width" :defaultExpandAll="true" @node-click="handleNodeClick" @refresh="getDeptTree" ref="deptTreeRef" />
+    <tree-panel title="院系架构" :tree-data="deptOptions" search-placeholder="搜索学院或专业" storage-key="dept-sidebar-width" :defaultExpandAll="true" @node-click="handleNodeClick" @refresh="getDeptTree" ref="deptTreeRef" />
     <div class="tree-sidebar-content">
       <div class="content-inner">
         <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
@@ -52,7 +52,11 @@
             </template>
          </el-table-column>
           <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns.nickName.visible" :show-overflow-tooltip="true" />
-          <el-table-column label="部门" align="center" key="deptName" prop="dept.deptName" v-if="columns.deptName.visible" :show-overflow-tooltip="true" />
+          <el-table-column label="所属院系/专业" align="center" key="deptName" v-if="columns.deptName.visible" :show-overflow-tooltip="true">
+            <template #default="scope">
+              <span>{{ scope.row.dept ? scope.row.dept.deptName : '无' }}</span>
+            </template>
+          </el-table-column>
           <el-table-column label="手机号码" align="center" key="phonenumber" prop="phonenumber" v-if="columns.phonenumber.visible" width="120" />
           <el-table-column label="状态" align="center" key="status" v-if="columns.status.visible">
             <template #default="scope">
@@ -100,8 +104,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="归属部门" prop="deptId">
-              <el-tree-select v-model="form.deptId" :data="enabledDeptOptions" :props="{ value: 'id', label: 'label', children: 'children' }" value-key="id" placeholder="请选择归属部门" clearable check-strictly />
+            <el-form-item label="归属院系/专业" prop="deptId">
+              <el-tree-select v-model="form.deptId" :data="enabledDeptOptions" :props="{ value: 'id', label: 'label', children: 'children' }" value-key="id" placeholder="请选择归属院系/专业" clearable check-strictly :disabled="form.userId === 1" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -147,8 +151,8 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="岗位">
-              <el-select v-model="form.postIds" multiple placeholder="请选择">
+            <el-form-item label="身份类型">
+              <el-select v-model="form.postIds" multiple placeholder="请选择身份类型">
                 <el-option v-for="item in postOptions" :key="item.postId" :label="item.postName" :value="item.postId" :disabled="item.status == 1"></el-option>
               </el-select>
             </el-form-item>
@@ -216,7 +220,7 @@ const columns = ref({
   userId: { label: '用户编号', visible: true },
   userName: { label: '用户名称', visible: true },
   nickName: { label: '用户昵称', visible: true },
-  deptName: { label: '部门', visible: true },
+  deptName: { label: '院系/专业', visible: true },
   phonenumber: { label: '手机号码', visible: true },
   status: { label: '状态', visible: true },
   createTime: { label: '创建时间', visible: true }

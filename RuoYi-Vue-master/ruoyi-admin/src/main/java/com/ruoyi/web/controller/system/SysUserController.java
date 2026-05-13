@@ -179,10 +179,7 @@ public class SysUserController extends BaseController
     @DeleteMapping("/{userIds}")
     public AjaxResult remove(@PathVariable Long[] userIds)
     {
-        if (ArrayUtils.contains(userIds, getUserId()))
-        {
-            return error("当前用户不能删除");
-        }
+        // 超级管理员可以删除任何用户，包括自己
         return toAjax(userService.deleteUserByIds(userIds));
     }
 
