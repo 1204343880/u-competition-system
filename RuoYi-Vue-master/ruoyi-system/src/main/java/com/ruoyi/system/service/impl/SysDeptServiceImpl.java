@@ -1,8 +1,10 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ import com.ruoyi.system.mapper.SysRoleMapper;
 import com.ruoyi.system.service.ISysDeptService;
 
 /**
- * 部门管理 服务实现
+ * 学院专业管理 服务实现
  * 
  * @author ruoyi
  */
@@ -183,6 +185,24 @@ public class SysDeptServiceImpl implements ISysDeptService
     }
 
     /**
+     * 校验部门排序号是否唯一
+     * 
+     * @param dept 部门信息
+     * @return 结果
+     */
+    @Override
+    public boolean checkOrderNumUnique(SysDept dept)
+    {
+        Long deptId = StringUtils.isNull(dept.getDeptId()) ? -1L : dept.getDeptId();
+        SysDept info = deptMapper.checkOrderNumUnique(dept.getOrderNum(), dept.getParentId(), deptId);
+        if (StringUtils.isNotNull(info) && info.getDeptId().longValue() != deptId.longValue())
+        {
+            return UserConstants.NOT_UNIQUE;
+        }
+        return UserConstants.UNIQUE;
+    }
+
+    /**
      * 校验部门是否有数据权限
      * 
      * @param deptId 部门id
@@ -217,6 +237,11 @@ public class SysDeptServiceImpl implements ISysDeptService
         {
             throw new ServiceException("部门停用，不允许新增");
         }
+        // 校验同级排序号是否唯一
+        if (!checkOrderNumUnique(dept))
+        {
+            throw new ServiceException("当前层级下已存在该排序号，请重新输入");
+        }
         dept.setAncestors(info.getAncestors() + "," + dept.getParentId());
         return deptMapper.insertDept(dept);
     }
@@ -238,6 +263,11 @@ public class SysDeptServiceImpl implements ISysDeptService
             String oldAncestors = oldDept.getAncestors();
             dept.setAncestors(newAncestors);
             updateDeptChildren(dept.getDeptId(), newAncestors, oldAncestors);
+        }
+        // 校验同级排序号是否唯一
+        if (!checkOrderNumUnique(dept))
+        {
+            throw new ServiceException("当前层级下已存在该排序号，请重新输入");
         }
         int result = deptMapper.updateDept(dept);
         if (UserConstants.DEPT_NORMAL.equals(dept.getStatus()) && StringUtils.isNotEmpty(dept.getAncestors())
@@ -293,6 +323,30 @@ public class SysDeptServiceImpl implements ISysDeptService
     {
         try
         {
+            // 先校验每个部门的排序号在同级中是否唯一（检查数据库）
+            for (int i = 0; i < deptIds.length; i++)
+            {
+                Long deptId = Convert.toLong(deptIds[i]);
+                Integer orderNum = Convert.toInt(orderNums[i]);
+                
+                // 获取部门信息
+                SysDept dept = deptMapper.selectDeptById(deptId);
+                if (dept != null)
+                {
+                    // 使用 checkOrderNumUnique 检查数据库中是否存在同级相同排序号
+                    SysDept checkDept = new SysDept();
+                    checkDept.setDeptId(deptId);
+                    checkDept.setParentId(dept.getParentId());
+                    checkDept.setOrderNum(orderNum);
+                    
+                    if (!checkOrderNumUnique(checkDept))
+                    {
+                        throw new ServiceException("当前层级下已存在排序号 " + orderNum + "，请重新输入");
+                    }
+                }
+            }
+            
+            // 校验通过后执行更新
             for (int i = 0; i < deptIds.length; i++)
             {
                 SysDept dept = new SysDept();
@@ -300,6 +354,10 @@ public class SysDeptServiceImpl implements ISysDeptService
                 dept.setOrderNum(Convert.toInt(orderNums[i]));
                 deptMapper.updateDeptSort(dept);
             }
+        }
+        catch (ServiceException e)
+        {
+            throw e;
         }
         catch (Exception e)
         {

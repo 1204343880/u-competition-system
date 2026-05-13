@@ -78,6 +78,16 @@ public interface SysDeptMapper
     public SysDept checkDeptNameUnique(@Param("deptName") String deptName, @Param("parentId") Long parentId);
 
     /**
+     * 校验部门排序号是否唯一
+     * 
+     * @param orderNum 排序号
+     * @param parentId 父部门ID
+     * @param deptId 部门ID（修改时排除）
+     * @return 结果
+     */
+    public SysDept checkOrderNumUnique(@Param("orderNum") Integer orderNum, @Param("parentId") Long parentId, @Param("deptId") Long deptId);
+
+    /**
      * 新增部门信息
      * 
      * @param dept 部门信息

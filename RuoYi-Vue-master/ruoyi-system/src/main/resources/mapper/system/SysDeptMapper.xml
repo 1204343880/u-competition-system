@@ -43,8 +43,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 			AND status = #{status}
 		</if>
 		<!-- 数据范围过滤 -->
-		${params.dataScope}
-		order by d.parent_id, d.order_num
+${params.dataScope}
+		order by d.dept_name asc
     </select>
     
     <select id="selectDeptListByRoleId" resultType="Long">
@@ -55,7 +55,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="deptCheckStrictly">
               and d.dept_id not in (select d.parent_id from sys_dept d inner join sys_role_dept rd on d.dept_id = rd.dept_id and rd.role_id = #{roleId})
             </if>
-		order by d.parent_id, d.order_num
+		order by d.dept_name asc
 	</select>
     
     <select id="selectDeptById" parameterType="Long" resultMap="SysDeptResult">
@@ -85,6 +85,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="checkDeptNameUnique" resultMap="SysDeptResult">
 	    <include refid="selectDeptVo"/>
 		where dept_name=#{deptName} and parent_id = #{parentId} and del_flag = '0' limit 1
+	</select>
+	
+	<select id="checkOrderNumUnique" resultMap="SysDeptResult">
+	    <include refid="selectDeptVo"/>
+		where order_num = #{orderNum} and parent_id = #{parentId} and del_flag = '0'
+		<if test="deptId != null and deptId != 0L">
+			and dept_id != #{deptId}
+		</if>
+		limit 1
 	</select>
     
     <insert id="insertDept" parameterType="SysDept">
