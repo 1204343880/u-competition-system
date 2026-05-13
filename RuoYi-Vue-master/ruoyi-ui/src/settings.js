@@ -1,8 +1,8 @@
-module.exports = {
+export default {
   /**
    * 网页标题
    */
-  title: process.env.VUE_APP_TITLE,
+  title: import.meta.env.VITE_APP_TITLE,
 
   /**
    * 侧边栏主题 深色主题theme-dark，浅色主题theme-light
@@ -10,7 +10,7 @@ module.exports = {
   sideTheme: 'theme-dark',
 
   /**
-   * 系统布局配置
+   * 是否系统布局配置
    */
   showSettings: true,
 
@@ -62,5 +62,6 @@ module.exports = {
   /**
    * 底部版权文本内容
    */
-  footerContent: 'Copyright © 2018-2026 RuoYi. All Rights Reserved.'
+  footerContent: 'Copyright © 2026. 仅用于个人技术研究，非校方官方运营。'
 }
+
