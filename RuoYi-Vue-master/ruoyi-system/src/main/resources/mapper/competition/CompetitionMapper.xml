@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.competition.mapper.CompetitionMapper">
+
+    <resultMap type="Competition" id="CompetitionResult">
+        <id     property="competitionId"    column="competition_id"    />
+        <result property="competitionName"  column="competition_name"  />
+        <result property="category"         column="category"         />
+        <result property="categoryName"     column="category_name"     />
+        <result property="description"      column="description"      />
+        <result property="applyStartTime"   column="apply_start_time" />
+        <result property="applyEndTime"     column="apply_end_time"   />
+        <result property="startTime"        column="start_time"       />
+        <result property="endTime"          column="end_time"         />
+        <result property="status"           column="status"           />
+        <result property="organizer"        column="organizer"        />
+        <result property="host"             column="host"             />
+        <result property="maxParticipants"  column="max_participants" />
+        <result property="currentParticipants" column="current_participants" />
+        <result property="delFlag"          column="del_flag"         />
+        <result property="createBy"         column="create_by"        />
+        <result property="createTime"       column="create_time"      />
+        <result property="updateBy"         column="update_by"        />
+        <result property="updateTime"       column="update_time"      />
+    </resultMap>
+
+    <resultMap type="CompetitionApply" id="CompetitionApplyResult">
+        <id     property="applyId"     column="apply_id"     />
+        <result property="competitionId" column="competition_id" />
+        <result property="userId"      column="user_id"      />
+        <result property="userName"    column="user_name"    />
+        <result property="nickName"    column="nick_name"    />
+        <result property="applyTime"   column="apply_time"   />
+        <result property="auditStatus" column="audit_status" />
+        <result property="delFlag"     column="del_flag"     />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"  column="create_time"  />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"  column="update_time"  />
+    </resultMap>
+
+    <sql id="selectCompetitionVo">
+        select competition_id, competition_name, category, category_name, description, 
+               apply_start_time, apply_end_time, start_time, end_time, status, 
+               organizer, host, max_participants, current_participants, del_flag, 
+               create_by, create_time, update_by, update_time
+        from competition
+    </sql>
+
+    <sql id="selectApplyVo">
+        select apply_id, competition_id, user_id, user_name, nick_name, 
+               apply_time, audit_status, del_flag, create_by, create_time, 
+               update_by, update_time
+        from competition_apply
+    </sql>
+
+    <select id="selectCompetitionById" parameterType="Long" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        where competition_id = #{competitionId} and del_flag = '0'
+    </select>
+
+    <select id="selectCompetitionList" parameterType="Competition" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        where del_flag = '0'
+        <if test="competitionName != null and competitionName != ''">
+            and competition_name like concat('%', #{competitionName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        order by create_time desc
+    </select>
+
+    <select id="selectMyCompetitionList" parameterType="Long" resultMap="CompetitionResult">
+        select c.competition_id, c.competition_name, c.category, c.category_name, c.description, 
+               c.apply_start_time, c.apply_end_time, c.start_time, c.end_time, c.status, 
+               c.organizer, c.host, c.max_participants, c.current_participants, c.del_flag, 
+               c.create_by, c.create_time, c.update_by, c.update_time, ca.apply_time
+        from competition c
+        inner join competition_apply ca on c.competition_id = ca.competition_id
+        where c.del_flag = '0' and ca.user_id = #{userId} and ca.del_flag = '0'
+        order by ca.apply_time desc
+    </select>
+
+    <insert id="insertCompetition" parameterType="Competition" useGeneratedKeys="true" keyProperty="competitionId">
+        insert into competition(
+            <if test="competitionId != null">competition_id,</if>
+            competition_name, category, category_name, description,
+            apply_start_time, apply_end_time, start_time, end_time,
+            status, organizer, host, max_participants, current_participants,
+            del_flag, create_by, create_time, update_by, update_time
+        )values(
+            <if test="competitionId != null">#{competitionId},</if>
+            #{competitionName}, #{category}, #{categoryName}, #{description},
+            #{applyStartTime}, #{applyEndTime}, #{startTime}, #{endTime},
+            #{status}, #{organizer}, #{host}, #{maxParticipants}, #{currentParticipants},
+            #{delFlag}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime}
+        )
+    </insert>
+
+    <update id="updateCompetition" parameterType="Competition">
+        update competition
+        set competition_name = #{competitionName},
+            category = #{category},
+            category_name = #{categoryName},
+            description = #{description},
+            apply_start_time = #{applyStartTime},
+            apply_end_time = #{applyEndTime},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            status = #{status},
+            organizer = #{organizer},
+            host = #{host},
+            max_participants = #{maxParticipants},
+            current_participants = #{currentParticipants},
+            update_by = #{updateBy},
+            update_time = #{updateTime}
+        where competition_id = #{competitionId}
+    </update>
+
+    <delete id="deleteCompetitionById" parameterType="Long">
+        update competition set del_flag = '2' where competition_id = #{competitionId}
+    </delete>
+
+    <delete id="deleteCompetitionByIds" parameterType="Long">
+        update competition set del_flag = '2' where competition_id in
+        <foreach collection="array" item="competitionId" open="(" separator="," close=")">
+            #{competitionId}
+        </foreach>
+    </delete>
+
+    <select id="selectApplyById" parameterType="Long" resultMap="CompetitionApplyResult">
+        <include refid="selectApplyVo"/>
+        where apply_id = #{applyId} and del_flag = '0'
+    </select>
+
+    <select id="selectApplyByCompetitionAndUser" resultMap="CompetitionApplyResult">
+        <include refid="selectApplyVo"/>
+        where competition_id = #{competitionId} and user_id = #{userId} and del_flag = '0'
+    </select>
+
+    <insert id="insertApply" parameterType="CompetitionApply" useGeneratedKeys="true" keyProperty="applyId">
+        insert into competition_apply(
+            <if test="applyId != null">apply_id,</if>
+            competition_id, user_id, user_name, nick_name,
+            apply_time, audit_status, del_flag, create_by, create_time
+        )values(
+            <if test="applyId != null">#{applyId},</if>
+            #{competitionId}, #{userId}, #{userName}, #{nickName},
+            #{applyTime}, #{auditStatus}, #{delFlag}, #{createBy}, #{createTime}
+        )
+    </insert>
+
+    <delete id="deleteApplyById" parameterType="Long">
+        update competition_apply set del_flag = '2' where apply_id = #{applyId}
+    </delete>
+
+    <delete id="deleteApplyByCompetitionAndUser">
+        update competition_apply set del_flag = '2' 
+        where competition_id = #{competitionId} and user_id = #{userId}
+    </delete>
+
+</mapper>
