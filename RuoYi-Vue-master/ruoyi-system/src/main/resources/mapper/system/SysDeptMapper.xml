@@ -93,6 +93,13 @@ ${params.dataScope}
 		<if test="deptId != null and deptId != 0L">
 			and dept_id != #{deptId}
 		</if>
+		<!-- 为了解决批量互换序号时的状态错位问题，排除当前批次的所有部门ID -->
+		<if test="excludeDeptIds != null and excludeDeptIds.size() > 0">
+			and dept_id not in
+			<foreach collection="excludeDeptIds" item="excludeId" open="(" separator="," close=")">
+				#{excludeId}
+			</foreach>
+		</if>
 		limit 1
 	</select>
     

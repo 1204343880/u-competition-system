@@ -138,4 +138,15 @@ public interface SysMenuMapper
      * @return 匹配的菜单列表
      */
     public List<SysMenu> selectMenusByPathOrRouteName(@Param("path") String path, @Param("routeName") String routeName);
+
+    /**
+     * 校验菜单排序号是否唯一（同级）
+     *
+     * @param orderNum 排序号
+     * @param parentId 父菜单ID
+     * @param menuId 菜单ID（更新时排除自身）
+     * @param excludeMenuIds 豁免菜单ID列表（批量操作时排除整个批次，解决互换序号时的状态错位问题）
+     * @return 结果
+     */
+    public SysMenu checkMenuOrderNumUnique(@Param("orderNum") Integer orderNum, @Param("parentId") Long parentId, @Param("menuId") Long menuId, @Param("excludeMenuIds") List<Long> excludeMenuIds);
 }

@@ -11,7 +11,7 @@
  Target Server Version : 80037 (8.0.37)
  File Encoding         : 65001
 
- Date: 29/05/2026 16:26:09
+ Date: 31/05/2026 22:49:34
 */
 
 SET NAMES utf8mb4;
@@ -32,7 +32,7 @@ CREATE TABLE `bus_competition`  (
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`comp_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '竞赛业务表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '竞赛业务表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of bus_competition
@@ -63,7 +63,7 @@ CREATE TABLE `competition`  (
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`competition_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 104 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '竞赛信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 104 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '竞赛信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of competition
@@ -95,7 +95,7 @@ CREATE TABLE `competition_apply`  (
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`apply_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '竞赛报名表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '竞赛报名表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of competition_apply
@@ -132,7 +132,7 @@ CREATE TABLE `gen_table`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`table_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '代码生成业务表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '代码生成业务表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of gen_table
@@ -166,7 +166,7 @@ CREATE TABLE `gen_table_column`  (
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`column_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '代码生成业务表字段' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '代码生成业务表字段' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of gen_table_column
@@ -183,7 +183,7 @@ CREATE TABLE `qrtz_blob_triggers`  (
   `blob_data` blob NULL COMMENT '存放持久化Trigger对象',
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   CONSTRAINT `qrtz_blob_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `trigger_name`, `trigger_group`) REFERENCES `qrtz_triggers` (`sched_name`, `trigger_name`, `trigger_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'Blob类型的触发器表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'Blob类型的触发器表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_blob_triggers
@@ -198,7 +198,7 @@ CREATE TABLE `qrtz_calendars`  (
   `calendar_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '日历名称',
   `calendar` blob NOT NULL COMMENT '存放持久化calendar对象',
   PRIMARY KEY (`sched_name`, `calendar_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '日历信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '日历信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_calendars
@@ -216,7 +216,7 @@ CREATE TABLE `qrtz_cron_triggers`  (
   `time_zone_id` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '时区',
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   CONSTRAINT `qrtz_cron_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `trigger_name`, `trigger_group`) REFERENCES `qrtz_triggers` (`sched_name`, `trigger_name`, `trigger_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'Cron类型的触发器表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'Cron类型的触发器表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_cron_triggers
@@ -241,7 +241,7 @@ CREATE TABLE `qrtz_fired_triggers`  (
   `is_nonconcurrent` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '是否并发',
   `requests_recovery` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '是否接受恢复执行',
   PRIMARY KEY (`sched_name`, `entry_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '已触发的触发器表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '已触发的触发器表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_fired_triggers
@@ -263,7 +263,7 @@ CREATE TABLE `qrtz_job_details`  (
   `requests_recovery` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '是否接受恢复执行',
   `job_data` blob NULL COMMENT '存放持久化job对象',
   PRIMARY KEY (`sched_name`, `job_name`, `job_group`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务详细信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '任务详细信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_job_details
@@ -277,7 +277,7 @@ CREATE TABLE `qrtz_locks`  (
   `sched_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调度名称',
   `lock_name` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '悲观锁名称',
   PRIMARY KEY (`sched_name`, `lock_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '存储的悲观锁信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '存储的悲观锁信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_locks
@@ -291,7 +291,7 @@ CREATE TABLE `qrtz_paused_trigger_grps`  (
   `sched_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调度名称',
   `trigger_group` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'qrtz_triggers表trigger_group的外键',
   PRIMARY KEY (`sched_name`, `trigger_group`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '暂停的触发器表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '暂停的触发器表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_paused_trigger_grps
@@ -307,7 +307,7 @@ CREATE TABLE `qrtz_scheduler_state`  (
   `last_checkin_time` bigint NOT NULL COMMENT '上次检查时间',
   `checkin_interval` bigint NOT NULL COMMENT '检查间隔时间',
   PRIMARY KEY (`sched_name`, `instance_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '调度器状态表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '调度器状态表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_scheduler_state
@@ -326,7 +326,7 @@ CREATE TABLE `qrtz_simple_triggers`  (
   `times_triggered` bigint NOT NULL COMMENT '已经触发的次数',
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   CONSTRAINT `qrtz_simple_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `trigger_name`, `trigger_group`) REFERENCES `qrtz_triggers` (`sched_name`, `trigger_name`, `trigger_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '简单触发器的信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '简单触发器的信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_simple_triggers
@@ -353,7 +353,7 @@ CREATE TABLE `qrtz_simprop_triggers`  (
   `bool_prop_2` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'Boolean类型的trigger的第二个参数',
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   CONSTRAINT `qrtz_simprop_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `trigger_name`, `trigger_group`) REFERENCES `qrtz_triggers` (`sched_name`, `trigger_name`, `trigger_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '同步机制的行锁表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '同步机制的行锁表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_simprop_triggers
@@ -383,7 +383,7 @@ CREATE TABLE `qrtz_triggers`  (
   PRIMARY KEY (`sched_name`, `trigger_name`, `trigger_group`) USING BTREE,
   INDEX `sched_name`(`sched_name` ASC, `job_name` ASC, `job_group` ASC) USING BTREE,
   CONSTRAINT `qrtz_triggers_ibfk_1` FOREIGN KEY (`sched_name`, `job_name`, `job_group`) REFERENCES `qrtz_job_details` (`sched_name`, `job_name`, `job_group`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '触发器详细信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '触发器详细信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of qrtz_triggers
@@ -407,7 +407,7 @@ CREATE TABLE `sys_config`  (
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`config_id`) USING BTREE,
   UNIQUE INDEX `uk_config_key`(`config_key` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '参数配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '参数配置表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_config
@@ -436,7 +436,7 @@ CREATE TABLE `sys_dept`  (
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`dept_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1503 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '部门表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1503 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '部门表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_dept
@@ -450,8 +450,8 @@ INSERT INTO `sys_dept` VALUES (204, 200, '0,100,200', '自动化', 4, '', '', ''
 INSERT INTO `sys_dept` VALUES (205, 200, '0,100,200', '物联网工程', 5, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
 INSERT INTO `sys_dept` VALUES (206, 200, '0,100,200', '人工智能', 6, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
 INSERT INTO `sys_dept` VALUES (300, 100, '0,100', '人工智能学院', 3, '李四', '15800000002', 'ai@school.edu.cn', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
-INSERT INTO `sys_dept` VALUES (301, 300, '0,100,300', '人工智能', 1, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
-INSERT INTO `sys_dept` VALUES (302, 300, '0,100,300', '智能科学与技术', 2, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
+INSERT INTO `sys_dept` VALUES (301, 300, '0,100,300', '人工智能', 2, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
+INSERT INTO `sys_dept` VALUES (302, 300, '0,100,300', '智能科学与技术', 1, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
 INSERT INTO `sys_dept` VALUES (303, 300, '0,100,300', '数据科学与大数据技术', 3, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
 INSERT INTO `sys_dept` VALUES (304, 300, '0,100,300', '机器人工程', 4, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
 INSERT INTO `sys_dept` VALUES (305, 300, '0,100,300', '计算机科学与技术（AI方向）', 5, '', '', '', '0', '0', 'admin', '2026-05-29 16:08:51', '', NULL);
@@ -535,7 +535,7 @@ CREATE TABLE `sys_dict_data`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`dict_code`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '字典数据表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '字典数据表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_dict_data
@@ -571,7 +571,7 @@ CREATE TABLE `sys_dict_type`  (
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`dict_id`) USING BTREE,
   UNIQUE INDEX `uk_dict_type`(`dict_type` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '字典类型表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '字典类型表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_dict_type
@@ -601,7 +601,7 @@ CREATE TABLE `sys_job`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '备注信息',
   PRIMARY KEY (`job_id`, `job_name`, `job_group`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时任务调度表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时任务调度表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_job
@@ -626,7 +626,7 @@ CREATE TABLE `sys_job_log`  (
   `end_time` datetime NULL DEFAULT NULL COMMENT '执行结束时间',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`job_log_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时任务调度日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时任务调度日志表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_job_log
@@ -649,7 +649,7 @@ CREATE TABLE `sys_logininfor`  (
   PRIMARY KEY (`info_id`) USING BTREE,
   INDEX `idx_sys_logininfor_s`(`status` ASC) USING BTREE,
   INDEX `idx_sys_logininfor_lt`(`login_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 104 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统访问记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 129 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统访问记录' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_logininfor
@@ -658,6 +658,31 @@ INSERT INTO `sys_logininfor` VALUES (100, 'admin', '127.0.0.1', '内网IP', 'Edg
 INSERT INTO `sys_logininfor` VALUES (101, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-29 16:15:34');
 INSERT INTO `sys_logininfor` VALUES (102, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '1', '验证码错误', '2026-05-29 16:24:26');
 INSERT INTO `sys_logininfor` VALUES (103, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-29 16:24:29');
+INSERT INTO `sys_logininfor` VALUES (104, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-29 17:47:39');
+INSERT INTO `sys_logininfor` VALUES (105, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-30 16:56:00');
+INSERT INTO `sys_logininfor` VALUES (106, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-30 17:44:20');
+INSERT INTO `sys_logininfor` VALUES (107, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-30 18:35:40');
+INSERT INTO `sys_logininfor` VALUES (108, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 13:31:14');
+INSERT INTO `sys_logininfor` VALUES (109, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 14:10:52');
+INSERT INTO `sys_logininfor` VALUES (110, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 14:55:04');
+INSERT INTO `sys_logininfor` VALUES (111, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-05-31 15:07:05');
+INSERT INTO `sys_logininfor` VALUES (112, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 15:07:13');
+INSERT INTO `sys_logininfor` VALUES (113, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-05-31 15:28:23');
+INSERT INTO `sys_logininfor` VALUES (114, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 15:28:26');
+INSERT INTO `sys_logininfor` VALUES (115, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-05-31 15:39:28');
+INSERT INTO `sys_logininfor` VALUES (116, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 15:39:31');
+INSERT INTO `sys_logininfor` VALUES (117, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 16:35:27');
+INSERT INTO `sys_logininfor` VALUES (118, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-05-31 16:40:22');
+INSERT INTO `sys_logininfor` VALUES (119, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 16:40:25');
+INSERT INTO `sys_logininfor` VALUES (120, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 18:18:15');
+INSERT INTO `sys_logininfor` VALUES (121, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 20:52:28');
+INSERT INTO `sys_logininfor` VALUES (122, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 21:02:16');
+INSERT INTO `sys_logininfor` VALUES (123, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-05-31 21:03:01');
+INSERT INTO `sys_logininfor` VALUES (124, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 21:03:11');
+INSERT INTO `sys_logininfor` VALUES (125, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-05-31 21:08:45');
+INSERT INTO `sys_logininfor` VALUES (126, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 21:08:49');
+INSERT INTO `sys_logininfor` VALUES (127, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-05-31 21:09:11');
+INSERT INTO `sys_logininfor` VALUES (128, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 21:09:17');
 
 -- ----------------------------
 -- Table structure for sys_menu
@@ -685,13 +710,12 @@ CREATE TABLE `sys_menu`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`menu_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2104 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单权限表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3037 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_menu
 -- ----------------------------
-INSERT INTO `sys_menu` VALUES (1, '系统管理', 0, 1, 'system', NULL, '', '', 1, 0, 'M', '0', '0', '', 'system', 'admin', '2026-05-29 16:02:15', '', NULL, '系统管理目录');
-INSERT INTO `sys_menu` VALUES (2, '竞赛管理', 0, 2, 'competition', '', '', '', 1, 0, 'M', '0', '0', '', 'edit', 'admin', '2026-05-29 16:14:21', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (1, '系统管理', 0, 2, 'system', NULL, '', '', 1, 0, 'M', '0', '0', '', 'system', 'admin', '2026-05-29 16:02:15', '', NULL, '系统管理目录');
 INSERT INTO `sys_menu` VALUES (3, '系统监控', 0, 3, 'monitor', '', '', '', 1, 0, 'M', '0', '0', '', 'monitor', 'admin', '2026-05-29 16:22:44', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (4, '系统工具', 0, 4, 'tool', '', '', '', 1, 0, 'M', '0', '0', '', 'tool', 'admin', '2026-05-29 16:22:44', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (100, '用户管理', 1, 1, 'user', 'system/user/index', '', '', 1, 0, 'C', '0', '0', 'system:user:list', 'user', 'admin', '2026-05-29 16:02:15', '', NULL, '用户管理菜单');
@@ -713,9 +737,6 @@ INSERT INTO `sys_menu` VALUES (115, '登录日志', 3, 8, 'logininfor', 'monitor
 INSERT INTO `sys_menu` VALUES (116, '表单构建', 4, 1, 'build', 'tool/build/index', '', '', 1, 0, 'C', '0', '0', 'tool:build:list', 'build', 'admin', '2026-05-29 16:22:44', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (117, '代码生成', 4, 2, 'gen', 'tool/gen/index', '', '', 1, 0, 'C', '0', '0', 'tool:gen:list', 'code', 'admin', '2026-05-29 16:22:44', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (118, '系统接口', 4, 3, 'swagger', 'tool/swagger/index', '', '', 1, 0, 'C', '0', '0', 'tool:swagger:list', 'swagger', 'admin', '2026-05-29 16:22:44', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (200, '竞赛列表', 2, 1, 'list', 'competition/list/index', '', '', 1, 0, 'C', '0', '0', 'competition:list:list', 'list', 'admin', '2026-05-29 16:14:21', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (201, '我的竞赛', 2, 2, 'my', 'competition/my/index', '', '', 1, 0, 'C', '0', '0', 'competition:my:list', 'user', 'admin', '2026-05-29 16:14:21', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (202, '报名审核', 2, 3, 'apply', 'competition/apply/index', '', '', 1, 0, 'C', '0', '0', 'competition:apply:list', 'check', 'admin', '2026-05-29 16:14:21', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (1000, '用户查询', 100, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'system:user:query', '#', 'admin', '2026-05-29 16:02:15', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (1001, '用户新增', 100, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'system:user:add', '#', 'admin', '2026-05-29 16:02:15', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (1002, '用户修改', 100, 3, '', '', '', '', 1, 0, 'F', '0', '0', 'system:user:edit', '#', 'admin', '2026-05-29 16:02:15', '', NULL, '');
@@ -765,19 +786,20 @@ INSERT INTO `sys_menu` VALUES (1170, '生成查询', 117, 1, '', '', '', '', 1, 
 INSERT INTO `sys_menu` VALUES (1171, '生成修改', 117, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:edit', '#', 'admin', '2026-05-29 16:23:07', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (1172, '生成删除', 117, 3, '', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:remove', '#', 'admin', '2026-05-29 16:23:07', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (1173, '导入代码', 117, 4, '', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:import', '#', 'admin', '2026-05-29 16:23:07', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2000, '竞赛查询', 200, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:list:query', '#', 'admin', '2026-05-29 16:14:21', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2001, '竞赛新增', 200, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:list:add', '#', 'admin', '2026-05-29 16:14:21', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2002, '竞赛修改', 200, 3, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:list:edit', '#', 'admin', '2026-05-29 16:14:21', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2003, '竞赛删除', 200, 4, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:list:remove', '#', 'admin', '2026-05-29 16:14:21', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2010, '我的竞赛查询', 201, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:my:query', '#', 'admin', '2026-05-29 16:14:21', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2011, '报名竞赛', 201, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:my:add', '#', 'admin', '2026-05-29 16:02:15', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2012, '取消报名', 201, 3, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:my:cancel', '#', 'admin', '2026-05-29 16:02:15', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2020, '报名查询', 202, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:apply:query', '#', 'admin', '2026-05-29 16:02:15', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2021, '审核通过', 202, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:apply:pass', '#', 'admin', '2026-05-29 16:02:15', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2022, '审核拒绝', 202, 3, '', '', '', '', 1, 0, 'F', '0', '0', 'competition:apply:reject', '#', 'admin', '2026-05-29 16:02:15', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2101, '比赛官网', 2, 4, 'competition-portal', 'competition/portal/index', '', '', 1, 0, 'C', '0', '0', 'competition:student:list', 'form', 'admin', '2026-05-29 16:05:44', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2102, '我的竞赛', 2, 5, 'my-competition', 'competition/my/index', '', '', 1, 0, 'C', '0', '0', 'competition:student:myList', 'list', 'admin', '2026-05-29 16:05:44', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (2103, '比赛维护', 2, 6, 'competition-admin', 'competition/admin/index', '', '', 1, 0, 'C', '0', '0', 'competition:admin:list', 'edit', 'admin', '2026-05-29 16:05:44', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (3000, '竞赛大厅', 0, 1, 'hall', NULL, '', '', 1, 0, 'M', '0', '0', '', 'star', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生竞赛大厅目录');
+INSERT INTO `sys_menu` VALUES (3001, '竞赛列表', 3000, 1, 'list', 'student/hall/index', '', 'StudentHall', 1, 0, 'C', '0', '0', 'student:hall:list', 'list', 'admin', '2026-05-31 16:34:51', '', NULL, '竞赛大厅-竞赛列表页面');
+INSERT INTO `sys_menu` VALUES (3002, '竞赛查询', 3001, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'student:hall:query', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (3010, '组队匹配中心', 0, 2, 'match', NULL, '', '', 1, 0, 'M', '0', '0', '', 'peoples', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生组队匹配目录');
+INSERT INTO `sys_menu` VALUES (3011, '匹配大厅', 3010, 1, 'index', 'student/match/index', '', 'StudentMatch', 1, 0, 'C', '0', '0', 'student:match:list', 'search', 'admin', '2026-05-31 16:34:51', '', NULL, '组队匹配-匹配大厅页面');
+INSERT INTO `sys_menu` VALUES (3012, '匹配查询', 3011, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'student:match:query', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (3013, '创建队伍', 3011, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'student:match:create', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (3020, '薪火相传', 0, 3, 'knowledge', NULL, '', '', 1, 0, 'M', '0', '0', '', 'education', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生知识库目录');
+INSERT INTO `sys_menu` VALUES (3021, '知识库', 3020, 1, 'index', 'student/knowledge/index', '', 'StudentKnowledge', 1, 0, 'C', '0', '0', 'student:knowledge:list', 'documentation', 'admin', '2026-05-31 16:34:51', '', NULL, '薪火相传-知识库页面');
+INSERT INTO `sys_menu` VALUES (3022, '知识库查询', 3021, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'student:knowledge:query', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (3030, '我的赛程', 0, 4, 'myrace', NULL, '', '', 1, 0, 'M', '0', '0', '', 'time-range', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生我的赛程目录');
+INSERT INTO `sys_menu` VALUES (3031, '我的竞赛', 3030, 1, 'race', 'student/race/index', '', 'StudentRace', 1, 0, 'C', '0', '0', 'student:race:list', 'chart', 'admin', '2026-05-31 16:34:51', '', NULL, '我的赛程-我的竞赛页面');
+INSERT INTO `sys_menu` VALUES (3032, '赛程查询', 3031, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'student:race:query', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (3033, '上传凭证', 3031, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'student:race:upload', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
 
 -- ----------------------------
 -- Table structure for sys_notice
@@ -795,7 +817,7 @@ CREATE TABLE `sys_notice`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`notice_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '通知公告表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '通知公告表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_notice
@@ -813,7 +835,7 @@ CREATE TABLE `sys_notice_read`  (
   `read_time` datetime NOT NULL COMMENT '阅读时间',
   PRIMARY KEY (`read_id`) USING BTREE,
   UNIQUE INDEX `uk_user_notice`(`user_id` ASC, `notice_id` ASC) USING BTREE COMMENT '同一用户同一公告只记录一次'
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公告已读记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '公告已读记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_notice_read
@@ -845,7 +867,7 @@ CREATE TABLE `sys_oper_log`  (
   INDEX `idx_sys_oper_log_bt`(`business_type` ASC) USING BTREE,
   INDEX `idx_sys_oper_log_s`(`status` ASC) USING BTREE,
   INDEX `idx_sys_oper_log_ot`(`oper_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 103 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 135 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志记录' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_oper_log
@@ -853,6 +875,38 @@ CREATE TABLE `sys_oper_log`  (
 INSERT INTO `sys_oper_log` VALUES (100, '保存部门排序', 2, 'com.ruoyi.web.controller.system.SysDeptController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/dept/updateSort', '127.0.0.1', '内网IP', '{\"deptIds\":\"100\",\"orderNums\":\"2\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-29 16:10:37', 28);
 INSERT INTO `sys_oper_log` VALUES (101, '保存部门排序', 2, 'com.ruoyi.web.controller.system.SysDeptController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/dept/updateSort', '127.0.0.1', '内网IP', '{\"deptIds\":\"100,301\",\"orderNums\":\"1,2\"} ', NULL, 1, '当前层级下已存在排序号 2，请重新输入', '2026-05-29 16:10:46', 14);
 INSERT INTO `sys_oper_log` VALUES (102, '保存部门排序', 2, 'com.ruoyi.web.controller.system.SysDeptController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/dept/updateSort', '127.0.0.1', '内网IP', '{\"deptIds\":\"100\",\"orderNums\":\"1\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-29 16:10:49', 10);
+INSERT INTO `sys_oper_log` VALUES (103, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', NULL, '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"competition/apply/index\",\"createTime\":\"2026-05-29 16:14:21\",\"icon\":\"select\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":202,\"menuName\":\"报名审核\",\"menuType\":\"C\",\"orderNum\":3,\"params\":{},\"parentId\":2,\"path\":\"apply\",\"perms\":\"competition:apply:list\",\"query\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"0\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-29 17:48:07', 23);
+INSERT INTO `sys_oper_log` VALUES (104, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"3\",\"orderNums\":\"4\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 17:44:39', 78);
+INSERT INTO `sys_oper_log` VALUES (105, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1,2,3\",\"orderNums\":\"2,1,3\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 17:44:48', 9);
+INSERT INTO `sys_oper_log` VALUES (106, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"3\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 18:35:47', 7);
+INSERT INTO `sys_oper_log` VALUES (107, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"2\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 18:35:49', 5);
+INSERT INTO `sys_oper_log` VALUES (108, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"1\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 18:36:26', 23);
+INSERT INTO `sys_oper_log` VALUES (109, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"2\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 18:36:28', 5);
+INSERT INTO `sys_oper_log` VALUES (110, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"3\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 18:38:40', 5);
+INSERT INTO `sys_oper_log` VALUES (111, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"2\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 18:49:08', 5);
+INSERT INTO `sys_oper_log` VALUES (112, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"3\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 18:49:10', 5);
+INSERT INTO `sys_oper_log` VALUES (113, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"2\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-30 18:49:37', 27);
+INSERT INTO `sys_oper_log` VALUES (114, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1\",\"orderNums\":\"3\"} ', NULL, 1, '当前菜单层级下已存在该排序号 3，请重新输入', '2026-05-30 18:49:39', 10);
+INSERT INTO `sys_oper_log` VALUES (115, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"2,1\",\"orderNums\":\"2,1\"} ', NULL, 1, '当前菜单层级下已存在该排序号 2，请重新输入', '2026-05-30 18:49:44', 7);
+INSERT INTO `sys_oper_log` VALUES (116, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"2,1\",\"orderNums\":\"2,1\"} ', NULL, 1, '当前菜单层级下已存在该排序号 2，请重新输入', '2026-05-30 18:49:46', 7);
+INSERT INTO `sys_oper_log` VALUES (117, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"2,1\",\"orderNums\":\"3,1\"} ', NULL, 1, '当前菜单层级下已存在该排序号 3，请重新输入', '2026-05-30 18:49:49', 8);
+INSERT INTO `sys_oper_log` VALUES (118, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"2,1\",\"orderNums\":\"2,1\"} ', NULL, 1, '当前菜单层级下已存在该排序号 2，请重新输入', '2026-05-30 18:50:00', 6);
+INSERT INTO `sys_oper_log` VALUES (119, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"2,1\",\"orderNums\":\"2,1\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 13:31:26', 32);
+INSERT INTO `sys_oper_log` VALUES (120, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"2,1\",\"orderNums\":\"1,2\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 13:31:35', 16);
+INSERT INTO `sys_oper_log` VALUES (121, '保存部门排序', 2, 'com.ruoyi.web.controller.system.SysDeptController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/dept/updateSort', '127.0.0.1', '内网IP', '{\"deptIds\":\"301,302\",\"orderNums\":\"2,1\"} ', NULL, 1, '当前层级下已存在排序号 2，请重新输入', '2026-05-31 13:31:51', 9);
+INSERT INTO `sys_oper_log` VALUES (122, '保存部门排序', 2, 'com.ruoyi.web.controller.system.SysDeptController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/dept/updateSort', '127.0.0.1', '内网IP', '{\"deptIds\":\"301,302\",\"orderNums\":\"2,1\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 13:35:14', 40);
+INSERT INTO `sys_oper_log` VALUES (123, '用户管理', 2, 'com.ruoyi.web.controller.system.SysUserController.edit()', 'PUT', 1, 'admin', NULL, '/system/user', '127.0.0.1', '内网IP', '{\"admin\":false,\"avatar\":\"\",\"createBy\":\"admin\",\"createTime\":\"2026-05-29 16:02:15\",\"delFlag\":\"0\",\"dept\":{\"children\":[],\"deptId\":101,\"params\":{}},\"deptId\":101,\"email\":\"student01@tlxy.edu.cn\",\"loginDate\":\"2026-05-29 16:02:15\",\"loginIp\":\"127.0.0.1\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"postIds\":[4],\"pwdUpdateDate\":\"2026-05-29 16:02:15\",\"remark\":\"计算机学院学生\",\"roleIds\":[100],\"roles\":[{\"admin\":false,\"dataScope\":\"1\",\"deptCheckStrictly\":false,\"flag\":false,\"menuCheckStrictly\":false,\"params\":{},\"roleId\":100,\"roleKey\":\"student\",\"roleName\":\"参赛学生\",\"roleSort\":3,\"status\":\"0\"}],\"sex\":\"1\",\"status\":\"0\",\"updateBy\":\"admin\",\"userId\":3,\"userName\":\"student01\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 14:55:27', 22);
+INSERT INTO `sys_oper_log` VALUES (124, '用户管理', 2, 'com.ruoyi.web.controller.system.SysUserController.resetPwd()', 'PUT', 1, 'admin', NULL, '/system/user/resetPwd', '127.0.0.1', '内网IP', '{\"admin\":false,\"params\":{},\"updateBy\":\"admin\",\"userId\":3} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 14:56:18', 75);
+INSERT INTO `sys_oper_log` VALUES (125, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3034', '127.0.0.1', '内网IP', '3034 ', '{\"msg\":\"存在子菜单,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 16:40:37', 7);
+INSERT INTO `sys_oper_log` VALUES (126, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3034', '127.0.0.1', '内网IP', '3034 ', '{\"msg\":\"存在子菜单,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 16:40:43', 2);
+INSERT INTO `sys_oper_log` VALUES (127, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3035', '127.0.0.1', '内网IP', '3035 ', '{\"msg\":\"菜单已分配,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 16:40:52', 3);
+INSERT INTO `sys_oper_log` VALUES (128, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3035', '127.0.0.1', '内网IP', '3035 ', '{\"msg\":\"菜单已分配,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 16:40:58', 3);
+INSERT INTO `sys_oper_log` VALUES (129, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3036', '127.0.0.1', '内网IP', '3036 ', '{\"msg\":\"菜单已分配,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 16:42:33', 4);
+INSERT INTO `sys_oper_log` VALUES (130, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3034', '127.0.0.1', '内网IP', '3034 ', '{\"msg\":\"存在子菜单,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 20:52:46', 4);
+INSERT INTO `sys_oper_log` VALUES (131, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3031', '127.0.0.1', '内网IP', '3031 ', '{\"msg\":\"存在子菜单,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 20:53:05', 2);
+INSERT INTO `sys_oper_log` VALUES (132, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3036', '127.0.0.1', '内网IP', '3036 ', '{\"msg\":\"菜单已分配,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 20:54:32', 7);
+INSERT INTO `sys_oper_log` VALUES (133, '角色管理', 2, 'com.ruoyi.web.controller.system.SysRoleController.edit()', 'PUT', 1, 'admin', NULL, '/system/role', '127.0.0.1', '内网IP', '{\"admin\":false,\"createTime\":\"2026-05-29 16:02:15\",\"dataScope\":\"2\",\"delFlag\":\"0\",\"deptCheckStrictly\":true,\"flag\":false,\"menuCheckStrictly\":true,\"menuIds\":[],\"params\":{},\"remark\":\"指导教师\",\"roleId\":2,\"roleKey\":\"teacher\",\"roleName\":\"指导教师\",\"roleSort\":2,\"status\":\"0\",\"updateBy\":\"admin\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 20:56:28', 33);
+INSERT INTO `sys_oper_log` VALUES (134, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 21:08:16', 16);
 
 -- ----------------------------
 -- Table structure for sys_post
@@ -870,7 +924,7 @@ CREATE TABLE `sys_post`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`post_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '岗位信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '岗位信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_post
@@ -900,14 +954,14 @@ CREATE TABLE `sys_role`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`role_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 101 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 101 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role
 -- ----------------------------
 INSERT INTO `sys_role` VALUES (1, '超级管理员', 'admin', 1, '1', 1, 1, '0', '0', 'admin', '2026-05-29 16:02:15', '', NULL, '超级管理员');
-INSERT INTO `sys_role` VALUES (2, '老师', 'teacher', 2, '2', 1, 1, '0', '0', 'admin', '2026-05-29 16:02:15', '', NULL, '老师');
-INSERT INTO `sys_role` VALUES (100, '学生', 'student', 3, '1', 1, 1, '0', '0', 'admin', '2026-05-29 16:02:15', '', NULL, '学生');
+INSERT INTO `sys_role` VALUES (2, '指导教师', 'teacher', 2, '2', 1, 1, '0', '0', 'admin', '2026-05-29 16:02:15', 'admin', '2026-05-31 20:56:28', '指导教师');
+INSERT INTO `sys_role` VALUES (100, '参赛学生', 'student', 3, '1', 1, 1, '0', '0', 'admin', '2026-05-29 16:02:15', '', NULL, '参赛学生');
 
 -- ----------------------------
 -- Table structure for sys_role_dept
@@ -917,7 +971,7 @@ CREATE TABLE `sys_role_dept`  (
   `role_id` bigint NOT NULL COMMENT '角色ID',
   `dept_id` bigint NOT NULL COMMENT '部门ID',
   PRIMARY KEY (`role_id`, `dept_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色和部门关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色和部门关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role_dept
@@ -934,13 +988,12 @@ CREATE TABLE `sys_role_menu`  (
   `role_id` bigint NOT NULL COMMENT '角色ID',
   `menu_id` bigint NOT NULL COMMENT '菜单ID',
   PRIMARY KEY (`role_id`, `menu_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色和菜单关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色和菜单关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_role_menu
 -- ----------------------------
 INSERT INTO `sys_role_menu` VALUES (1, 1);
-INSERT INTO `sys_role_menu` VALUES (1, 2);
 INSERT INTO `sys_role_menu` VALUES (1, 3);
 INSERT INTO `sys_role_menu` VALUES (1, 4);
 INSERT INTO `sys_role_menu` VALUES (1, 100);
@@ -962,9 +1015,6 @@ INSERT INTO `sys_role_menu` VALUES (1, 115);
 INSERT INTO `sys_role_menu` VALUES (1, 116);
 INSERT INTO `sys_role_menu` VALUES (1, 117);
 INSERT INTO `sys_role_menu` VALUES (1, 118);
-INSERT INTO `sys_role_menu` VALUES (1, 200);
-INSERT INTO `sys_role_menu` VALUES (1, 201);
-INSERT INTO `sys_role_menu` VALUES (1, 202);
 INSERT INTO `sys_role_menu` VALUES (1, 1000);
 INSERT INTO `sys_role_menu` VALUES (1, 1001);
 INSERT INTO `sys_role_menu` VALUES (1, 1002);
@@ -1014,47 +1064,20 @@ INSERT INTO `sys_role_menu` VALUES (1, 1170);
 INSERT INTO `sys_role_menu` VALUES (1, 1171);
 INSERT INTO `sys_role_menu` VALUES (1, 1172);
 INSERT INTO `sys_role_menu` VALUES (1, 1173);
-INSERT INTO `sys_role_menu` VALUES (1, 2000);
-INSERT INTO `sys_role_menu` VALUES (1, 2001);
-INSERT INTO `sys_role_menu` VALUES (1, 2002);
-INSERT INTO `sys_role_menu` VALUES (1, 2003);
-INSERT INTO `sys_role_menu` VALUES (1, 2010);
-INSERT INTO `sys_role_menu` VALUES (1, 2011);
-INSERT INTO `sys_role_menu` VALUES (1, 2012);
-INSERT INTO `sys_role_menu` VALUES (1, 2020);
-INSERT INTO `sys_role_menu` VALUES (1, 2021);
-INSERT INTO `sys_role_menu` VALUES (1, 2022);
-INSERT INTO `sys_role_menu` VALUES (1, 2101);
-INSERT INTO `sys_role_menu` VALUES (1, 2102);
-INSERT INTO `sys_role_menu` VALUES (1, 2103);
-INSERT INTO `sys_role_menu` VALUES (2, 2);
-INSERT INTO `sys_role_menu` VALUES (2, 100);
-INSERT INTO `sys_role_menu` VALUES (2, 103);
-INSERT INTO `sys_role_menu` VALUES (2, 200);
-INSERT INTO `sys_role_menu` VALUES (2, 201);
-INSERT INTO `sys_role_menu` VALUES (2, 202);
-INSERT INTO `sys_role_menu` VALUES (2, 1000);
-INSERT INTO `sys_role_menu` VALUES (2, 2000);
-INSERT INTO `sys_role_menu` VALUES (2, 2001);
-INSERT INTO `sys_role_menu` VALUES (2, 2002);
-INSERT INTO `sys_role_menu` VALUES (2, 2003);
-INSERT INTO `sys_role_menu` VALUES (2, 2010);
-INSERT INTO `sys_role_menu` VALUES (2, 2011);
-INSERT INTO `sys_role_menu` VALUES (2, 2012);
-INSERT INTO `sys_role_menu` VALUES (2, 2020);
-INSERT INTO `sys_role_menu` VALUES (2, 2021);
-INSERT INTO `sys_role_menu` VALUES (2, 2022);
-INSERT INTO `sys_role_menu` VALUES (2, 2101);
-INSERT INTO `sys_role_menu` VALUES (2, 2102);
-INSERT INTO `sys_role_menu` VALUES (2, 2103);
-INSERT INTO `sys_role_menu` VALUES (100, 2);
-INSERT INTO `sys_role_menu` VALUES (100, 200);
-INSERT INTO `sys_role_menu` VALUES (100, 201);
-INSERT INTO `sys_role_menu` VALUES (100, 2010);
-INSERT INTO `sys_role_menu` VALUES (100, 2011);
-INSERT INTO `sys_role_menu` VALUES (100, 2012);
-INSERT INTO `sys_role_menu` VALUES (100, 2101);
-INSERT INTO `sys_role_menu` VALUES (100, 2102);
+INSERT INTO `sys_role_menu` VALUES (100, 3000);
+INSERT INTO `sys_role_menu` VALUES (100, 3001);
+INSERT INTO `sys_role_menu` VALUES (100, 3002);
+INSERT INTO `sys_role_menu` VALUES (100, 3010);
+INSERT INTO `sys_role_menu` VALUES (100, 3011);
+INSERT INTO `sys_role_menu` VALUES (100, 3012);
+INSERT INTO `sys_role_menu` VALUES (100, 3013);
+INSERT INTO `sys_role_menu` VALUES (100, 3020);
+INSERT INTO `sys_role_menu` VALUES (100, 3021);
+INSERT INTO `sys_role_menu` VALUES (100, 3022);
+INSERT INTO `sys_role_menu` VALUES (100, 3030);
+INSERT INTO `sys_role_menu` VALUES (100, 3031);
+INSERT INTO `sys_role_menu` VALUES (100, 3032);
+INSERT INTO `sys_role_menu` VALUES (100, 3033);
 
 -- ----------------------------
 -- Table structure for sys_user
@@ -1076,22 +1099,25 @@ CREATE TABLE `sys_user`  (
   `login_ip` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '最后登录IP',
   `login_date` datetime NULL DEFAULT NULL COMMENT '最后登录时间',
   `pwd_update_date` datetime NULL DEFAULT NULL COMMENT '密码最后更新时间',
+  `student_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '学号',
+  `grade` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '年级',
+  `skill_tags` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '技能标签',
   `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '创建者',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`user_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, NULL, 'admin', 'admin', '00', 'admin@tlxy.edu.cn', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:24:30', '2026-05-29 16:02:15', 'admin', '2026-05-29 16:02:15', '', NULL, '超级管理员');
-INSERT INTO `sys_user` VALUES (2, 101, 'teacher01', '张老师', '00', 'teacher01@tlxy.edu.cn', '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', 'admin', '2026-05-29 16:02:15', '', NULL, '计算机学院老师');
-INSERT INTO `sys_user` VALUES (3, 101, 'student01', '李四同学', '00', 'student01@tlxy.edu.cn', '15777777777', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', 'admin', '2026-05-29 16:02:15', '', NULL, '计算机学院学生');
-INSERT INTO `sys_user` VALUES (4, 201, 'teacher02', '王老师', '00', 'teacher02@tlxy.edu.cn', '15888888889', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', 'admin', '2026-05-29 16:02:15', '', NULL, '电气工程学院老师');
-INSERT INTO `sys_user` VALUES (5, 201, 'student02', '赵同学', '00', 'student02@tlxy.edu.cn', '15999999999', '2', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', 'admin', '2026-05-29 16:02:15', '', NULL, '电气工程学院学生');
+INSERT INTO `sys_user` VALUES (1, NULL, 'admin', 'admin', '00', 'admin@tlxy.edu.cn', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-31 21:08:49', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '超级管理员');
+INSERT INTO `sys_user` VALUES (2, 101, 'teacher01', '张老师', '00', 'teacher01@tlxy.edu.cn', '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '计算机学院老师');
+INSERT INTO `sys_user` VALUES (3, 101, 'student01', 'yu', '00', 'student01@tlxy.edu.cn', '15777777777', '1', '', '$2a$10$7Twf9K.Ww7iS/f1HT2B7busjKcnMSgUqQJ/.2ZeASHOhLqnxZ.LGy', '0', '0', '127.0.0.1', '2026-05-31 21:09:17', '2026-05-31 14:56:18', '2206161033', '2022级', NULL, 'admin', '2026-05-29 16:02:15', 'admin', '2026-05-31 21:08:15', '计算机学院学生');
+INSERT INTO `sys_user` VALUES (4, 201, 'teacher02', '王老师', '00', 'teacher02@tlxy.edu.cn', '15888888889', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '电气工程学院老师');
+INSERT INTO `sys_user` VALUES (5, 201, 'student02', '赵同学', '00', 'student02@tlxy.edu.cn', '15999999999', '2', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '电气工程学院学生');
 
 -- ----------------------------
 -- Table structure for sys_user_post
@@ -1101,7 +1127,7 @@ CREATE TABLE `sys_user_post`  (
   `user_id` bigint NOT NULL COMMENT '用户ID',
   `post_id` bigint NOT NULL COMMENT '岗位ID',
   PRIMARY KEY (`user_id`, `post_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户和岗位关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户和岗位关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user_post
@@ -1120,7 +1146,7 @@ CREATE TABLE `sys_user_role`  (
   `user_id` bigint NOT NULL COMMENT '用户ID',
   `role_id` bigint NOT NULL COMMENT '角色ID',
   PRIMARY KEY (`user_id`, `role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户和角色关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户和角色关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user_role

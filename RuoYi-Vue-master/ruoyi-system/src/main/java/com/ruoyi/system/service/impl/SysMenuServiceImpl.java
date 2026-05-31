@@ -309,6 +309,11 @@ public class SysMenuServiceImpl implements ISysMenuService
     @Override
     public int insertMenu(SysMenu menu)
     {
+        // 校验同级排序号是否唯一
+        if (!checkMenuOrderNumUnique(menu))
+        {
+            throw new ServiceException("当前菜单层级下已存在该排序号，请重新输入");
+        }
         return menuMapper.insertMenu(menu);
     }
 
@@ -321,6 +326,11 @@ public class SysMenuServiceImpl implements ISysMenuService
     @Override
     public int updateMenu(SysMenu menu)
     {
+        // 校验同级排序号是否唯一
+        if (!checkMenuOrderNumUnique(menu))
+        {
+            throw new ServiceException("当前菜单层级下已存在该排序号，请重新输入");
+        }
         return menuMapper.updateMenu(menu);
     }
 
@@ -334,6 +344,41 @@ public class SysMenuServiceImpl implements ISysMenuService
     @Transactional
     public void updateMenuSort(String[] menuIds, String[] orderNums)
     {
+        // 内存防撞：先校验提交的排序号中是否有重复
+        List<Integer> orderNumList = new ArrayList<>();
+        for (String orderNum : orderNums)
+        {
+            orderNumList.add(Convert.toInt(orderNum));
+        }
+        if (orderNumList.stream().distinct().count() < orderNumList.size())
+        {
+            throw new ServiceException("提交的排序号中存在重复，请检查");
+        }
+        // 为了解决批量互换序号时的状态错位问题，提取当前批次所有菜单ID组成豁免名单
+        List<Long> updateMenuIds = new ArrayList<>();
+        for (String menuId : menuIds)
+        {
+            updateMenuIds.add(Convert.toLong(menuId));
+        }
+        // 先校验每个菜单的排序号在同级中是否唯一（排除当前批次所有菜单）
+        for (int i = 0; i < menuIds.length; i++)
+        {
+            Long menuId = Convert.toLong(menuIds[i]);
+            Integer orderNum = Convert.toInt(orderNums[i]);
+            SysMenu menu = menuMapper.selectMenuById(menuId);
+            if (menu != null)
+            {
+                SysMenu checkMenu = new SysMenu();
+                checkMenu.setMenuId(menuId);
+                checkMenu.setParentId(menu.getParentId());
+                checkMenu.setOrderNum(orderNum);
+                if (!checkMenuOrderNumUnique(checkMenu, updateMenuIds))
+                {
+                    throw new ServiceException("当前菜单层级下已存在该排序号 " + orderNum + "，请重新输入");
+                }
+            }
+        }
+        // 校验通过后执行更新
         try
         {
             for (int i = 0; i < menuIds.length; i++)
@@ -348,6 +393,36 @@ public class SysMenuServiceImpl implements ISysMenuService
         {
             throw new ServiceException("保存排序异常，请联系管理员");
         }
+    }
+
+    /**
+     * 校验菜单排序号是否唯一（同级）
+     * 
+     * @param menu 菜单信息
+     * @return 结果
+     */
+    private boolean checkMenuOrderNumUnique(SysMenu menu)
+    {
+        return checkMenuOrderNumUnique(menu, null);
+    }
+
+    /**
+     * 校验菜单排序号是否唯一（同级，支持豁免名单）
+     * 为了解决批量互换序号时的状态错位问题，excludeMenuIds 可传入当前批次所有菜单ID以豁免检查
+     * 
+     * @param menu 菜单信息
+     * @param excludeMenuIds 豁免菜单ID列表
+     * @return 结果
+     */
+    private boolean checkMenuOrderNumUnique(SysMenu menu, List<Long> excludeMenuIds)
+    {
+        Long menuId = StringUtils.isNull(menu.getMenuId()) ? -1L : menu.getMenuId();
+        SysMenu info = menuMapper.checkMenuOrderNumUnique(menu.getOrderNum(), menu.getParentId(), menuId, excludeMenuIds);
+        if (StringUtils.isNotNull(info) && info.getMenuId().longValue() != menuId.longValue())
+        {
+            return UserConstants.NOT_UNIQUE;
+        }
+        return UserConstants.UNIQUE;
     }
 
     /**

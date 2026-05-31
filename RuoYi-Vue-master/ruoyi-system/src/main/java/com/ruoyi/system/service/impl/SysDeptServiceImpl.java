@@ -193,8 +193,21 @@ public class SysDeptServiceImpl implements ISysDeptService
     @Override
     public boolean checkOrderNumUnique(SysDept dept)
     {
+        return checkOrderNumUnique(dept, null);
+    }
+
+    /**
+     * 校验部门排序号是否唯一（支持豁免名单）
+     * 为了解决批量互换序号时的状态错位问题，excludeDeptIds 可传入当前批次所有部门ID以豁免检查
+     * 
+     * @param dept 部门信息
+     * @param excludeDeptIds 豁免部门ID列表
+     * @return 结果
+     */
+    private boolean checkOrderNumUnique(SysDept dept, List<Long> excludeDeptIds)
+    {
         Long deptId = StringUtils.isNull(dept.getDeptId()) ? -1L : dept.getDeptId();
-        SysDept info = deptMapper.checkOrderNumUnique(dept.getOrderNum(), dept.getParentId(), deptId);
+        SysDept info = deptMapper.checkOrderNumUnique(dept.getOrderNum(), dept.getParentId(), deptId, excludeDeptIds);
         if (StringUtils.isNotNull(info) && info.getDeptId().longValue() != deptId.longValue())
         {
             return UserConstants.NOT_UNIQUE;
@@ -321,9 +334,25 @@ public class SysDeptServiceImpl implements ISysDeptService
     @Transactional
     public void updateDeptSort(String[] deptIds, String[] orderNums)
     {
+        // 内存防撞：先校验提交的排序号中是否有重复
+        List<Integer> orderNumList = new ArrayList<>();
+        for (String orderNum : orderNums)
+        {
+            orderNumList.add(Convert.toInt(orderNum));
+        }
+        if (orderNumList.stream().distinct().count() < orderNumList.size())
+        {
+            throw new ServiceException("提交的排序号中存在重复，请检查");
+        }
+        // 为了解决批量互换序号时的状态错位问题，提取当前批次所有部门ID组成豁免名单
+        List<Long> updateDeptIds = new ArrayList<>();
+        for (String deptId : deptIds)
+        {
+            updateDeptIds.add(Convert.toLong(deptId));
+        }
         try
         {
-            // 先校验每个部门的排序号在同级中是否唯一（检查数据库）
+            // 先校验每个部门的排序号在同级中是否唯一（排除当前批次所有部门）
             for (int i = 0; i < deptIds.length; i++)
             {
                 Long deptId = Convert.toLong(deptIds[i]);
@@ -333,13 +362,13 @@ public class SysDeptServiceImpl implements ISysDeptService
                 SysDept dept = deptMapper.selectDeptById(deptId);
                 if (dept != null)
                 {
-                    // 使用 checkOrderNumUnique 检查数据库中是否存在同级相同排序号
+                    // 使用 checkOrderNumUnique 检查数据库中是否存在同级相同排序号（豁免当前批次）
                     SysDept checkDept = new SysDept();
                     checkDept.setDeptId(deptId);
                     checkDept.setParentId(dept.getParentId());
                     checkDept.setOrderNum(orderNum);
                     
-                    if (!checkOrderNumUnique(checkDept))
+                    if (!checkOrderNumUnique(checkDept, updateDeptIds))
                     {
                         throw new ServiceException("当前层级下已存在排序号 " + orderNum + "，请重新输入");
                     }

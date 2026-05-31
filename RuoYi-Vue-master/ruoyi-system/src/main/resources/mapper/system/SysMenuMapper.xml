@@ -208,6 +208,23 @@
 	    update sys_menu set order_num = #{orderNum} where menu_id = #{menuId}
 	</update>
 
+	<!-- 校验菜单排序号是否唯一（同级，支持更新时排除自身及豁免名单） -->
+	<select id="checkMenuOrderNumUnique" resultMap="SysMenuResult">
+		<include refid="selectMenuVo"/>
+		where order_num = #{orderNum} and parent_id = #{parentId}
+		<if test="menuId != null and menuId != 0L">
+			and menu_id != #{menuId}
+		</if>
+		<!-- 为了解决批量互换序号时的状态错位问题，排除当前批次的所有菜单ID -->
+		<if test="excludeMenuIds != null and excludeMenuIds.size() > 0">
+			and menu_id not in
+			<foreach collection="excludeMenuIds" item="excludeId" open="(" separator="," close=")">
+				#{excludeId}
+			</foreach>
+		</if>
+		limit 1
+	</select>
+
 	<delete id="deleteMenuById" parameterType="Long">
 	    delete from sys_menu where menu_id = #{menuId}
 	</delete>

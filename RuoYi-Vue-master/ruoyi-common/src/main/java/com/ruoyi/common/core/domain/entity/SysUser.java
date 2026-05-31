@@ -77,6 +77,16 @@ public class SysUser extends BaseEntity
     /** 密码最后更新时间 */
     private Date pwdUpdateDate;
 
+    // 竞赛系统扩展：参赛学生专属字段
+    /** 学号 */
+    private String studentNo;
+
+    /** 年级（如：2024级） */
+    private String grade;
+
+    /** 技能标签（逗号分隔，如：编程,PPT,路演） */
+    private String skillTags;
+
     /** 部门对象 */
     @Excels({
         @Excel(name = "部门名称", targetAttr = "deptName", type = Type.EXPORT),
@@ -260,6 +270,37 @@ public class SysUser extends BaseEntity
         this.pwdUpdateDate = pwdUpdateDate;
     }
 
+    // 竞赛系统扩展：参赛学生专属字段 getter/setter
+    public String getStudentNo()
+    {
+        return studentNo;
+    }
+
+    public void setStudentNo(String studentNo)
+    {
+        this.studentNo = studentNo;
+    }
+
+    public String getGrade()
+    {
+        return grade;
+    }
+
+    public void setGrade(String grade)
+    {
+        this.grade = grade;
+    }
+
+    public String getSkillTags()
+    {
+        return skillTags;
+    }
+
+    public void setSkillTags(String skillTags)
+    {
+        this.skillTags = skillTags;
+    }
+
     public SysDept getDept()
     {
         return dept;
@@ -327,6 +368,9 @@ public class SysUser extends BaseEntity
             .append("loginIp", getLoginIp())
             .append("loginDate", getLoginDate())
             .append("pwdUpdateDate", getPwdUpdateDate())
+            .append("studentNo", getStudentNo())
+            .append("grade", getGrade())
+            .append("skillTags", getSkillTags())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())
