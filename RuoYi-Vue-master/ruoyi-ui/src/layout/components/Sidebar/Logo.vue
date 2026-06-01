@@ -14,6 +14,7 @@
 </template>
 
 <script setup>
+import SchoolLogo from '@/components/SchoolLogo.vue'
 import useSettingsStore from '@/store/modules/settings'
 import variables from '@/assets/styles/variables.module.scss'
 

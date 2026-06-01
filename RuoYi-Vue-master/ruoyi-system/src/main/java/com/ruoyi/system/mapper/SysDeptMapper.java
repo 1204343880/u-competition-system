@@ -83,10 +83,9 @@ public interface SysDeptMapper
      * @param orderNum 排序号
      * @param parentId 父部门ID
      * @param deptId 部门ID（修改时排除）
-     * @param excludeDeptIds 豁免部门ID列表（批量操作时排除整个批次，解决互换序号时的状态错位问题）
      * @return 结果
      */
-    public SysDept checkOrderNumUnique(@Param("orderNum") Integer orderNum, @Param("parentId") Long parentId, @Param("deptId") Long deptId, @Param("excludeDeptIds") List<Long> excludeDeptIds);
+    public SysDept checkOrderNumUnique(@Param("orderNum") Integer orderNum, @Param("parentId") Long parentId, @Param("deptId") Long deptId);
 
     /**
      * 新增部门信息

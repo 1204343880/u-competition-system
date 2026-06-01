@@ -7,9 +7,7 @@
           <template #header>
             <span>技能标签筛选</span>
           </template>
-          <el-checkbox-group v-model="selectedSkills">
-            <el-checkbox v-for="skill in skillOptions" :key="skill" :label="skill" :value="skill" />
-          </el-checkbox-group>
+          <SkillSelector v-model="selectedSkills" />
           <el-divider />
           <el-button type="primary" icon="Search" @click="handleSearch">匹配检索</el-button>
           <el-button icon="Refresh" @click="resetSkills">重置</el-button>
@@ -62,13 +60,14 @@
  * 学生可创建新队伍或申请加入已有队伍
  */
 
+import SkillSelector from '@/components/SkillSelector/index.vue'
+
 const { proxy } = getCurrentInstance()
 
 const teamList = ref([])
 const loading = ref(false)
 const total = ref(0)
 
-const skillOptions = ['路演', 'PPT', '编程', '建模', '设计', '文案', '演讲', '数据分析']
 const selectedSkills = ref([])
 
 const queryParams = ref({

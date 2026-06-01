@@ -4,14 +4,10 @@
          <el-col :span="6" :xs="24">
             <el-card class="box-card">
                <template v-slot:header>
-                 <div class="clearfix">
-                   <span>个人信息</span>
-                 </div>
+                 <div class="clearfix"><span>个人信息</span></div>
                </template>
                <div>
-                  <div class="text-center">
-                     <userAvatar />
-                  </div>
+                  <div class="text-center"><userAvatar /></div>
                   <ul class="list-group list-group-striped">
                      <li class="list-group-item">
                         <svg-icon icon-class="user" />用户名称
@@ -25,6 +21,16 @@
                         <svg-icon icon-class="email" />用户邮箱
                         <div class="pull-right">{{ state.user.email }}</div>
                      </li>
+                     <template v-if="isStudent">
+                        <li class="list-group-item">
+                           <svg-icon icon-class="guide" />学号
+                           <div class="pull-right">{{ state.user.studentNo || '-' }}</div>
+                        </li>
+                        <li class="list-group-item">
+                           <svg-icon icon-class="education" />年级
+                           <div class="pull-right">{{ state.user.grade || '-' }}</div>
+                        </li>
+                     </template>
                      <li class="list-group-item">
                         <svg-icon icon-class="tree" />所属部门
                         <div class="pull-right" v-if="state.user.dept">{{ state.user.dept.deptName }} / {{ state.postGroup }}</div>
@@ -44,9 +50,7 @@
          <el-col :span="18" :xs="24">
             <el-card>
                <template v-slot:header>
-                 <div class="clearfix">
-                   <span>基本资料</span>
-                 </div>
+                 <div class="clearfix"><span>基本资料</span></div>
                </template>
                <el-tabs v-model="selectedTab">
                   <el-tab-pane label="基本资料" name="userinfo">
@@ -76,12 +80,17 @@ const state = reactive({
   postGroup: {}
 })
 
+const isStudent = computed(() => {
+  const roles = state.user?.roles
+  return Array.isArray(roles) && roles.some(role => role.roleKey === 'student')
+})
+
 function getUser() {
   getUserProfile().then(response => {
-    state.user = response.data
-    state.roleGroup = response.roleGroup
-    state.postGroup = response.postGroup
-  })
+    state.user = response.data || {}
+    state.roleGroup = response.roleGroup || ''
+    state.postGroup = response.postGroup || ''
+  }).catch(() => {})
 }
 
 onMounted(() => {
