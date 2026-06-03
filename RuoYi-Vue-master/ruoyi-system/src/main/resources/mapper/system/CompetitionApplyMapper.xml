@@ -16,6 +16,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="auditStatus"    column="audit_status"    />
         <result property="auditTime"      column="audit_time"      />
         <result property="auditRemark"    column="audit_remark"    />
+        <result property="auditBy"        column="audit_by"        />
         <result property="delFlag"        column="del_flag"        />
         <result property="createBy"       column="create_by"       />
         <result property="createTime"     column="create_time"     />
@@ -31,7 +32,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectApplyByCompetitionIdAndUserId" resultMap="CompetitionApplyResult">
         select apply_id, competition_id, user_id, user_name, nick_name,
                team_name, team_members, apply_time, audit_status, audit_time,
-               audit_remark, del_flag, create_by, create_time, update_by, update_time
+               audit_remark, audit_by, del_flag, create_by, create_time, update_by, update_time
         from competition_apply
         where competition_id = #{competitionId} and user_id = #{userId}
           and del_flag = '0'
@@ -62,13 +63,78 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where apply_id = #{applyId}
     </update>
 
+    <update id="deleteApply" parameterType="Long">
+        update competition_apply
+        set del_flag = '2',
+            update_time = sysdate()
+        where apply_id = #{applyId}
+    </update>
+
+    <update id="auditApply">
+        update competition_apply
+        set audit_status = #{auditStatus},
+            audit_remark = #{auditRemark},
+            audit_by     = #{auditBy},
+            audit_time   = sysdate(),
+            update_time  = sysdate()
+        where apply_id     = #{applyId}
+          and del_flag     = '0'
+          and audit_status = '0'
+    </update>
+
+    <select id="selectApplyAuditList" parameterType="CompetitionApply" resultMap="CompetitionApplyResult">
+        select a.apply_id, a.competition_id, a.user_id, a.user_name, a.nick_name,
+               a.team_name, a.team_members, a.apply_time, a.audit_status, a.audit_time,
+               a.audit_remark, a.audit_by, a.del_flag, a.create_by, a.create_time, a.update_by, a.update_time,
+               c.competition_name,
+               CASE
+                   WHEN NOW() &lt; c.apply_start_time THEN '3'
+                   WHEN NOW() BETWEEN c.apply_start_time AND c.apply_end_time THEN '0'
+                   WHEN NOW() &lt; c.start_time THEN '3'
+                   WHEN NOW() BETWEEN c.start_time AND c.end_time THEN '1'
+                   ELSE '2'
+               END AS comp_status,
+               c.category_name, c.category
+        from competition_apply a
+        left join competition c on a.competition_id = c.competition_id
+        where a.del_flag = '0'
+        <if test="auditStatus != null and auditStatus != ''">
+            AND a.audit_status = #{auditStatus}
+        </if>
+        <if test="userName != null and userName != ''">
+            AND a.user_name like concat('%', #{userName}, '%')
+        </if>
+        <if test="competitionName != null and competitionName != ''">
+            AND c.competition_name like concat('%', #{competitionName}, '%')
+        </if>
+        order by a.apply_time desc
+    </select>
+
     <select id="selectApplyListByUserId" parameterType="Long" resultMap="CompetitionApplyResult">
-        select a.*, c.competition_name, c.status as comp_status,
+        select a.apply_id, a.competition_id, a.user_id, a.user_name, a.nick_name,
+               a.team_name, a.team_members, a.apply_time, a.audit_status, a.audit_time,
+               a.audit_remark, a.audit_by, a.del_flag, a.create_by, a.create_time, a.update_by, a.update_time,
+               c.competition_name,
+               CASE
+                   WHEN NOW() &lt; c.apply_start_time THEN '3'
+                   WHEN NOW() BETWEEN c.apply_start_time AND c.apply_end_time THEN '0'
+                   WHEN NOW() &lt; c.start_time THEN '3'
+                   WHEN NOW() BETWEEN c.start_time AND c.end_time THEN '1'
+                   ELSE '2'
+               END AS comp_status,
                c.category_name, c.category
         from competition_apply a
         left join competition c on a.competition_id = c.competition_id
         where a.user_id = #{userId} and a.del_flag = '0'
         order by a.apply_time desc
+    </select>
+
+    <select id="selectApplyByIdRaw" parameterType="Long" resultMap="CompetitionApplyResult">
+        select apply_id, competition_id, user_id, user_name, nick_name,
+               team_name, team_members, apply_time, audit_status, audit_time,
+               audit_remark, audit_by, del_flag, create_by, create_time, update_by, update_time
+        from competition_apply
+        where apply_id = #{applyId} and del_flag = '0'
     </select>
 
 </mapper>

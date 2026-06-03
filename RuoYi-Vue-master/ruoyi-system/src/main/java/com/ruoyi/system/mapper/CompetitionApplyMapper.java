@@ -12,4 +12,12 @@ public interface CompetitionApplyMapper
     int insertApply(CompetitionApply apply);
 
     int updateApply(CompetitionApply apply);
+
+    int deleteApply(Long applyId);
+
+    int auditApply(CompetitionApply apply);
+
+    List<CompetitionApply> selectApplyAuditList(CompetitionApply apply);
+
+    CompetitionApply selectApplyByIdRaw(Long applyId);
 }

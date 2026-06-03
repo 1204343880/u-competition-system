@@ -86,6 +86,8 @@ public interface SysUserMapper
      */
     public int updateUserStatus(@Param("userId") Long userId, @Param("status") String status);
 
+    public int updateShowInMarket(@Param("userId") Long userId, @Param("showInMarket") String showInMarket);
+
     /**
      * 更新用户登录信息（IP和登录时间）
      * 

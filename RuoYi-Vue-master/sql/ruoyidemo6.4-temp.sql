@@ -11,7 +11,7 @@
  Target Server Version : 80037 (8.0.37)
  File Encoding         : 65001
 
- Date: 31/05/2026 22:49:34
+ Date: 04/06/2026 03:29:16
 */
 
 SET NAMES utf8mb4;
@@ -32,11 +32,77 @@ CREATE TABLE `bus_competition`  (
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`comp_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '竞赛业务表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '竞赛业务表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of bus_competition
 -- ----------------------------
+
+-- ----------------------------
+-- Table structure for comp_team
+-- ----------------------------
+DROP TABLE IF EXISTS `comp_team`;
+CREATE TABLE `comp_team`  (
+  `team_id` bigint NOT NULL AUTO_INCREMENT COMMENT '队伍ID',
+  `competition_id` bigint NOT NULL COMMENT '竞赛ID',
+  `team_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '队名',
+  `leader_id` bigint NOT NULL COMMENT '队长用户ID',
+  `leader_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '队长姓名',
+  `teacher_id` bigint NULL DEFAULT NULL COMMENT '指导教师用户ID',
+  `teacher_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '指导教师姓名',
+  `invite_code` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邀请码(6位)',
+  `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '队伍状态(0组队中 1已提交 2审核通过)',
+  `max_members` int NULL DEFAULT 5 COMMENT '人数上限',
+  `current_members` int NULL DEFAULT 1 COMMENT '当前人数',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 2删除)',
+  `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '创建者',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '更新者',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
+  `is_public` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '是否公开招募(0否 1是)',
+  `needed_skills` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '所需技能标签,逗号分隔',
+  PRIMARY KEY (`team_id`) USING BTREE,
+  UNIQUE INDEX `uk_invite_code`(`invite_code` ASC) USING BTREE,
+  INDEX `idx_competition_id`(`competition_id` ASC) USING BTREE,
+  INDEX `idx_leader_id`(`leader_id` ASC) USING BTREE,
+  INDEX `idx_comp_team_teacher`(`teacher_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '竞赛队伍表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of comp_team
+-- ----------------------------
+INSERT INTO `comp_team` VALUES (1, 202, '一切可以队', 3, 'student01', NULL, NULL, 'N7VZBU', '0', 5, 1, '2', 'student01', '2026-06-03 14:37:38', '', '2026-06-03 14:46:43', NULL, '0', NULL);
+INSERT INTO `comp_team` VALUES (2, 202, 'ok队', 100, 'yao', NULL, NULL, '8SYFQ6', '0', 5, 2, '0', 'student01', '2026-06-03 14:52:15', 'yao', '2026-06-03 17:37:37', NULL, '1', '');
+INSERT INTO `comp_team` VALUES (3, 103, '111', 3, 'student01', NULL, NULL, '6BXQPD', '0', 5, 1, '0', 'student01', '2026-06-04 02:15:24', '', '2026-06-04 02:15:33', NULL, '0', '路演答辩,市场调研');
+
+-- ----------------------------
+-- Table structure for comp_team_member
+-- ----------------------------
+DROP TABLE IF EXISTS `comp_team_member`;
+CREATE TABLE `comp_team_member`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `team_id` bigint NOT NULL COMMENT '队伍ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `user_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户名',
+  `nick_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户昵称',
+  `join_time` datetime NULL DEFAULT NULL COMMENT '加入时间',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 2删除)',
+  `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '创建者',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_team_user`(`team_id` ASC, `user_id` ASC) USING BTREE,
+  INDEX `idx_team_id`(`team_id` ASC) USING BTREE,
+  INDEX `idx_user_id`(`user_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '队伍队员关联表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of comp_team_member
+-- ----------------------------
+INSERT INTO `comp_team_member` VALUES (1, 1, 3, 'student01', 'student01', '2026-06-03 14:37:38', '2', 'student01', '2026-06-03 14:37:38');
+INSERT INTO `comp_team_member` VALUES (2, 2, 3, 'student01', 'student01', '2026-06-03 14:52:15', '0', 'student01', '2026-06-03 14:52:15');
+INSERT INTO `comp_team_member` VALUES (3, 2, 100, 'yao', 'yao', '2026-06-03 14:56:36', '0', 'yao', '2026-06-03 14:56:36');
+INSERT INTO `comp_team_member` VALUES (4, 3, 3, 'student01', 'student01', '2026-06-04 02:15:24', '0', 'student01', '2026-06-04 02:15:24');
 
 -- ----------------------------
 -- Table structure for competition
@@ -47,7 +113,9 @@ CREATE TABLE `competition`  (
   `competition_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '竞赛名称',
   `category` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '竞赛类别',
   `category_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '类别名称',
-  `description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '竞赛描述',
+  `competition_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '1' COMMENT '赛制（1个人赛 2团队赛）',
+  `competition_level` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '竞赛级别（1校级 2市级 3省级 4国家级 5国际级）',
+  `description` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '竞赛详情描述',
   `apply_start_time` datetime NULL DEFAULT NULL COMMENT '报名开始时间',
   `apply_end_time` datetime NULL DEFAULT NULL COMMENT '报名结束时间',
   `start_time` datetime NULL DEFAULT NULL COMMENT '竞赛开始时间',
@@ -57,21 +125,27 @@ CREATE TABLE `competition`  (
   `host` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '承办方',
   `max_participants` int NULL DEFAULT 0 COMMENT '参赛人数限制',
   `current_participants` int NULL DEFAULT 0 COMMENT '当前报名人数',
+  `view_count` int NULL DEFAULT 0 COMMENT '浏览量',
+  `tags` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '竞赛标签JSON数组',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '0' COMMENT '删除标志（0代表存在 2代表删除）',
   `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '创建者',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`competition_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 104 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '竞赛信息表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 204 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '竞赛信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of competition
 -- ----------------------------
-INSERT INTO `competition` VALUES (100, '全国大学生数学建模竞赛', '01', '学科竞赛', '全国大学生数学建模竞赛是由教育部高等教育司和中国工业与应用数学学会共同主办的面向全国大学生的群众性科技活动。', '2026-06-01 00:00:00', '2026-09-15 23:59:59', '2026-09-20 08:00:00', '2026-09-23 18:00:00', '0', '教育部', '中国工业与应用数学学会', 50000, 0, '0', '', NULL, '', NULL);
-INSERT INTO `competition` VALUES (101, '中国大学生计算机设计大赛', '01', '学科竞赛', '中国大学生计算机设计大赛是面向全国高校在校学生的科技类竞赛活动。', '2026-05-01 00:00:00', '2026-07-31 23:59:59', '2026-08-15 08:00:00', '2026-08-20 18:00:00', '0', '教育部', '中国高等教育学会', 30000, 0, '0', '', NULL, '', NULL);
-INSERT INTO `competition` VALUES (102, '互联网+大学生创新创业大赛', '02', '创新创业', '中国国际\"互联网+\"大学生创新创业大赛是由教育部等多部委共同主办的国家级创新创业赛事。', '2026-04-01 00:00:00', '2026-06-30 23:59:59', '2026-07-15 08:00:00', '2026-07-20 18:00:00', '1', '教育部', '各高校', 100000, 0, '0', '', NULL, '', NULL);
-INSERT INTO `competition` VALUES (103, '全国大学生电子设计竞赛', '03', '技能竞赛', '全国大学生电子设计竞赛是面向全国大学生的电子信息类学科竞赛。', '2026-03-01 00:00:00', '2026-08-31 23:59:59', '2026-09-08 08:00:00', '2026-09-11 18:00:00', '2', '教育部', '高等学校电子信息类专业教学指导委员会', 20000, 0, '0', '', NULL, '', NULL);
+INSERT INTO `competition` VALUES (100, '全国大学生数学建模竞赛', '01', '学科竞赛', '2', '4', '全国大学生数学建模竞赛是由教育部高等教育司和中国工业与应用数学学会共同主办的面向全国大学生的群众性科技活动。', '2026-06-01 00:00:00', '2026-09-15 23:59:59', '2026-09-20 08:00:00', '2026-09-23 18:00:00', '0', '教育部', '中国工业与应用数学学会', 50000, 0, 0, '', '0', '', NULL, '', NULL);
+INSERT INTO `competition` VALUES (101, '中国大学生计算机设计大赛', '01', '学科竞赛', '1', '4', '中国大学生计算机设计大赛是面向全国高校在校学生的科技类竞赛活动。', '2026-05-01 00:00:00', '2026-07-31 23:59:59', '2026-08-15 08:00:00', '2026-08-20 18:00:00', '0', '教育部', '中国高等教育学会', 30000, 0, 0, '', '0', '', NULL, '', NULL);
+INSERT INTO `competition` VALUES (102, '互联网+大学生创新创业大赛', '02', '创新创业', '2', '4', '中国国际\"互联网+\"大学生创新创业大赛是由教育部等多部委共同主办的国家级创新创业赛事。', '2026-04-01 00:00:00', '2026-06-30 23:59:59', '2026-07-15 08:00:00', '2026-07-20 18:00:00', '1', '教育部', '各高校', 100000, 0, 0, '', '0', '', NULL, '', NULL);
+INSERT INTO `competition` VALUES (103, '全国大学生电子设计竞赛', '03', '技能竞赛', '2', '4', '全国大学生电子设计竞赛是面向全国大学生的电子信息类学科竞赛。', '2026-03-01 00:00:00', '2026-08-31 23:59:59', '2026-09-08 08:00:00', '2026-09-11 18:00:00', '2', '教育部', '高等学校电子信息类专业教学指导委员会', 20000, 0, 0, '', '0', '', NULL, '', NULL);
+INSERT INTO `competition` VALUES (200, '2026年全国大学生英语作文大赛', '04', '外语类', '1', '4', '<p><strong>主办单位：</strong>高等学校大学外语教学研究会</p><p><strong>竞赛级别：</strong>国家级</p><p><strong>参赛对象：</strong>全国在校大学生（含高职高专、本科、研究生）</p><p><strong>竞赛形式：</strong>线上提交英语作文，题材不限，字数要求800-1500词。</p><p>本赛事已被多所双一流高校纳入保研加分体系，获奖证书含金量高。</p>', '2026-03-01 00:00:00', '2026-12-15 23:59:59', '2026-12-20 08:00:00', '2026-12-25 18:00:00', '0', '高等学校大学外语教学研究会', '全国大学生英语作文大赛组委会', 500000, 12349, 351000, '[\"A类赛事\",\"双一流高校覆盖\",\"保研加分\"]', '0', 'admin', '2026-06-02 21:47:19', '', NULL);
+INSERT INTO `competition` VALUES (201, '2026全国大学生\"麟创杯\"人工智能知识竞赛', '05', 'IT/计算机类', '1', '4', '<p><strong>主办单位：</strong>中国技术市场协会</p><p><strong>竞赛级别：</strong>国家级</p><p><strong>参赛对象：</strong>全国高校在校学生</p><p><strong>竞赛形式：</strong>线上客观题答题，涵盖人工智能基础、机器学习、深度学习、自然语言处理等知识点，满分100分。</p><p>本赛事由中国技术市场协会（国家一级社团）主办，证书可用于综测加分。</p>', '2026-04-01 00:00:00', '2026-10-31 23:59:59', '2026-11-05 08:00:00', '2026-11-10 18:00:00', '0', '中国技术市场协会', '\"麟创杯\"人工智能知识竞赛组委会', 100000, 3420, 56000, '[\"人工智能\",\"客观题答题\",\"国家一级社团\"]', '0', 'admin', '2026-06-02 21:47:19', '', NULL);
+INSERT INTO `competition` VALUES (202, '2026年第六届全国大学生技术创新创业大赛', '02', '创新创业', '2', '4', '<p><strong>主办单位：</strong>中国技术创业协会</p><p><strong>竞赛级别：</strong>国家级</p><p><strong>参赛对象：</strong>全国高校在校学生（本、硕、博均可）</p><p><strong>竞赛形式：</strong>团队参赛（3-5人），提交创业计划书及路演PPT，经初赛、复赛、决赛三轮评审。</p><p>优胜项目可获立项支持及投资人对接机会，是\"互联网+\"大赛的优质热身赛。</p>', '2026-02-01 00:00:00', '2026-09-30 23:59:59', '2026-10-15 08:00:00', '2026-10-20 18:00:00', '0', '中国技术创业协会', '全国大学生技术创新创业大赛组委会', 80000, 2890, 36000, '[\"挑战杯热身\",\"互联网+\",\"立项支持\"]', '0', 'admin', '2026-06-02 21:47:19', '', NULL);
+INSERT INTO `competition` VALUES (203, '2026年第十六届APMCM亚太地区大学生数学建模竞赛', '06', '理工/数学类', '2', '5', '<p><strong>主办单位：</strong>中国国际科技促进会</p><p><strong>竞赛级别：</strong>国际级/国家级</p><p><strong>参赛对象：</strong>亚太地区高校在校学生</p><p><strong>竞赛形式：</strong>3人组队，在4天时间内完成一道数学建模题目，提交英文论文。赛题涵盖工程、经济、环境等交叉学科。</p><p>APMCM是国际认可度较高的数学建模赛事之一，获奖可用于国赛热身及综合测评加分。</p>', '2025-11-01 00:00:00', '2026-05-15 23:59:59', '2026-05-20 08:00:00', '2026-08-20 18:00:00', '1', '中国国际科技促进会', 'APMCM亚太地区大学生数学建模竞赛组委会', 30000, 18500, 47000, '[\"数学建模\",\"国赛热身\",\"综合测评加分\"]', '0', 'admin', '2026-06-02 21:47:19', '', NULL);
 
 -- ----------------------------
 -- Table structure for competition_apply
@@ -89,20 +163,140 @@ CREATE TABLE `competition_apply`  (
   `audit_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '0' COMMENT '审核状态（0待审核 1通过 2拒绝）',
   `audit_time` datetime NULL DEFAULT NULL COMMENT '审核时间',
   `audit_remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '审核意见',
+  `audit_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '审核人',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '0' COMMENT '删除标志（0代表存在 2代表删除）',
   `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '创建者',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`apply_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '竞赛报名表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '竞赛报名表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of competition_apply
 -- ----------------------------
-INSERT INTO `competition_apply` VALUES (1, 100, 3, 'student01', '李四同学', '创新团队', '李四同学,张三同学,王五同学', '2026-05-29 16:02:16', '1', NULL, '', '0', '', NULL, '', NULL);
-INSERT INTO `competition_apply` VALUES (2, 100, 5, 'student02', '赵同学', '智慧队', '赵同学,钱同学,孙同学', '2026-05-29 16:02:16', '0', NULL, '', '0', '', NULL, '', NULL);
-INSERT INTO `competition_apply` VALUES (3, 101, 3, 'student01', '李四同学', '代码先锋队', '李四同学', '2026-05-29 16:02:16', '1', NULL, '', '0', '', NULL, '', NULL);
+INSERT INTO `competition_apply` VALUES (1, 100, 3, 'student01', '李四同学', '创新团队', '李四同学,张三同学,王五同学', '2026-05-29 16:02:16', '1', NULL, '', NULL, '2', '', NULL, '', '2026-06-03 13:09:02');
+INSERT INTO `competition_apply` VALUES (2, 100, 5, 'student02', '赵同学', '智慧队', '赵同学,钱同学,孙同学', '2026-05-29 16:02:16', '0', NULL, '', NULL, '0', '', NULL, '', NULL);
+INSERT INTO `competition_apply` VALUES (3, 101, 3, 'student01', '李四同学', '代码先锋队', '李四同学', '2026-05-29 16:02:16', '1', NULL, '', NULL, '2', '', NULL, '', '2026-06-03 13:09:04');
+INSERT INTO `competition_apply` VALUES (4, 201, 3, 'student01', 'yu', '', '', '2026-06-02 22:01:48', '0', NULL, '', NULL, '2', 'student01', '2026-06-02 22:01:48', '', '2026-06-03 13:09:13');
+INSERT INTO `competition_apply` VALUES (5, 201, 3, 'student01', 'yu', '', '', '2026-06-03 13:09:20', '0', NULL, '', NULL, '2', 'student01', '2026-06-03 13:09:20', '', '2026-06-04 02:05:07');
+INSERT INTO `competition_apply` VALUES (6, 200, 3, 'student01', 'yu', '', '', '2026-06-03 13:50:37', '0', NULL, '', NULL, '2', 'student01', '2026-06-03 13:50:37', '', '2026-06-04 02:04:51');
+INSERT INTO `competition_apply` VALUES (7, 201, 3, 'student01', 'yu', '', '', '2026-06-04 02:05:20', '1', '2026-06-04 02:14:47', NULL, 'admin', '0', 'student01', '2026-06-04 02:05:20', '', '2026-06-04 02:14:47');
+
+-- ----------------------------
+-- Table structure for competition_audit_log
+-- ----------------------------
+DROP TABLE IF EXISTS `competition_audit_log`;
+CREATE TABLE `competition_audit_log`  (
+  `log_id` bigint NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+  `biz_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '业务类型（apply/team/retrospect/experience/result）',
+  `biz_id` bigint NOT NULL COMMENT '业务记录ID',
+  `from_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '审核前状态',
+  `to_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '审核后状态',
+  `audit_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '审核人',
+  `audit_time` datetime NOT NULL COMMENT '审核时间',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '审核意见',
+  PRIMARY KEY (`log_id`) USING BTREE,
+  INDEX `idx_audit_log_biz`(`biz_type` ASC, `biz_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '审核审计日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of competition_audit_log
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for competition_experience
+-- ----------------------------
+DROP TABLE IF EXISTS `competition_experience`;
+CREATE TABLE `competition_experience`  (
+  `experience_id` bigint NOT NULL AUTO_INCREMENT COMMENT '经验帖ID',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '标题',
+  `author` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '作者(冗余展示)',
+  `category` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '分类(备赛心得/团队协作/时间管理等)',
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '正文内容(富文本HTML)',
+  `view_count` int NULL DEFAULT 0 COMMENT '浏览次数',
+  `audit_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '审核状态(0待审核 1已通过 2已驳回)',
+  `audit_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '审核人',
+  `audit_time` datetime NULL DEFAULT NULL COMMENT '审核时间',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 2删除)',
+  `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '创建者',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '更新者',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`experience_id`) USING BTREE,
+  INDEX `idx_audit_status`(`audit_status` ASC) USING BTREE,
+  INDEX `idx_author`(`author` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '学长学姐经验帖表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of competition_experience
+-- ----------------------------
+INSERT INTO `competition_experience` VALUES (1, '无', 'yu', '避坑指南', '<p>避开某学校</p>', 0, '1', 'teacher01', '2026-06-04 00:44:17', '0', 'student01', '2026-06-04 00:43:48', '', NULL);
+
+-- ----------------------------
+-- Table structure for competition_result
+-- ----------------------------
+DROP TABLE IF EXISTS `competition_result`;
+CREATE TABLE `competition_result`  (
+  `result_id` bigint NOT NULL AUTO_INCREMENT COMMENT '成绩记录ID',
+  `competition_id` bigint NOT NULL COMMENT '竞赛ID',
+  `team_id` bigint NULL DEFAULT NULL COMMENT '队伍ID（团队赛时关联comp_team）',
+  `user_id` bigint NULL DEFAULT NULL COMMENT '用户ID（个人赛时关联sys_user）',
+  `project_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '参赛项目名称',
+  `award_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '获奖级别（如：国家级一等奖、省级二等奖）',
+  `ranking` int NULL DEFAULT NULL COMMENT '排名（数字越小越靠前）',
+  `score` decimal(10, 2) NULL DEFAULT NULL COMMENT '分数（如有具体评分）',
+  `certificate_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '证书图片/文件URL',
+  `certificate_hash` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '证书文件SHA256哈希（防篡改校验）',
+  `result_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '成绩状态（0待审核 1已确认 2已作废）',
+  `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '录入人（教师登录名）',
+  `create_time` datetime NOT NULL COMMENT '录入时间',
+  `audit_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '审核人（管理员登录名）',
+  `audit_time` datetime NULL DEFAULT NULL COMMENT '审核时间',
+  `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '最后修改人',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '最后修改时间',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注说明',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志（0存在 2删除）',
+  PRIMARY KEY (`result_id`) USING BTREE,
+  INDEX `idx_result_competition`(`competition_id` ASC) USING BTREE,
+  INDEX `idx_result_team`(`team_id` ASC) USING BTREE,
+  INDEX `idx_result_user`(`user_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '竞赛成绩记录表（存证系统）' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of competition_result
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for competition_retrospect
+-- ----------------------------
+DROP TABLE IF EXISTS `competition_retrospect`;
+CREATE TABLE `competition_retrospect`  (
+  `retrospect_id` bigint NOT NULL AUTO_INCREMENT COMMENT '复盘ID',
+  `comp_id` bigint NULL DEFAULT NULL COMMENT '关联竞赛ID(关联competition表)',
+  `competition_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '竞赛名称(冗余展示)',
+  `project_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '项目名称',
+  `award_level` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '获奖级别(国家级/省级/市级/校级)',
+  `leader_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '团队负责人',
+  `year` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '参赛年份',
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '复盘内容(富文本HTML)',
+  `audit_status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '审核状态(0待审核 1已通过 2已驳回)',
+  `audit_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '审核人',
+  `audit_time` datetime NULL DEFAULT NULL COMMENT '审核时间',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 2删除)',
+  `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '创建者',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '更新者',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`retrospect_id`) USING BTREE,
+  INDEX `idx_comp_id`(`comp_id` ASC) USING BTREE,
+  INDEX `idx_audit_status`(`audit_status` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '往届项目复盘表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of competition_retrospect
+-- ----------------------------
+INSERT INTO `competition_retrospect` VALUES (1, NULL, '吹牛大赛', '我将进入英伟达', '国家级', 'Yu', '2030', '<p>吹牛这块</p>', '1', 'teacher01', '2026-06-04 00:44:14', '0', 'student01', '2026-06-04 00:43:33', '', NULL);
 
 -- ----------------------------
 -- Table structure for gen_table
@@ -132,7 +326,7 @@ CREATE TABLE `gen_table`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   PRIMARY KEY (`table_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '代码生成业务表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '代码生成业务表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of gen_table
@@ -166,7 +360,7 @@ CREATE TABLE `gen_table_column`  (
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`column_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '代码生成业务表字段' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '代码生成业务表字段' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of gen_table_column
@@ -554,6 +748,20 @@ INSERT INTO `sys_dict_data` VALUES (11, 3, '拒绝', '2', 'audit_status', 'dange
 INSERT INTO `sys_dict_data` VALUES (12, 1, '学科竞赛', '01', 'competition_category', '', '', 'Y', '0', 'admin', '2026-05-29 16:02:16', '', NULL, '');
 INSERT INTO `sys_dict_data` VALUES (13, 2, '创新创业', '02', 'competition_category', '', '', 'N', '0', 'admin', '2026-05-29 16:02:16', '', NULL, '');
 INSERT INTO `sys_dict_data` VALUES (14, 3, '技能竞赛', '03', 'competition_category', '', '', 'N', '0', 'admin', '2026-05-29 16:02:16', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (15, 4, '外语类', '04', 'competition_category', '', '', 'N', '0', 'admin', '2026-06-02 17:56:24', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (16, 5, 'IT/计算机类', '05', 'competition_category', '', '', 'N', '0', 'admin', '2026-06-02 17:56:24', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (17, 6, '理工/数学类', '06', 'competition_category', '', '', 'N', '0', 'admin', '2026-06-02 17:56:24', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (18, 1, '个人赛', '1', 'competition_type', '', '', 'Y', '0', 'admin', '2026-06-02 21:35:20', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (19, 2, '团队赛', '2', 'competition_type', '', '', 'N', '0', 'admin', '2026-06-02 21:35:20', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (20, 1, '校级', '1', 'competition_level', '', '', 'Y', '0', 'admin', '2026-06-02 21:43:55', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (21, 2, '市级', '2', 'competition_level', '', '', 'N', '0', 'admin', '2026-06-02 21:43:55', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (22, 3, '省级', '3', 'competition_level', '', '', 'N', '0', 'admin', '2026-06-02 21:43:55', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (23, 4, '国家级', '4', 'competition_level', '', '', 'N', '0', 'admin', '2026-06-02 21:43:55', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (24, 5, '国际级', '5', 'competition_level', '', '', 'N', '0', 'admin', '2026-06-02 21:43:55', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (25, 1, '组队中', '0', 'team_status', 'info', '', 'Y', '0', 'admin', '2026-06-03 13:49:47', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (26, 2, '已提交', '1', 'team_status', 'warning', '', 'N', '0', 'admin', '2026-06-03 13:49:47', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (27, 3, '审核通过', '2', 'team_status', 'success', '', 'N', '0', 'admin', '2026-06-03 13:49:47', '', NULL, '');
+INSERT INTO `sys_dict_data` VALUES (28, 4, '待开赛', '3', 'competition_status', 'info', '', 'N', '0', 'admin', '2026-06-03 14:36:34', '', NULL, '');
 
 -- ----------------------------
 -- Table structure for sys_dict_type
@@ -581,6 +789,9 @@ INSERT INTO `sys_dict_type` VALUES (2, '系统状态', 'sys_normal_disable', '0'
 INSERT INTO `sys_dict_type` VALUES (3, '竞赛状态', 'competition_status', '0', 'admin', '2026-05-29 16:02:16', '', NULL, '竞赛状态');
 INSERT INTO `sys_dict_type` VALUES (4, '审核状态', 'audit_status', '0', 'admin', '2026-05-29 16:02:16', '', NULL, '审核状态');
 INSERT INTO `sys_dict_type` VALUES (5, '竞赛类别', 'competition_category', '0', 'admin', '2026-05-29 16:02:16', '', NULL, '竞赛类别');
+INSERT INTO `sys_dict_type` VALUES (6, '赛制类型', 'competition_type', '0', 'admin', '2026-06-02 21:35:20', '', NULL, '竞赛赛制类型');
+INSERT INTO `sys_dict_type` VALUES (7, '竞赛级别', 'competition_level', '0', 'admin', '2026-06-02 21:43:55', '', NULL, '竞赛级别');
+INSERT INTO `sys_dict_type` VALUES (8, '队伍状态', 'team_status', '0', 'admin', '2026-06-03 13:49:47', '', NULL, '队伍状态');
 
 -- ----------------------------
 -- Table structure for sys_job
@@ -626,7 +837,7 @@ CREATE TABLE `sys_job_log`  (
   `end_time` datetime NULL DEFAULT NULL COMMENT '执行结束时间',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`job_log_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时任务调度日志表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '定时任务调度日志表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_job_log
@@ -649,7 +860,7 @@ CREATE TABLE `sys_logininfor`  (
   PRIMARY KEY (`info_id`) USING BTREE,
   INDEX `idx_sys_logininfor_s`(`status` ASC) USING BTREE,
   INDEX `idx_sys_logininfor_lt`(`login_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 129 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统访问记录' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 189 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统访问记录' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_logininfor
@@ -683,6 +894,66 @@ INSERT INTO `sys_logininfor` VALUES (125, 'student01', '127.0.0.1', '内网IP', 
 INSERT INTO `sys_logininfor` VALUES (126, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 21:08:49');
 INSERT INTO `sys_logininfor` VALUES (127, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-05-31 21:09:11');
 INSERT INTO `sys_logininfor` VALUES (128, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-05-31 21:09:17');
+INSERT INTO `sys_logininfor` VALUES (129, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-01 16:48:11');
+INSERT INTO `sys_logininfor` VALUES (130, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-01 16:54:37');
+INSERT INTO `sys_logininfor` VALUES (131, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-01 16:54:40');
+INSERT INTO `sys_logininfor` VALUES (132, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-01 17:10:07');
+INSERT INTO `sys_logininfor` VALUES (133, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-01 17:10:08');
+INSERT INTO `sys_logininfor` VALUES (134, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-01 18:13:36');
+INSERT INTO `sys_logininfor` VALUES (135, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-01 19:28:55');
+INSERT INTO `sys_logininfor` VALUES (136, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-02 06:55:31');
+INSERT INTO `sys_logininfor` VALUES (137, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-02 07:41:46');
+INSERT INTO `sys_logininfor` VALUES (138, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-02 16:42:12');
+INSERT INTO `sys_logininfor` VALUES (139, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-02 17:29:06');
+INSERT INTO `sys_logininfor` VALUES (140, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-02 19:21:14');
+INSERT INTO `sys_logininfor` VALUES (141, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-02 21:23:39');
+INSERT INTO `sys_logininfor` VALUES (142, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-02 22:00:37');
+INSERT INTO `sys_logininfor` VALUES (143, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-02 22:00:39');
+INSERT INTO `sys_logininfor` VALUES (144, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 12:04:30');
+INSERT INTO `sys_logininfor` VALUES (145, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 13:05:07');
+INSERT INTO `sys_logininfor` VALUES (146, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 13:50:10');
+INSERT INTO `sys_logininfor` VALUES (147, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-03 14:47:55');
+INSERT INTO `sys_logininfor` VALUES (148, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 14:47:58');
+INSERT INTO `sys_logininfor` VALUES (149, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-03 14:51:30');
+INSERT INTO `sys_logininfor` VALUES (150, 'yao', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 14:51:34');
+INSERT INTO `sys_logininfor` VALUES (151, 'yao', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-03 14:51:49');
+INSERT INTO `sys_logininfor` VALUES (152, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 14:51:54');
+INSERT INTO `sys_logininfor` VALUES (153, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '1', '用户不存在/密码错误', '2026-06-03 14:55:20');
+INSERT INTO `sys_logininfor` VALUES (154, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '1', '验证码错误', '2026-06-03 14:55:24');
+INSERT INTO `sys_logininfor` VALUES (155, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 14:55:30');
+INSERT INTO `sys_logininfor` VALUES (156, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-03 15:31:57');
+INSERT INTO `sys_logininfor` VALUES (157, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 15:31:58');
+INSERT INTO `sys_logininfor` VALUES (158, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-03 15:35:36');
+INSERT INTO `sys_logininfor` VALUES (159, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 15:35:38');
+INSERT INTO `sys_logininfor` VALUES (160, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-03 16:11:28');
+INSERT INTO `sys_logininfor` VALUES (161, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 16:11:32');
+INSERT INTO `sys_logininfor` VALUES (162, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 16:24:15');
+INSERT INTO `sys_logininfor` VALUES (163, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 16:41:12');
+INSERT INTO `sys_logininfor` VALUES (164, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 17:17:23');
+INSERT INTO `sys_logininfor` VALUES (165, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 17:20:10');
+INSERT INTO `sys_logininfor` VALUES (166, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '退出成功', '2026-06-03 17:20:22');
+INSERT INTO `sys_logininfor` VALUES (167, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 17:20:25');
+INSERT INTO `sys_logininfor` VALUES (168, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '退出成功', '2026-06-03 17:44:31');
+INSERT INTO `sys_logininfor` VALUES (169, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 17:44:35');
+INSERT INTO `sys_logininfor` VALUES (170, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 18:34:58');
+INSERT INTO `sys_logininfor` VALUES (171, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 19:59:15');
+INSERT INTO `sys_logininfor` VALUES (172, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 21:38:37');
+INSERT INTO `sys_logininfor` VALUES (173, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 21:39:52');
+INSERT INTO `sys_logininfor` VALUES (174, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 23:11:29');
+INSERT INTO `sys_logininfor` VALUES (175, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-03 23:32:24');
+INSERT INTO `sys_logininfor` VALUES (176, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 23:33:06');
+INSERT INTO `sys_logininfor` VALUES (177, 'yao', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-03 23:49:46');
+INSERT INTO `sys_logininfor` VALUES (178, 'admin', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-03 23:58:34');
+INSERT INTO `sys_logininfor` VALUES (179, 'teacher01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-03 23:58:46');
+INSERT INTO `sys_logininfor` VALUES (180, 'teacher01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-04 00:37:26');
+INSERT INTO `sys_logininfor` VALUES (181, 'teacher01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '退出成功', '2026-06-04 00:42:40');
+INSERT INTO `sys_logininfor` VALUES (182, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-04 00:42:45');
+INSERT INTO `sys_logininfor` VALUES (183, 'teacher01', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '1', '验证码已失效', '2026-06-04 00:44:01');
+INSERT INTO `sys_logininfor` VALUES (184, 'teacher01', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-04 00:44:05');
+INSERT INTO `sys_logininfor` VALUES (185, 'teacher01', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '退出成功', '2026-06-04 00:48:25');
+INSERT INTO `sys_logininfor` VALUES (186, 'admin', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-04 00:48:36');
+INSERT INTO `sys_logininfor` VALUES (187, 'student01', '127.0.0.1', '内网IP', 'Edge 148', 'Windows >=10', '0', '登录成功', '2026-06-04 01:43:02');
+INSERT INTO `sys_logininfor` VALUES (188, 'admin', '127.0.0.1', '内网IP', 'Chrome 148', 'Windows10', '0', '登录成功', '2026-06-04 02:06:16');
 
 -- ----------------------------
 -- Table structure for sys_menu
@@ -710,13 +981,13 @@ CREATE TABLE `sys_menu`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`menu_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3037 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单权限表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3073 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_menu
 -- ----------------------------
 INSERT INTO `sys_menu` VALUES (1, '系统管理', 0, 2, 'system', NULL, '', '', 1, 0, 'M', '0', '0', '', 'system', 'admin', '2026-05-29 16:02:15', '', NULL, '系统管理目录');
-INSERT INTO `sys_menu` VALUES (3, '系统监控', 0, 3, 'monitor', '', '', '', 1, 0, 'M', '0', '0', '', 'monitor', 'admin', '2026-05-29 16:22:44', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (3, '系统监控', 0, 6, 'monitor', '', '', '', 1, 0, 'M', '0', '0', '', 'monitor', 'admin', '2026-05-29 16:22:44', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (4, '系统工具', 0, 4, 'tool', '', '', '', 1, 0, 'M', '0', '0', '', 'tool', 'admin', '2026-05-29 16:22:44', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (100, '用户管理', 1, 1, 'user', 'system/user/index', '', '', 1, 0, 'C', '0', '0', 'system:user:list', 'user', 'admin', '2026-05-29 16:02:15', '', NULL, '用户管理菜单');
 INSERT INTO `sys_menu` VALUES (101, '角色管理', 1, 2, 'role', 'system/role/index', '', '', 1, 0, 'C', '0', '0', 'system:role:list', 'peoples', 'admin', '2026-05-29 16:02:15', '', NULL, '角色管理菜单');
@@ -789,17 +1060,25 @@ INSERT INTO `sys_menu` VALUES (1173, '导入代码', 117, 4, '', '', '', '', 1, 
 INSERT INTO `sys_menu` VALUES (3000, '竞赛大厅', 0, 1, 'hall', NULL, '', '', 1, 0, 'M', '0', '0', '', 'star', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生竞赛大厅目录');
 INSERT INTO `sys_menu` VALUES (3001, '竞赛列表', 3000, 1, 'list', 'student/hall/index', '', 'StudentHall', 1, 0, 'C', '0', '0', 'student:hall:list', 'list', 'admin', '2026-05-31 16:34:51', '', NULL, '竞赛大厅-竞赛列表页面');
 INSERT INTO `sys_menu` VALUES (3002, '竞赛查询', 3001, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'student:hall:query', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (3010, '组队匹配中心', 0, 2, 'match', NULL, '', '', 1, 0, 'M', '0', '0', '', 'peoples', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生组队匹配目录');
-INSERT INTO `sys_menu` VALUES (3011, '匹配大厅', 3010, 1, 'index', 'student/match/index', '', 'StudentMatch', 1, 0, 'C', '0', '0', 'student:match:list', 'search', 'admin', '2026-05-31 16:34:51', '', NULL, '组队匹配-匹配大厅页面');
-INSERT INTO `sys_menu` VALUES (3012, '匹配查询', 3011, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'student:match:query', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (3013, '创建队伍', 3011, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'student:match:create', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (3020, '薪火相传', 0, 3, 'knowledge', NULL, '', '', 1, 0, 'M', '0', '0', '', 'education', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生知识库目录');
+INSERT INTO `sys_menu` VALUES (3010, '组队匹配中心', 0, 3, 'match', NULL, '', '', 1, 0, 'M', '0', '0', '', 'peoples', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生组队匹配目录');
+INSERT INTO `sys_menu` VALUES (3020, '薪火相传', 0, 8, 'knowledge', NULL, '', '', 1, 0, 'M', '0', '0', '', 'education', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生知识库目录');
 INSERT INTO `sys_menu` VALUES (3021, '知识库', 3020, 1, 'index', 'student/knowledge/index', '', 'StudentKnowledge', 1, 0, 'C', '0', '0', 'student:knowledge:list', 'documentation', 'admin', '2026-05-31 16:34:51', '', NULL, '薪火相传-知识库页面');
 INSERT INTO `sys_menu` VALUES (3022, '知识库查询', 3021, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'student:knowledge:query', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
-INSERT INTO `sys_menu` VALUES (3030, '我的赛程', 0, 4, 'myrace', NULL, '', '', 1, 0, 'M', '0', '0', '', 'time-range', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生我的赛程目录');
+INSERT INTO `sys_menu` VALUES (3030, '我的赛程', 0, 5, 'myrace', NULL, '', '', 1, 0, 'M', '0', '0', '', 'time-range', 'admin', '2026-05-31 16:34:51', '', NULL, '参赛学生我的赛程目录');
 INSERT INTO `sys_menu` VALUES (3031, '我的竞赛', 3030, 1, 'race', 'student/race/index', '', 'StudentRace', 1, 0, 'C', '0', '0', 'student:race:list', 'chart', 'admin', '2026-05-31 16:34:51', '', NULL, '我的赛程-我的竞赛页面');
 INSERT INTO `sys_menu` VALUES (3032, '赛程查询', 3031, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'student:race:query', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (3033, '上传凭证', 3031, 2, '', '', '', '', 1, 0, 'F', '0', '0', 'student:race:upload', '#', 'admin', '2026-05-31 16:34:51', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (3040, '组队广场', 3010, 1, 'team-square', 'student/hall/team-square', '', 'StudentTeamSquare', 1, 0, 'C', '0', '0', 'student:team:square:list', 'team', 'admin', '2026-06-03 15:15:21', '', NULL, '组队广场-公开招募队伍列表');
+INSERT INTO `sys_menu` VALUES (3050, '人才市场', 3010, 2, 'market', 'student/hall/market', '', 'StudentMarket', 1, 0, 'C', '0', '0', 'student:market:list', 'people', 'admin', '2026-06-03 15:15:21', '', NULL, '人才市场-学生技能展示');
+INSERT INTO `sys_menu` VALUES (3060, '知识库审核', 0, 99, 'knowledgeaudit', NULL, '', '', 1, 0, 'M', '0', '0', '', 'education', 'admin', '2026-06-04 00:36:52', '', NULL, '管理员知识库审核目录');
+INSERT INTO `sys_menu` VALUES (3061, '复盘审核', 3060, 1, 'retrospect', 'system/knowledgeaudit/retrospect/index', '', 'KnowledgeAuditRetrospect', 1, 0, 'C', '0', '0', 'system:knowledge:audit', 'list', 'admin', '2026-06-04 00:36:52', '', NULL, '管理员-项目复盘审核页');
+INSERT INTO `sys_menu` VALUES (3062, '经验帖审核', 3060, 2, 'experience', 'system/knowledgeaudit/experience/index', '', 'KnowledgeAuditExperience', 1, 0, 'C', '0', '0', 'system:knowledge:audit', 'list', 'admin', '2026-06-04 00:36:52', '', NULL, '管理员-经验帖审核页');
+INSERT INTO `sys_menu` VALUES (3063, '报名审核', 3060, 3, 'applyaudit', 'system/competitionaudit/apply/index', '', '', 1, 0, 'C', '0', '0', 'system:competition:audit', 'list', 'admin', '2026-06-04 02:09:08', '', NULL, '管理员-竞赛报名审核页');
+INSERT INTO `sys_menu` VALUES (3064, '队伍审核', 3060, 4, 'teamaudit', 'system/competitionaudit/team/index', '', '', 1, 0, 'C', '0', '0', 'system:competition:audit', 'list', 'admin', '2026-06-04 02:09:08', '', NULL, '管理员-竞赛队伍审核页');
+INSERT INTO `sys_menu` VALUES (3065, '成绩审核', 3060, 5, 'resultaudit', 'system/competitionaudit/result/index', '', '', 1, 0, 'C', '0', '0', 'system:competition:audit', 'list', 'admin', '2026-06-04 02:09:08', '', NULL, '管理员-竞赛成绩审核页');
+INSERT INTO `sys_menu` VALUES (3070, '指导工作台', 0, 5, 'teacher', NULL, '', '', 1, 0, 'M', '0', '0', '', 'guide', 'admin', '2026-06-04 00:36:52', '', NULL, '指导教师工作台目录');
+INSERT INTO `sys_menu` VALUES (3071, '待办邀请', 3070, 1, 'invitation', 'teacher/invitation/index', '', 'TeacherInvitation', 1, 0, 'C', '0', '0', 'teacher:invitation:list', 'bell', 'admin', '2026-06-04 00:36:52', '', NULL, '教师-待办邀请页');
+INSERT INTO `sys_menu` VALUES (3072, '指导团队', 3070, 2, 'team', 'teacher/team/index', '', 'TeacherTeam', 1, 0, 'C', '0', '0', 'teacher:team:list', 'peoples', 'admin', '2026-06-04 00:36:52', '', NULL, '教师-指导团队页');
 
 -- ----------------------------
 -- Table structure for sys_notice
@@ -867,7 +1146,7 @@ CREATE TABLE `sys_oper_log`  (
   INDEX `idx_sys_oper_log_bt`(`business_type` ASC) USING BTREE,
   INDEX `idx_sys_oper_log_s`(`status` ASC) USING BTREE,
   INDEX `idx_sys_oper_log_ot`(`oper_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 135 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志记录' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 155 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志记录' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_oper_log
@@ -907,6 +1186,26 @@ INSERT INTO `sys_oper_log` VALUES (131, '菜单管理', 3, 'com.ruoyi.web.contro
 INSERT INTO `sys_oper_log` VALUES (132, '菜单管理', 3, 'com.ruoyi.web.controller.system.SysMenuController.remove()', 'DELETE', 1, 'admin', NULL, '/system/menu/3036', '127.0.0.1', '内网IP', '3036 ', '{\"msg\":\"菜单已分配,不允许删除\",\"code\":601}', 0, NULL, '2026-05-31 20:54:32', 7);
 INSERT INTO `sys_oper_log` VALUES (133, '角色管理', 2, 'com.ruoyi.web.controller.system.SysRoleController.edit()', 'PUT', 1, 'admin', NULL, '/system/role', '127.0.0.1', '内网IP', '{\"admin\":false,\"createTime\":\"2026-05-29 16:02:15\",\"dataScope\":\"2\",\"delFlag\":\"0\",\"deptCheckStrictly\":true,\"flag\":false,\"menuCheckStrictly\":true,\"menuIds\":[],\"params\":{},\"remark\":\"指导教师\",\"roleId\":2,\"roleKey\":\"teacher\",\"roleName\":\"指导教师\",\"roleSort\":2,\"status\":\"0\",\"updateBy\":\"admin\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 20:56:28', 33);
 INSERT INTO `sys_oper_log` VALUES (134, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-05-31 21:08:16', 16);
+INSERT INTO `sys_oper_log` VALUES (135, '用户头像', 2, 'com.ruoyi.web.controller.system.SysProfileController.avatar()', 'POST', 1, 'student01', NULL, '/system/user/profile/avatar', '127.0.0.1', '内网IP', '', '{\"msg\":\"操作成功\",\"imgUrl\":\"/profile/avatar/2026/06/01/4cb4bfdb2cc34d889015cad4290a957e.jpg\",\"code\":200}', 0, NULL, '2026-06-01 17:04:20', 77);
+INSERT INTO `sys_oper_log` VALUES (136, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"skillTags\":\"单独\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-01 17:15:46', 50);
+INSERT INTO `sys_oper_log` VALUES (137, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"skillTags\":\"路演答辩,BP撰写,PPT美工,后端架构,前端开发\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-01 17:40:28', 17);
+INSERT INTO `sys_oper_log` VALUES (138, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"skillTags\":\"BP撰写,PPT美工,后端架构,前端开发\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-01 17:41:12', 11);
+INSERT INTO `sys_oper_log` VALUES (139, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"skillTags\":\"BP撰写,PPT美工,后端架构,前端开发\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-01 18:23:50', 16);
+INSERT INTO `sys_oper_log` VALUES (140, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"skillTags\":\"BP撰写,PPT美工,后端架构,前端开发\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-01 19:39:15', 25);
+INSERT INTO `sys_oper_log` VALUES (141, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"skillTags\":\"BP撰写,PPT美工,后端架构,前端开发\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-01 19:43:35', 10);
+INSERT INTO `sys_oper_log` VALUES (142, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"skillTags\":\"BP撰写,PPT美工,后端架构,前端开发,路演答辩\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-02 07:05:21', 37);
+INSERT INTO `sys_oper_log` VALUES (143, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'student01', NULL, '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"student01@tlxy.edu.cn\",\"grade\":\"2022级\",\"nickName\":\"yu\",\"params\":{},\"phonenumber\":\"15777777777\",\"sex\":\"1\",\"skillTags\":\"路演答辩,PPT美工,UI/UX设计,项目PM,市场调研\",\"studentNo\":\"2206161033\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-02 07:42:10', 8);
+INSERT INTO `sys_oper_log` VALUES (144, '用户管理', 2, 'com.ruoyi.web.controller.system.SysUserController.resetPwd()', 'PUT', 1, 'admin', NULL, '/system/user/resetPwd', '127.0.0.1', '内网IP', '{\"admin\":false,\"params\":{},\"updateBy\":\"admin\",\"userId\":5} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-03 14:48:25', 79);
+INSERT INTO `sys_oper_log` VALUES (145, '用户管理', 1, 'com.ruoyi.web.controller.system.SysUserController.add()', 'POST', 1, 'admin', NULL, '/system/user', '127.0.0.1', '内网IP', '{\"admin\":false,\"deptId\":902,\"email\":\"11111111111@qq.com\",\"nickName\":\"yao\",\"params\":{},\"phonenumber\":\"15711111111\",\"postIds\":[4],\"remark\":\"wu\",\"roleIds\":[100],\"sex\":\"1\",\"status\":\"0\",\"userName\":\"admin\"} ', '{\"msg\":\"新增用户\'admin\'失败，登录账号已存在\",\"code\":500}', 0, NULL, '2026-06-03 14:49:12', 3);
+INSERT INTO `sys_oper_log` VALUES (146, '用户管理', 1, 'com.ruoyi.web.controller.system.SysUserController.add()', 'POST', 1, 'admin', NULL, '/system/user', '127.0.0.1', '内网IP', '{\"admin\":false,\"deptId\":902,\"email\":\"11111111111@qq.com\",\"nickName\":\"yao\",\"params\":{},\"phonenumber\":\"15811111111\",\"postIds\":[4],\"remark\":\"wu\",\"roleIds\":[100],\"sex\":\"1\",\"status\":\"0\",\"userName\":\"admin\"} ', '{\"msg\":\"新增用户\'admin\'失败，登录账号已存在\",\"code\":500}', 0, NULL, '2026-06-03 14:49:18', 2);
+INSERT INTO `sys_oper_log` VALUES (147, '用户管理', 1, 'com.ruoyi.web.controller.system.SysUserController.add()', 'POST', 1, 'admin', NULL, '/system/user', '127.0.0.1', '内网IP', '{\"admin\":false,\"createBy\":\"admin\",\"deptId\":902,\"email\":\"11111111111@qq.com\",\"nickName\":\"yao\",\"params\":{},\"phonenumber\":\"15811111111\",\"postIds\":[4],\"remark\":\"wu\",\"roleIds\":[100],\"sex\":\"1\",\"status\":\"0\",\"userId\":100,\"userName\":\"yao\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-03 14:49:31', 86);
+INSERT INTO `sys_oper_log` VALUES (148, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'yao', '金融学', '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"11111111111@qq.com\",\"nickName\":\"yao\",\"params\":{},\"phonenumber\":\"15811111111\",\"sex\":\"1\",\"skillTags\":\"路演答辩,UI/UX设计,海报/视频剪辑,财务测算,BP撰写\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-03 17:44:47', 12);
+INSERT INTO `sys_oper_log` VALUES (149, '个人信息', 2, 'com.ruoyi.web.controller.system.SysProfileController.updateProfile()', 'PUT', 1, 'yao', '金融学', '/system/user/profile', '127.0.0.1', '内网IP', '{\"admin\":false,\"email\":\"11111111111@qq.com\",\"nickName\":\"yao\",\"params\":{},\"phonenumber\":\"15811111111\",\"sex\":\"1\",\"skillTags\":\"路演答辩,UI/UX设计,海报/视频剪辑,财务测算,BP撰写\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-03 17:59:47', 18);
+INSERT INTO `sys_oper_log` VALUES (150, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"3060\",\"orderNums\":\"5\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-03 23:34:01', 20);
+INSERT INTO `sys_oper_log` VALUES (151, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"1,3010,3030\",\"orderNums\":\"1,1,1\"} ', NULL, 1, '提交的排序号中存在重复，请检查', '2026-06-03 23:34:15', 2);
+INSERT INTO `sys_oper_log` VALUES (152, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"3010,3,3020,3030,3060\",\"orderNums\":\"1,6,5,3,7\"} ', NULL, 1, '当前菜单层级下已存在该排序号 1，请重新输入', '2026-06-03 23:34:30', 5);
+INSERT INTO `sys_oper_log` VALUES (153, '保存菜单排序', 2, 'com.ruoyi.web.controller.system.SysMenuController.updateSort()', 'PUT', 1, 'admin', NULL, '/system/menu/updateSort', '127.0.0.1', '内网IP', '{\"menuIds\":\"3010,3,3020,3030,3060\",\"orderNums\":\"3,6,8,5,7\"} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-03 23:34:51', 23);
+INSERT INTO `sys_oper_log` VALUES (154, '用户管理', 2, 'com.ruoyi.web.controller.system.SysUserController.resetPwd()', 'PUT', 1, 'admin', NULL, '/system/user/resetPwd', '127.0.0.1', '内网IP', '{\"admin\":false,\"params\":{},\"updateBy\":\"admin\",\"userId\":2} ', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2026-06-03 23:58:28', 78);
 
 -- ----------------------------
 -- Table structure for sys_post
@@ -1064,13 +1363,29 @@ INSERT INTO `sys_role_menu` VALUES (1, 1170);
 INSERT INTO `sys_role_menu` VALUES (1, 1171);
 INSERT INTO `sys_role_menu` VALUES (1, 1172);
 INSERT INTO `sys_role_menu` VALUES (1, 1173);
+INSERT INTO `sys_role_menu` VALUES (1, 3060);
+INSERT INTO `sys_role_menu` VALUES (1, 3061);
+INSERT INTO `sys_role_menu` VALUES (1, 3062);
+INSERT INTO `sys_role_menu` VALUES (1, 3063);
+INSERT INTO `sys_role_menu` VALUES (1, 3064);
+INSERT INTO `sys_role_menu` VALUES (1, 3065);
+INSERT INTO `sys_role_menu` VALUES (1, 3070);
+INSERT INTO `sys_role_menu` VALUES (1, 3071);
+INSERT INTO `sys_role_menu` VALUES (1, 3072);
+INSERT INTO `sys_role_menu` VALUES (2, 3000);
+INSERT INTO `sys_role_menu` VALUES (2, 3001);
+INSERT INTO `sys_role_menu` VALUES (2, 3020);
+INSERT INTO `sys_role_menu` VALUES (2, 3021);
+INSERT INTO `sys_role_menu` VALUES (2, 3060);
+INSERT INTO `sys_role_menu` VALUES (2, 3061);
+INSERT INTO `sys_role_menu` VALUES (2, 3062);
+INSERT INTO `sys_role_menu` VALUES (2, 3070);
+INSERT INTO `sys_role_menu` VALUES (2, 3071);
+INSERT INTO `sys_role_menu` VALUES (2, 3072);
 INSERT INTO `sys_role_menu` VALUES (100, 3000);
 INSERT INTO `sys_role_menu` VALUES (100, 3001);
 INSERT INTO `sys_role_menu` VALUES (100, 3002);
 INSERT INTO `sys_role_menu` VALUES (100, 3010);
-INSERT INTO `sys_role_menu` VALUES (100, 3011);
-INSERT INTO `sys_role_menu` VALUES (100, 3012);
-INSERT INTO `sys_role_menu` VALUES (100, 3013);
 INSERT INTO `sys_role_menu` VALUES (100, 3020);
 INSERT INTO `sys_role_menu` VALUES (100, 3021);
 INSERT INTO `sys_role_menu` VALUES (100, 3022);
@@ -1078,6 +1393,8 @@ INSERT INTO `sys_role_menu` VALUES (100, 3030);
 INSERT INTO `sys_role_menu` VALUES (100, 3031);
 INSERT INTO `sys_role_menu` VALUES (100, 3032);
 INSERT INTO `sys_role_menu` VALUES (100, 3033);
+INSERT INTO `sys_role_menu` VALUES (100, 3040);
+INSERT INTO `sys_role_menu` VALUES (100, 3050);
 
 -- ----------------------------
 -- Table structure for sys_user
@@ -1107,17 +1424,19 @@ CREATE TABLE `sys_user`  (
   `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `show_in_market` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '0' COMMENT '是否在人才市场显示(0否 1是)',
   PRIMARY KEY (`user_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 101 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, NULL, 'admin', 'admin', '00', 'admin@tlxy.edu.cn', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-31 21:08:49', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '超级管理员');
-INSERT INTO `sys_user` VALUES (2, 101, 'teacher01', '张老师', '00', 'teacher01@tlxy.edu.cn', '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '计算机学院老师');
-INSERT INTO `sys_user` VALUES (3, 101, 'student01', 'yu', '00', 'student01@tlxy.edu.cn', '15777777777', '1', '', '$2a$10$7Twf9K.Ww7iS/f1HT2B7busjKcnMSgUqQJ/.2ZeASHOhLqnxZ.LGy', '0', '0', '127.0.0.1', '2026-05-31 21:09:17', '2026-05-31 14:56:18', '2206161033', '2022级', NULL, 'admin', '2026-05-29 16:02:15', 'admin', '2026-05-31 21:08:15', '计算机学院学生');
-INSERT INTO `sys_user` VALUES (4, 201, 'teacher02', '王老师', '00', 'teacher02@tlxy.edu.cn', '15888888889', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '电气工程学院老师');
-INSERT INTO `sys_user` VALUES (5, 201, 'student02', '赵同学', '00', 'student02@tlxy.edu.cn', '15999999999', '2', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '电气工程学院学生');
+INSERT INTO `sys_user` VALUES (1, NULL, 'admin', 'admin', '00', 'admin@tlxy.edu.cn', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-06-04 02:06:15', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '超级管理员', '0');
+INSERT INTO `sys_user` VALUES (2, 101, 'teacher01', '张老师', '00', 'teacher01@tlxy.edu.cn', '15666666666', '1', '', '$2a$10$R/i0.ZNrwzUzXlDTteDF3eOI.XYh96hmPyNY8o2E8qNj/7Dom4nuO', '0', '0', '127.0.0.1', '2026-06-04 00:44:05', '2026-06-03 23:58:28', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', '2026-06-03 23:58:28', '计算机学院老师', '0');
+INSERT INTO `sys_user` VALUES (3, NULL, 'student01', 'yu', '00', 'student01@tlxy.edu.cn', '15777777777', '1', '/profile/avatar/2026/06/01/4cb4bfdb2cc34d889015cad4290a957e.jpg', '$2a$10$7Twf9K.Ww7iS/f1HT2B7busjKcnMSgUqQJ/.2ZeASHOhLqnxZ.LGy', '0', '0', '127.0.0.1', '2026-06-04 01:43:00', '2026-05-31 14:56:18', '2206161033', '2022级', '路演答辩,PPT美工,UI/UX设计,项目PM,市场调研', 'admin', '2026-05-29 16:02:15', 'admin', '2026-06-03 20:03:27', '计算机学院学生', '1');
+INSERT INTO `sys_user` VALUES (4, 201, 'teacher02', '王老师', '00', 'teacher02@tlxy.edu.cn', '15888888889', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-05-29 16:02:15', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', NULL, '电气工程学院老师', '0');
+INSERT INTO `sys_user` VALUES (5, 201, 'student02', '赵同学', '00', 'student02@tlxy.edu.cn', '15999999999', '2', '', '$2a$10$fQNBa99hO7dMTdCei.zCqeFTAGRv6vpwRiHuyw2X0oPZbxwJv7cmu', '0', '0', '127.0.0.1', '2026-05-29 16:02:15', '2026-06-03 14:48:25', NULL, NULL, NULL, 'admin', '2026-05-29 16:02:15', '', '2026-06-03 14:48:25', '电气工程学院学生', '0');
+INSERT INTO `sys_user` VALUES (100, NULL, 'yao', 'yao', '00', '11111111111@qq.com', '15811111111', '1', '', '$2a$10$zRh8CDS5rbE9t24ED/1yn.vW4MyPIwlQDzzlae8uBIbsWwlu3h0JC', '0', '0', '127.0.0.1', '2026-06-03 23:49:45', NULL, NULL, NULL, '路演答辩,UI/UX设计,海报/视频剪辑,财务测算,BP撰写', 'admin', '2026-06-03 14:49:31', '', '2026-06-03 21:40:03', 'wu', '1');
 
 -- ----------------------------
 -- Table structure for sys_user_post
@@ -1134,7 +1453,6 @@ CREATE TABLE `sys_user_post`  (
 -- ----------------------------
 INSERT INTO `sys_user_post` VALUES (1, 1);
 INSERT INTO `sys_user_post` VALUES (2, 3);
-INSERT INTO `sys_user_post` VALUES (3, 4);
 INSERT INTO `sys_user_post` VALUES (4, 3);
 INSERT INTO `sys_user_post` VALUES (5, 4);
 
@@ -1156,5 +1474,34 @@ INSERT INTO `sys_user_role` VALUES (2, 2);
 INSERT INTO `sys_user_role` VALUES (3, 100);
 INSERT INTO `sys_user_role` VALUES (4, 2);
 INSERT INTO `sys_user_role` VALUES (5, 100);
+INSERT INTO `sys_user_role` VALUES (100, 100);
+
+-- ----------------------------
+-- Table structure for team_teacher_invitation
+-- ----------------------------
+DROP TABLE IF EXISTS `team_teacher_invitation`;
+CREATE TABLE `team_teacher_invitation`  (
+  `invitation_id` bigint NOT NULL AUTO_INCREMENT COMMENT '邀请ID',
+  `team_id` bigint NOT NULL COMMENT '队伍ID',
+  `competition_id` bigint NOT NULL COMMENT '竞赛ID',
+  `teacher_id` bigint NOT NULL COMMENT '教师用户ID',
+  `teacher_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '教师姓名',
+  `student_id` bigint NOT NULL COMMENT '发起邀请的学生ID',
+  `student_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '学生姓名',
+  `team_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '队名(冗余)',
+  `competition_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '竞赛名称(冗余)',
+  `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '状态(0待确认 1已接受 2已拒绝 3已撤销)',
+  `reply_message` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '教师回复信息',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '邀请时间',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '处理时间',
+  PRIMARY KEY (`invitation_id`) USING BTREE,
+  INDEX `idx_team_id`(`team_id` ASC) USING BTREE,
+  INDEX `idx_teacher_id`(`teacher_id` ASC) USING BTREE,
+  INDEX `idx_student_id`(`student_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '教师邀请表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of team_teacher_invitation
+-- ----------------------------
 
 SET FOREIGN_KEY_CHECKS = 1;

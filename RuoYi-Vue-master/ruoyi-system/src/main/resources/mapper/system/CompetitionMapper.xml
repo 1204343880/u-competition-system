@@ -16,7 +16,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="applyEndTime"         column="apply_end_time"        />
         <result property="startTime"            column="start_time"            />
         <result property="endTime"              column="end_time"              />
-        <result property="status"               column="status"                />
+        <result property="status"               column="computed_status"       />
+        <result property="publishStatus"        column="publish_status"        />
         <result property="organizer"            column="organizer"             />
         <result property="host"                 column="host"                  />
         <result property="maxParticipants"      column="max_participants"      />
@@ -34,7 +35,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select competition_id, competition_name, category, category_name,
                competition_type, competition_level,
                description, apply_start_time, apply_end_time, start_time, end_time,
-               status, organizer, host, max_participants, current_participants,
+               CASE
+                   WHEN NOW() &lt; apply_start_time THEN '3'
+                   WHEN NOW() BETWEEN apply_start_time AND apply_end_time THEN '0'
+                   WHEN NOW() &lt; start_time THEN '3'
+                   WHEN NOW() BETWEEN start_time AND end_time THEN '1'
+                   ELSE '2'
+               END AS computed_status,
+               publish_status,
+               organizer, host, max_participants, current_participants,
                view_count, tags,
                del_flag, create_by, create_time, update_by, update_time
         from competition
@@ -46,14 +55,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectCompetitionList" parameterType="Competition" resultMap="CompetitionResult">
-        <include refid="selectCompetitionVo"/>
-        <where>
-            del_flag = '0'
+        select * from (
+            <include refid="selectCompetitionVo"/>
+            where del_flag = '0' and publish_status = '1'
             <if test="competitionName != null and competitionName != ''">
                 AND competition_name like concat('%', #{competitionName}, '%')
-            </if>
-            <if test="status != null and status != ''">
-                AND status = #{status}
             </if>
             <if test="competitionLevel != null and competitionLevel != ''">
                 AND competition_level = #{competitionLevel}
@@ -64,6 +70,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                     #{item}
                 </foreach>
             </if>
+        ) t
+        <where>
+            <if test="status != null and status != ''">
+                AND t.computed_status = #{status}
+            </if>
         </where>
         <choose>
             <when test="params.sortBy == 'apply'">order by apply_start_time asc</when>
@@ -73,5 +84,106 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <otherwise>order by competition_id desc</otherwise>
         </choose>
     </select>
+
+    <select id="selectCompetitionManageList" parameterType="Competition" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        where del_flag = '0'
+        <if test="competitionName != null and competitionName != ''">
+            AND competition_name like concat('%', #{competitionName}, '%')
+        </if>
+        <if test="publishStatus != null and publishStatus != ''">
+            AND publish_status = #{publishStatus}
+        </if>
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        order by competition_id desc
+    </select>
+
+    <insert id="insertCompetition" parameterType="Competition" useGeneratedKeys="true" keyProperty="competitionId">
+        insert into competition
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="competitionName != null">competition_name,</if>
+            <if test="category != null">category,</if>
+            <if test="categoryName != null">category_name,</if>
+            <if test="competitionType != null">competition_type,</if>
+            <if test="competitionLevel != null">competition_level,</if>
+            <if test="description != null">description,</if>
+            <if test="applyStartTime != null">apply_start_time,</if>
+            <if test="applyEndTime != null">apply_end_time,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="organizer != null">organizer,</if>
+            <if test="host != null">host,</if>
+            <if test="maxParticipants != null">max_participants,</if>
+            <if test="tags != null">tags,</if>
+            publish_status, del_flag, create_by, create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="competitionName != null">#{competitionName},</if>
+            <if test="category != null">#{category},</if>
+            <if test="categoryName != null">#{categoryName},</if>
+            <if test="competitionType != null">#{competitionType},</if>
+            <if test="competitionLevel != null">#{competitionLevel},</if>
+            <if test="description != null">#{description},</if>
+            <if test="applyStartTime != null">#{applyStartTime},</if>
+            <if test="applyEndTime != null">#{applyEndTime},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="organizer != null">#{organizer},</if>
+            <if test="host != null">#{host},</if>
+            <if test="maxParticipants != null">#{maxParticipants},</if>
+            <if test="tags != null">#{tags},</if>
+            #{publishStatus}, '0', #{createBy}, sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateCompetition" parameterType="Competition">
+        update competition
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="competitionName != null">competition_name = #{competitionName},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="categoryName != null">category_name = #{categoryName},</if>
+            <if test="competitionType != null">competition_type = #{competitionType},</if>
+            <if test="competitionLevel != null">competition_level = #{competitionLevel},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="applyStartTime != null">apply_start_time = #{applyStartTime},</if>
+            <if test="applyEndTime != null">apply_end_time = #{applyEndTime},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="organizer != null">organizer = #{organizer},</if>
+            <if test="host != null">host = #{host},</if>
+            <if test="maxParticipants != null">max_participants = #{maxParticipants},</if>
+            <if test="tags != null">tags = #{tags},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where competition_id = #{competitionId}
+    </update>
+
+    <update id="deleteCompetitionByIds" parameterType="Long">
+        update competition set del_flag = '2', update_time = sysdate()
+        where competition_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updatePublishStatus" parameterType="Competition">
+        update competition
+        set publish_status = #{publishStatus}, update_time = sysdate()
+        where competition_id = #{competitionId}
+    </update>
+
+    <update id="incrementParticipants" parameterType="Long">
+        update competition set current_participants = current_participants + 1
+        where competition_id = #{competitionId}
+          and (max_participants is null or max_participants = 0 or current_participants &lt; max_participants)
+    </update>
+
+    <update id="decrementParticipants" parameterType="Long">
+        update competition set current_participants = current_participants - 1
+        where competition_id = #{competitionId} and current_participants > 0
+    </update>
 
 </mapper>

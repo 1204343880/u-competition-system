@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.UserNotificationMapper">
+
+    <resultMap type="UserNotification" id="NotificationResult">
+        <result property="id"         column="id"          />
+        <result property="userId"     column="user_id"     />
+        <result property="bizType"    column="biz_type"    />
+        <result property="bizId"      column="biz_id"      />
+        <result property="title"      column="title"       />
+        <result property="content"    column="content"     />
+        <result property="isRead"     column="is_read"     />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <insert id="insertNotification" parameterType="UserNotification" useGeneratedKeys="true" keyProperty="id">
+        insert into user_notification (user_id, biz_type, biz_id, title, content, is_read, create_time)
+        values (#{userId}, #{bizType}, #{bizId}, #{title}, #{content}, '0', sysdate())
+    </insert>
+
+    <select id="selectNotificationsByUserId" parameterType="Long" resultMap="NotificationResult">
+        select id, user_id, biz_type, biz_id, title, content, is_read, create_time
+        from user_notification
+        where user_id = #{userId}
+        order by create_time desc
+    </select>
+
+    <select id="selectUnreadCount" parameterType="Long" resultType="int">
+        select count(1) from user_notification
+        where user_id = #{userId} and is_read = '0'
+    </select>
+
+    <update id="markAsRead">
+        update user_notification set is_read = '1' where id = #{id} and user_id = #{userId}
+    </update>
+
+    <update id="markAllAsRead" parameterType="Long">
+        update user_notification set is_read = '1'
+        where user_id = #{userId} and is_read = '0'
+    </update>
+
+    <delete id="deleteByIds" parameterType="Long">
+        delete from user_notification where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

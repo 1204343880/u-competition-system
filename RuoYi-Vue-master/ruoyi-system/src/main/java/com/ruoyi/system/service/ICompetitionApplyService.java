@@ -10,4 +10,12 @@ public interface ICompetitionApplyService
     List<CompetitionApply> selectApplyListByUserId(Long userId);
 
     int insertApply(CompetitionApply apply);
+
+    int cancelApply(Long applyId);
+
+    int auditApply(CompetitionApply apply);
+
+    List<CompetitionApply> selectApplyAuditList(CompetitionApply apply);
+
+    CompetitionApply selectApplyByIdRaw(Long applyId);
 }

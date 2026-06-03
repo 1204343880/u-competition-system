@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CompTeamMemberMapper">
+
+    <resultMap type="CompTeamMember" id="CompTeamMemberResult">
+        <result property="id"           column="id"           />
+        <result property="teamId"       column="team_id"      />
+        <result property="userId"       column="user_id"      />
+        <result property="userName"     column="user_name"    />
+        <result property="nickName"     column="nick_name"    />
+        <result property="joinTime"     column="join_time"    />
+        <result property="delFlag"      column="del_flag"     />
+        <result property="createBy"     column="create_by"    />
+        <result property="createTime"   column="create_time"  />
+    </resultMap>
+
+    <insert id="insertMember" parameterType="CompTeamMember" useGeneratedKeys="true" keyProperty="id">
+        insert into comp_team_member (
+            team_id, user_id, user_name, nick_name,
+            join_time, del_flag, create_by, create_time
+        ) values (
+            #{teamId}, #{userId}, #{userName}, #{nickName},
+            sysdate(), '0', #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="deleteMember" parameterType="Long">
+        update comp_team_member
+        set del_flag = '2'
+        where id = #{id}
+    </update>
+
+    <select id="selectMemberByTeamIdAndUserId" resultMap="CompTeamMemberResult">
+        select id, team_id, user_id, user_name, nick_name, join_time, del_flag
+        from comp_team_member
+        where team_id = #{teamId} and user_id = #{userId} and del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="existsMemberInCompetition" resultType="boolean">
+        select count(1) > 0
+        from comp_team_member m
+        inner join comp_team t on t.team_id = m.team_id and t.del_flag = '0'
+        where t.competition_id = #{competitionId}
+          and m.user_id = #{userId}
+          and m.del_flag = '0'
+    </select>
+
+</mapper>

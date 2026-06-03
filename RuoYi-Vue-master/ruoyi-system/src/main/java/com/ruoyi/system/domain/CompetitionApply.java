@@ -32,6 +32,8 @@ public class CompetitionApply extends BaseEntity
 
     private String auditRemark;
 
+    private String auditBy;
+
     private String delFlag;
 
     private String competitionName;
@@ -150,6 +152,16 @@ public class CompetitionApply extends BaseEntity
     public void setAuditRemark(String auditRemark)
     {
         this.auditRemark = auditRemark;
+    }
+
+    public String getAuditBy()
+    {
+        return auditBy;
+    }
+
+    public void setAuditBy(String auditBy)
+    {
+        this.auditBy = auditBy;
     }
 
     public String getDelFlag()

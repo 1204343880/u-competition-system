@@ -3,6 +3,7 @@ package com.ruoyi.web.controller.competition;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -109,6 +110,14 @@ public class HallController extends BaseController
             return error("您已报名该竞赛，请勿重复报名");
         }
 
+        if (competition.getMaxParticipants() != null && competition.getMaxParticipants() > 0)
+        {
+            if (!competitionService.incrementParticipants(competitionId))
+            {
+                return error("该竞赛名额已满");
+            }
+        }
+
         CompetitionApply apply = new CompetitionApply();
         apply.setCompetitionId(competitionId);
         apply.setUserId(userId);
@@ -133,5 +142,38 @@ public class HallController extends BaseController
         }
         List<CompetitionApply> list = competitionApplyService.selectApplyListByUserId(loginUser.getUserId());
         return success(list);
+    }
+
+    @Operation(summary = "取消竞赛报名")
+    @DeleteMapping("/{competitionId}/apply")
+    public AjaxResult cancelApply(
+            @Parameter(description = "竞赛ID", required = true)
+            @PathVariable Long competitionId)
+    {
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        if (loginUser == null)
+        {
+            return error("请先登录");
+        }
+        Long userId = loginUser.getUserId();
+
+        Competition competition = competitionService.selectCompetitionById(competitionId);
+        if (competition == null)
+        {
+            return error("竞赛不存在");
+        }
+        if (!"0".equals(competition.getStatus()))
+        {
+            return error("当前竞赛不在报名阶段，无法取消");
+        }
+
+        CompetitionApply existApply = competitionApplyService.selectApplyByCompetitionIdAndUserId(competitionId, userId);
+        if (existApply == null)
+        {
+            return error("您未报名该竞赛");
+        }
+        competitionApplyService.cancelApply(existApply.getApplyId());
+        competitionService.decrementParticipants(competitionId);
+        return success("取消报名成功");
     }
 }

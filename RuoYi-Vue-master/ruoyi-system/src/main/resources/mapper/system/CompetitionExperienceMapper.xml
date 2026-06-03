@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CompetitionExperienceMapper">
+
+    <resultMap type="CompetitionExperience" id="ExperienceResult">
+        <result property="experienceId"  column="experience_id"  />
+        <result property="title"         column="title"          />
+        <result property="author"        column="author"         />
+        <result property="category"      column="category"       />
+        <result property="content"       column="content"        />
+        <result property="viewCount"     column="view_count"     />
+        <result property="auditStatus"   column="audit_status"   />
+        <result property="rejectReason"  column="reject_reason"  />
+        <result property="auditBy"       column="audit_by"       />
+        <result property="auditTime"     column="audit_time"     />
+        <result property="delFlag"       column="del_flag"       />
+        <result property="createBy"      column="create_by"      />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"      column="update_by"      />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectExperienceVo">
+        select experience_id, title, author, category, content, view_count,
+               audit_status, reject_reason, audit_by, audit_time, del_flag,
+               create_by, create_time, update_by, update_time
+        from competition_experience
+    </sql>
+
+    <select id="selectExperienceById" parameterType="Long" resultMap="ExperienceResult">
+        <include refid="selectExperienceVo"/>
+        where experience_id = #{experienceId} and del_flag = '0' and audit_status = '1'
+    </select>
+
+    <select id="selectExperienceList" parameterType="CompetitionExperience" resultMap="ExperienceResult">
+        <include refid="selectExperienceVo"/>
+        where del_flag = '0' and audit_status = '1'
+        <if test="title != null and title != ''">
+            AND title like concat('%', #{title}, '%')
+        </if>
+        <if test="author != null and author != ''">
+            AND author like concat('%', #{author}, '%')
+        </if>
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        order by experience_id desc
+    </select>
+
+    <select id="selectAuditList" parameterType="CompetitionExperience" resultMap="ExperienceResult">
+        <include refid="selectExperienceVo"/>
+        where del_flag = '0'
+        <if test="auditStatus != null and auditStatus != ''">
+            AND audit_status = #{auditStatus}
+        </if>
+        <if test="title != null and title != ''">
+            AND title like concat('%', #{title}, '%')
+        </if>
+        order by experience_id desc
+    </select>
+
+    <select id="selectMySubmissions" parameterType="CompetitionExperience" resultMap="ExperienceResult">
+        <include refid="selectExperienceVo"/>
+        where del_flag = '0'
+        and create_by = #{createBy}
+        order by create_time desc
+    </select>
+
+    <insert id="insertExperience" parameterType="CompetitionExperience" useGeneratedKeys="true" keyProperty="experienceId">
+        insert into competition_experience
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">title,</if>
+            <if test="author != null and author != ''">author,</if>
+            <if test="category != null and category != ''">category,</if>
+            <if test="content != null">content,</if>
+            <if test="viewCount != null">view_count,</if>
+            <if test="auditStatus != null">audit_status,</if>
+            <if test="auditBy != null">audit_by,</if>
+            <if test="auditTime != null">audit_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="author != null and author != ''">#{author},</if>
+            <if test="category != null and category != ''">#{category},</if>
+            <if test="content != null">#{content},</if>
+            <if test="viewCount != null">#{viewCount},</if>
+            <if test="auditStatus != null">#{auditStatus},</if>
+            <if test="auditBy != null">#{auditBy},</if>
+            <if test="auditTime != null">#{auditTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateExperience" parameterType="CompetitionExperience">
+        update competition_experience
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="author != null and author != ''">author = #{author},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="auditBy != null">audit_by = #{auditBy},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where experience_id = #{experienceId}
+    </update>
+
+    <update id="auditExperience">
+        update competition_experience
+        set audit_status = #{auditStatus},
+            reject_reason = #{rejectReason},
+            audit_by     = #{auditBy},
+            audit_time   = #{auditTime},
+            update_time  = sysdate()
+        where experience_id = #{experienceId}
+          and del_flag      = '0'
+          and audit_status  = '0'
+    </update>
+
+    <update id="deleteExperienceByIds" parameterType="Long">
+        update competition_experience set del_flag = '2', update_time = sysdate()
+        where experience_id in
+        <foreach item="experienceId" collection="array" open="(" separator="," close=")">
+            #{experienceId}
+        </foreach>
+    </update>
+
+    <select id="selectExperienceByIdRaw" parameterType="Long" resultMap="ExperienceResult">
+        <include refid="selectExperienceVo"/>
+        where experience_id = #{experienceId} and del_flag = '0'
+    </select>
+
+    <update id="incrementViewCount" parameterType="Long">
+        update competition_experience set view_count = view_count + 1
+        where experience_id = #{experienceId}
+    </update>
+
+</mapper>

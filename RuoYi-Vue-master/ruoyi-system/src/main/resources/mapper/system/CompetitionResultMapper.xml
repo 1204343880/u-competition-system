@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CompetitionResultMapper">
+
+    <resultMap type="CompetitionResult" id="ResultMap">
+        <result property="resultId"        column="result_id"        />
+        <result property="competitionId"   column="competition_id"   />
+        <result property="teamId"          column="team_id"          />
+        <result property="userId"          column="user_id"          />
+        <result property="projectName"     column="project_name"     />
+        <result property="awardLevel"      column="award_level"      />
+        <result property="ranking"         column="ranking"          />
+        <result property="score"           column="score"            />
+        <result property="certificateUrl"  column="certificate_url"  />
+        <result property="certificateHash" column="certificate_hash" />
+        <result property="resultStatus"    column="result_status"    />
+        <result property="createBy"        column="create_by"        />
+        <result property="createTime"      column="create_time"      />
+        <result property="auditBy"         column="audit_by"         />
+        <result property="auditTime"       column="audit_time"       />
+        <result property="updateBy"        column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+        <result property="remark"          column="remark"           />
+        <result property="delFlag"         column="del_flag"         />
+        <result property="competitionName" column="competition_name" />
+        <result property="teamName"        column="team_name"        />
+        <result property="userName"        column="user_name"        />
+    </resultMap>
+
+    <sql id="selectVo">
+        select r.result_id, r.competition_id, r.team_id, r.user_id,
+               r.project_name, r.award_level, r.ranking, r.score,
+               r.certificate_url, r.certificate_hash, r.result_status,
+               r.create_by, r.create_time, r.audit_by, r.audit_time,
+               r.update_by, r.update_time, r.remark, r.del_flag
+        from competition_result r
+    </sql>
+
+    <sql id="selectWithJoinsVo">
+        select r.result_id, r.competition_id, r.team_id, r.user_id,
+               r.project_name, r.award_level, r.ranking, r.score,
+               r.certificate_url, r.certificate_hash, r.result_status,
+               r.create_by, r.create_time, r.audit_by, r.audit_time,
+               r.update_by, r.update_time, r.remark, r.del_flag,
+               c.competition_name,
+               t.team_name,
+               u.user_name
+        from competition_result r
+        left join competition c on r.competition_id = c.competition_id
+        left join comp_team t on r.team_id = t.team_id
+        left join sys_user u on r.user_id = u.user_id
+    </sql>
+
+    <select id="selectResultById" parameterType="Long" resultMap="ResultMap">
+        <include refid="selectWithJoinsVo"/>
+        where r.result_id = #{resultId} and r.del_flag = '0' and r.result_status = '1'
+    </select>
+
+    <select id="selectResultList" parameterType="CompetitionResult" resultMap="ResultMap">
+        <include refid="selectWithJoinsVo"/>
+        where r.del_flag = '0' and r.result_status = '1'
+        <if test="competitionName != null and competitionName != ''">
+            AND c.competition_name like concat('%', #{competitionName}, '%')
+        </if>
+        <if test="awardLevel != null and awardLevel != ''">
+            AND r.award_level = #{awardLevel}
+        </if>
+        <if test="projectName != null and projectName != ''">
+            AND r.project_name like concat('%', #{projectName}, '%')
+        </if>
+        order by r.create_time desc
+    </select>
+
+    <select id="selectResultAuditList" parameterType="CompetitionResult" resultMap="ResultMap">
+        <include refid="selectWithJoinsVo"/>
+        where r.del_flag = '0'
+        <if test="resultStatus != null and resultStatus != ''">
+            AND r.result_status = #{resultStatus}
+        </if>
+        <if test="competitionName != null and competitionName != ''">
+            AND c.competition_name like concat('%', #{competitionName}, '%')
+        </if>
+        order by r.create_time desc
+    </select>
+
+    <insert id="insertResult" parameterType="CompetitionResult" useGeneratedKeys="true" keyProperty="resultId">
+        insert into competition_result (
+            competition_id, team_id, user_id,
+            project_name, award_level, ranking, score,
+            certificate_url, certificate_hash,
+            result_status,
+            create_by, create_time, del_flag
+        ) values (
+            #{competitionId}, #{teamId}, #{userId},
+            #{projectName}, #{awardLevel}, #{ranking}, #{score},
+            #{certificateUrl}, #{certificateHash},
+            '0',
+            #{createBy}, sysdate(), '0'
+        )
+    </insert>
+
+    <update id="updateResult" parameterType="CompetitionResult">
+        update competition_result
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="projectName != null and projectName != ''">project_name = #{projectName},</if>
+            <if test="awardLevel != null and awardLevel != ''">award_level = #{awardLevel},</if>
+            <if test="ranking != null">ranking = #{ranking},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="certificateUrl != null">certificate_url = #{certificateUrl},</if>
+            <if test="certificateHash != null">certificate_hash = #{certificateHash},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </trim>
+        where result_id = #{resultId}
+          and del_flag = '0'
+          and result_status != '1'
+    </update>
+
+    <update id="auditResult">
+        update competition_result
+        set result_status = #{resultStatus},
+            audit_by      = #{auditBy},
+            audit_time    = #{auditTime},
+            update_time   = sysdate()
+            <if test="remark != null and remark != ''">,remark = #{remark}</if>
+        where result_id   = #{resultId}
+          and del_flag    = '0'
+          and result_status = '0'
+    </update>
+
+    <update id="deleteResultByIds" parameterType="Long">
+        update competition_result set del_flag = '2', update_time = sysdate()
+        where result_id in
+        <foreach item="resultId" collection="array" open="(" separator="," close=")">
+            #{resultId}
+        </foreach>
+    </update>
+
+    <select id="selectResultByIdRaw" parameterType="Long" resultMap="ResultMap">
+        <include refid="selectVo"/>
+        where r.result_id = #{resultId} and r.del_flag = '0'
+    </select>
+
+    <select id="selectResultsByUserId" parameterType="Long" resultMap="ResultMap">
+        <include refid="selectWithJoinsVo"/>
+        where r.del_flag = '0' and r.result_status = '1'
+          and r.user_id = #{userId}
+        order by r.create_time desc
+    </select>
+
+</mapper>

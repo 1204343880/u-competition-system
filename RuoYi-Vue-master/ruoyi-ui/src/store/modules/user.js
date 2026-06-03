@@ -16,6 +16,9 @@ const useUserStore = defineStore(
       name: '',
       nickName: '',
       avatar: '',
+      showInMarket: '0',
+      skillTags: '',
+      grade: '',
       roles: [],
       permissions: []
     }),
@@ -56,6 +59,9 @@ const useUserStore = defineStore(
             this.name = user.userName
             this.nickName = user.nickName
             this.avatar = avatar
+            this.showInMarket = user.showInMarket || '0'
+            this.skillTags = user.skillTags || ''
+            this.grade = user.grade || ''
             cache.session.set('pwrChrtype', res.pwdChrtype)
             /* 初始密码提示 */
             if(res.isDefaultModifyPwd) {

@@ -87,6 +87,9 @@ public class SysUser extends BaseEntity
     /** 技能标签（逗号分隔，如：编程,PPT,路演） */
     private String skillTags;
 
+    /** 是否在人才市场显示（0否 1是） */
+    private String showInMarket;
+
     /** 部门对象 */
     @Excels({
         @Excel(name = "部门名称", targetAttr = "deptName", type = Type.EXPORT),
@@ -299,6 +302,16 @@ public class SysUser extends BaseEntity
     public void setSkillTags(String skillTags)
     {
         this.skillTags = skillTags;
+    }
+
+    public String getShowInMarket()
+    {
+        return showInMarket;
+    }
+
+    public void setShowInMarket(String showInMarket)
+    {
+        this.showInMarket = showInMarket;
     }
 
     public SysDept getDept()

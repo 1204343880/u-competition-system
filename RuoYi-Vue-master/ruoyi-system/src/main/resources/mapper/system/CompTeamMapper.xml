@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CompTeamMapper">
+
+    <resultMap type="CompTeam" id="CompTeamResult">
+        <result property="teamId"          column="team_id"          />
+        <result property="competitionId"   column="competition_id"   />
+        <result property="teamName"        column="team_name"        />
+        <result property="leaderId"        column="leader_id"        />
+        <result property="leaderName"      column="leader_name"      />
+        <result property="teacherId"       column="teacher_id"       />
+        <result property="teacherName"     column="teacher_name"     />
+        <result property="inviteCode"      column="invite_code"      />
+        <result property="status"          column="status"           />
+        <result property="maxMembers"      column="max_members"      />
+        <result property="currentMembers"  column="current_members"  />
+        <result property="isPublic"        column="is_public"         />
+        <result property="neededSkills"    column="needed_skills"     />
+        <result property="delFlag"         column="del_flag"         />
+        <result property="createBy"        column="create_by"        />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateBy"        column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+        <result property="remark"          column="remark"           />
+        <result property="competitionName" column="competition_name" />
+        <result property="compStatus"      column="comp_status"      />
+        <result property="categoryName"    column="category_name"    />
+        <result property="category"        column="category"         />
+        <result property="userRole"        column="user_role"        />
+        <result property="joinTime"        column="join_time"        />
+    </resultMap>
+
+    <resultMap type="CompTeamMember" id="CompTeamMemberResult">
+        <result property="id"           column="id"           />
+        <result property="teamId"       column="team_id"      />
+        <result property="userId"       column="user_id"      />
+        <result property="userName"     column="user_name"    />
+        <result property="nickName"     column="nick_name"    />
+        <result property="joinTime"     column="join_time"    />
+        <result property="delFlag"      column="del_flag"     />
+        <result property="createBy"     column="create_by"    />
+        <result property="createTime"   column="create_time"  />
+    </resultMap>
+
+    <insert id="insertTeam" parameterType="CompTeam" useGeneratedKeys="true" keyProperty="teamId">
+        insert into comp_team (
+            competition_id, team_name, leader_id, leader_name,
+            teacher_id, teacher_name,
+            invite_code, status, max_members, current_members, del_flag,
+            create_by, create_time
+        ) values (
+            #{competitionId}, #{teamName}, #{leaderId}, #{leaderName},
+            #{teacherId}, #{teacherName},
+            #{inviteCode}, '0', #{maxMembers}, #{currentMembers}, '0',
+            #{createBy}, sysdate()
+        )
+    </insert>
+
+    <sql id="compStatusExpr">
+        CASE
+            WHEN NOW() &lt; c.apply_start_time THEN '3'
+            WHEN NOW() BETWEEN c.apply_start_time AND c.apply_end_time THEN '0'
+            WHEN NOW() &lt; c.start_time THEN '3'
+            WHEN NOW() BETWEEN c.start_time AND c.end_time THEN '1'
+            ELSE '2'
+        END
+    </sql>
+
+    <select id="selectTeamById" parameterType="Long" resultMap="CompTeamResult">
+        select t.*,
+               c.competition_name,
+               <include refid="compStatusExpr"/> as comp_status,
+               c.category_name, c.category
+        from comp_team t
+        left join competition c on t.competition_id = c.competition_id
+        where t.team_id = #{teamId} and t.del_flag = '0'
+    </select>
+
+    <select id="selectTeamByInviteCode" parameterType="String" resultMap="CompTeamResult">
+        select t.*,
+               c.competition_name,
+               <include refid="compStatusExpr"/> as comp_status,
+               c.category_name, c.category
+        from comp_team t
+        left join competition c on t.competition_id = c.competition_id
+        where t.invite_code = #{inviteCode} and t.del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="selectTeamByCompIdAndUserId" resultMap="CompTeamResult">
+        select t.*,
+               c.competition_name,
+               <include refid="compStatusExpr"/> as comp_status,
+               c.category_name, c.category,
+               case when t.leader_id = m.user_id then 'leader' else 'member' end as user_role,
+               m.join_time
+        from comp_team t
+        left join competition c on t.competition_id = c.competition_id
+        inner join comp_team_member m on m.team_id = t.team_id and m.del_flag = '0'
+        where t.competition_id = #{competitionId}
+          and m.user_id = #{userId}
+          and t.del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="selectTeamsByUserId" parameterType="Long" resultMap="CompTeamResult">
+        select t.*,
+               c.competition_name,
+               <include refid="compStatusExpr"/> as comp_status,
+               c.category_name, c.category,
+               case when t.leader_id = m.user_id then 'leader' else 'member' end as user_role,
+               m.join_time
+        from comp_team t
+        left join competition c on t.competition_id = c.competition_id
+        inner join comp_team_member m on m.team_id = t.team_id and m.del_flag = '0'
+        where m.user_id = #{userId} and t.del_flag = '0'
+        order by m.join_time desc
+    </select>
+
+    <select id="selectMembersByTeamId" parameterType="Long" resultMap="CompTeamMemberResult">
+        select id, team_id, user_id, user_name, nick_name, join_time, del_flag
+        from comp_team_member
+        where team_id = #{teamId} and del_flag = '0'
+        order by join_time asc
+    </select>
+
+    <update id="updateTeam" parameterType="CompTeam">
+        update comp_team
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="currentMembers != null">current_members = #{currentMembers},</if>
+            <if test="teamName != null">team_name = #{teamName},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where team_id = #{teamId}
+    </update>
+
+    <update id="deleteTeam" parameterType="Long">
+        update comp_team
+        set del_flag = '2', update_time = sysdate()
+        where team_id = #{teamId}
+    </update>
+
+    <select id="countMemberByCompIdAndUserId" resultType="int">
+        select count(1)
+        from comp_team_member m
+        inner join comp_team t on t.team_id = m.team_id and t.del_flag = '0'
+        where t.competition_id = #{competitionId}
+          and m.user_id = #{userId}
+          and m.del_flag = '0'
+    </select>
+
+    <update id="transferLeader">
+        update comp_team
+        set leader_id = #{newLeaderId},
+            leader_name = #{newLeaderName},
+            update_time = sysdate()
+        where team_id = #{teamId} and del_flag = '0'
+    </update>
+
+    <select id="selectPublicTeams" resultMap="CompTeamResult">
+        select t.*,
+               c.competition_name,
+               <include refid="compStatusExpr"/> as comp_status,
+               c.category_name, c.category
+        from comp_team t
+        left join competition c on t.competition_id = c.competition_id
+        where t.is_public = '1' and t.status = '0' and t.del_flag = '0'
+        <if test="competitionId != null">
+            and t.competition_id = #{competitionId}
+        </if>
+        order by t.create_time desc
+    </select>
+
+    <update id="togglePublic">
+        update comp_team set is_public = #{isPublic}, update_time = sysdate()
+        where team_id = #{teamId}
+    </update>
+
+    <update id="updateNeededSkills">
+        update comp_team set needed_skills = #{neededSkills}, update_time = sysdate()
+        where team_id = #{teamId}
+    </update>
+
+    <update id="submitTeam">
+        update comp_team
+        set status = '1', update_time = sysdate()
+        where team_id  = #{teamId}
+          and status   = '0'
+          and del_flag = '0'
+          and leader_id = #{leaderId}
+    </update>
+
+    <update id="auditTeam">
+        update comp_team
+        set status     = #{status},
+            remark     = #{remark},
+            update_time  = sysdate()
+        where team_id  = #{teamId}
+          and status   = '1'
+          and del_flag = '0'
+    </update>
+
+    <select id="selectTeamAuditList" parameterType="CompTeam" resultMap="CompTeamResult">
+        select t.*, c.competition_name,
+               <include refid="compStatusExpr"/> as comp_status,
+               c.category_name, c.category
+        from comp_team t
+        left join competition c on t.competition_id = c.competition_id
+        where t.del_flag = '0'
+        <if test="status != null and status != ''">
+            AND t.status = #{status}
+        </if>
+        <if test="teamName != null and teamName != ''">
+            AND t.team_name like concat('%', #{teamName}, '%')
+        </if>
+        <if test="competitionName != null and competitionName != ''">
+            AND c.competition_name like concat('%', #{competitionName}, '%')
+        </if>
+        order by t.create_time desc
+    </select>
+
+    <update id="setTeacher">
+        update comp_team
+        set teacher_id   = #{teacherId},
+            teacher_name = #{teacherName},
+            update_time  = sysdate()
+        where team_id    = #{teamId}
+          and teacher_id IS NULL
+          and del_flag   = '0'
+    </update>
+
+    <select id="selectTeamsByTeacherId" parameterType="Long" resultMap="CompTeamResult">
+        select t.*, c.competition_name,
+               <include refid="compStatusExpr"/> as comp_status,
+               c.category_name, c.category
+        from comp_team t
+        left join competition c on t.competition_id = c.competition_id
+        where t.teacher_id = #{teacherId}
+          and t.del_flag = '0'
+        order by t.create_time desc
+    </select>
+
+</mapper>

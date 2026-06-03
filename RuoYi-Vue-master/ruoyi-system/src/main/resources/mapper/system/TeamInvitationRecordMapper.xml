@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TeamInvitationRecordMapper">
+
+    <resultMap type="TeamInvitationRecord" id="InvitationResult">
+        <result property="id"              column="id"              />
+        <result property="teamId"          column="team_id"         />
+        <result property="inviterId"       column="inviter_id"      />
+        <result property="inviteeId"       column="invitee_id"      />
+        <result property="status"          column="status"          />
+        <result property="createTime"      column="create_time"     />
+        <result property="updateTime"      column="update_time"     />
+        <result property="teamName"        column="team_name"       />
+        <result property="inviterName"     column="inviter_name"    />
+        <result property="inviteeName"     column="invitee_name"    />
+        <result property="competitionName" column="competition_name"/>
+    </resultMap>
+
+    <insert id="insertInvitation" parameterType="TeamInvitationRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into team_invitation_record (team_id, inviter_id, invitee_id, status, create_time)
+        values (#{teamId}, #{inviterId}, #{inviteeId}, '0', sysdate())
+    </insert>
+
+    <select id="selectById" parameterType="Long" resultMap="InvitationResult">
+        select r.*,
+               t.team_name,
+               c.competition_name
+        from team_invitation_record r
+        left join comp_team t on r.team_id = t.team_id
+        left join competition c on t.competition_id = c.competition_id
+        where r.id = #{id}
+    </select>
+
+    <select id="selectByInviteeId" parameterType="Long" resultMap="InvitationResult">
+        select r.*,
+               t.team_name,
+               u.user_name as inviter_name,
+               c.competition_name
+        from team_invitation_record r
+        left join comp_team t on r.team_id = t.team_id
+        left join competition c on t.competition_id = c.competition_id
+        left join sys_user u on r.inviter_id = u.user_id
+        where r.invitee_id = #{inviteeId}
+        order by r.create_time desc
+    </select>
+
+    <select id="selectByInviterId" parameterType="Long" resultMap="InvitationResult">
+        select r.*,
+               t.team_name,
+               us.user_name as invitee_name,
+               c.competition_name
+        from team_invitation_record r
+        left join comp_team t on r.team_id = t.team_id
+        left join competition c on t.competition_id = c.competition_id
+        left join sys_user us on r.invitee_id = us.user_id
+        where r.inviter_id = #{inviterId}
+        order by r.create_time desc
+    </select>
+
+    <update id="updateStatus">
+        update team_invitation_record
+        set status = #{status}, update_time = sysdate()
+        where id = #{id}
+    </update>
+
+    <select id="checkDuplicatePending" resultType="int">
+        select count(1) from team_invitation_record
+        where team_id = #{teamId}
+          and invitee_id = #{inviteeId}
+          and status = '0'
+    </select>
+
+    <select id="selectByTeamId" parameterType="Long" resultMap="InvitationResult">
+        select r.*,
+               t.team_name,
+               u.user_name as inviter_name,
+               us.user_name as invitee_name,
+               c.competition_name
+        from team_invitation_record r
+        left join comp_team t on r.team_id = t.team_id
+        left join competition c on t.competition_id = c.competition_id
+        left join sys_user u on r.inviter_id = u.user_id
+        left join sys_user us on r.invitee_id = us.user_id
+        where r.team_id = #{teamId}
+        order by r.create_time desc
+    </select>
+
+</mapper>

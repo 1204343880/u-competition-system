@@ -28,3 +28,10 @@ export function listMyApplies() {
     method: 'get'
   })
 }
+
+export function cancelApply(competitionId) {
+  return request({
+    url: '/student/hall/' + competitionId + '/apply',
+    method: 'delete'
+  })
+}

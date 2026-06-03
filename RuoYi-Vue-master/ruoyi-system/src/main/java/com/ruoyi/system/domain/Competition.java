@@ -36,6 +36,8 @@ public class Competition extends BaseEntity
 
     private String status;
 
+    private String publishStatus;
+
     private String organizer;
 
     private String host;
@@ -168,6 +170,16 @@ public class Competition extends BaseEntity
     public void setStatus(String status)
     {
         this.status = status;
+    }
+
+    public String getPublishStatus()
+    {
+        return publishStatus;
+    }
+
+    public void setPublishStatus(String publishStatus)
+    {
+        this.publishStatus = publishStatus;
     }
 
     public String getOrganizer()

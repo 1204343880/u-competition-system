@@ -186,7 +186,25 @@
         </el-descriptions>
       </div>
       <template #footer>
-        <el-button type="primary" v-if="currentCompetition.status === '0'" @click="handleApply">我要报名</el-button>
+        <template v-if="!isTeacher && currentCompetition.status === '0'">
+          <template v-if="isCompetitionFull">
+            <span style="color: #f56c6c; margin-right: 12px">名额已满（{{ currentCompetition.currentParticipants }}/{{ currentCompetition.maxParticipants }}）</span>
+          </template>
+          <template v-else>
+            <el-button v-if="currentCompetition.competitionType === '1'" type="primary" @click="handleApply">我要报名</el-button>
+            <template v-else-if="currentCompetition.competitionType === '2'">
+              <el-button v-if="!myTeamInfo" type="primary" @click="handleCreateTeam">创建队伍</el-button>
+              <el-button v-if="!myTeamInfo" type="success" @click="handleJoinTeam">加入队伍</el-button>
+              <el-button v-if="myTeamInfo" type="primary" @click="handleViewTeam">查看队伍</el-button>
+            </template>
+          </template>
+        </template>
+        <template v-else-if="!isTeacher && currentCompetition.competitionType === '2'">
+          <span style="color: #e6a23c; margin-right: 12px">
+            {{ currentCompetition.status === '3' ? '报名已截止，待开赛' : '报名已截止（' + parseTime(currentCompetition.applyEndTime, '{y}-{m}-{d}') + '）' }}
+          </span>
+        </template>
+        <template v-if="isTeacher" />
         <el-button @click="detailOpen = false">关 闭</el-button>
       </template>
     </el-dialog>
@@ -212,6 +230,117 @@
         <el-button @click="applyOpen = false">取 消</el-button>
       </template>
     </el-dialog>
+
+    <!-- 创建队伍弹窗 -->
+    <el-dialog title="创建队伍" v-model="createTeamOpen" width="480px" append-to-body>
+      <el-form :model="teamForm" label-width="80px">
+        <el-form-item label="竞赛名称">
+          <span style="font-weight: 600">{{ currentCompetition.competitionName }}</span>
+        </el-form-item>
+        <el-form-item label="赛制">
+          <dict-tag :options="competition_type" :value="currentCompetition.competitionType" />
+        </el-form-item>
+        <el-form-item label="队伍名称" prop="teamName" :rules="[{ required: true, message: '请输入队伍名称' }]">
+          <el-input v-model="teamForm.teamName" placeholder="请输入队伍名称" maxlength="20" show-word-limit />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" :loading="teamLoading" @click="submitCreateTeam">创建队伍</el-button>
+        <el-button @click="createTeamOpen = false">取 消</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 加入队伍弹窗 -->
+    <el-dialog title="加入队伍" v-model="joinTeamOpen" width="480px" append-to-body>
+      <el-form :model="joinForm" label-width="80px">
+        <el-form-item label="竞赛名称">
+          <span style="font-weight: 600">{{ currentCompetition.competitionName }}</span>
+        </el-form-item>
+        <el-form-item label="邀请码" prop="inviteCode" :rules="[{ required: true, message: '请输入邀请码' }]">
+          <el-input v-model="joinForm.inviteCode" placeholder="请输入队长分享的6位邀请码" maxlength="6" style="text-transform: uppercase" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" :loading="teamLoading" @click="submitJoinTeam">加入队伍</el-button>
+        <el-button @click="joinTeamOpen = false">取 消</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 查看队伍弹窗 -->
+    <el-dialog title="我的队伍" v-model="viewTeamOpen" width="600px" append-to-body>
+      <div v-if="myTeamInfo">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="队伍名称" :span="2">{{ myTeamInfo.teamName }}</el-descriptions-item>
+          <el-descriptions-item label="队长">{{ myTeamInfo.leaderName }}</el-descriptions-item>
+          <el-descriptions-item label="你的角色">
+            <el-tag v-if="myTeamInfo.userRole === 'leader'" type="danger" size="small">队长</el-tag>
+            <el-tag v-else type="success" size="small">队员</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="邀请码">
+            <el-tag type="warning">{{ myTeamInfo.inviteCode }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="队伍人数">{{ myTeamInfo.currentMembers }} / {{ myTeamInfo.maxMembers }}</el-descriptions-item>
+          <el-descriptions-item label="队伍状态">
+            <dict-tag :options="team_status" :value="myTeamInfo.status" />
+          </el-descriptions-item>
+          <el-descriptions-item v-if="myTeamInfo.userRole === 'leader'" label="公开招募" :span="2">
+            <el-switch v-model="myTeamInfo.isPublic" active-value="1" inactive-value="0" @change="togglePublic" />
+            <span style="margin-left: 8px; font-size: 12px; color: #909399">开启后在组队广场展示</span>
+          </el-descriptions-item>
+          <el-descriptions-item v-if="myTeamInfo.userRole === 'leader'" label="所需技能" :span="2">
+            <el-button link type="primary" size="small" @click="skillDialogOpen = true">
+              {{ teamSkillsInput || '点击选择所需技能' }}
+            </el-button>
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <el-divider v-if="myTeamInfo.userRole === 'leader'" content-position="left">指导教师</el-divider>
+        <div v-if="myTeamInfo.userRole === 'leader'" class="teacher-section">
+          <div v-if="teamInvitations.length > 0" style="margin-bottom: 12px">
+            <el-tag v-for="inv in teamInvitations" :key="inv.invitationId" size="small" :type="invitationStatusType(inv.status)" style="margin-right: 8px">
+              {{ inv.teacherName || '教师' + inv.teacherId }} -
+              {{ inv.status === '0' ? '待确认' : inv.status === '1' ? '已接受' : inv.status === '2' ? '已拒绝' : '已撤销' }}
+              <el-button v-if="inv.status === '0'" link size="small" @click="handleCancelInvitation(inv)" style="margin-left: 4px">撤销</el-button>
+            </el-tag>
+          </div>
+          <div style="display: flex; gap: 8px">
+            <el-input v-model="inviteForm.teacherId" placeholder="输入教师用户名或ID" size="small" style="width: 220px" />
+            <el-button type="primary" size="small" :loading="inviteLoading" @click="handleInviteTeacher">发送邀请</el-button>
+          </div>
+        </div>
+
+        <el-divider content-position="left">队伍成员</el-divider>
+        <el-table :data="teamMembers" size="small">
+          <el-table-column label="姓名" prop="userName" />
+          <el-table-column label="昵称" prop="nickName" />
+          <el-table-column label="加入时间" width="160">
+            <template #default="scope">{{ parseTime(scope.row.joinTime) }}</template>
+          </el-table-column>
+          <el-table-column label="角色" min-width="120">
+            <template #default="scope">
+              <el-tag v-if="scope.row.userId === myTeamInfo.leaderId" type="danger" size="small">队长</el-tag>
+              <template v-else>
+                <el-tag type="info" size="small">队员</el-tag>
+                <el-button
+                  v-if="myTeamInfo.userRole === 'leader'"
+                  link
+                  type="warning"
+                  size="small"
+                  style="margin-left: 8px"
+                  @click="handleTransferLeader(scope.row)"
+                >移交队长</el-button>
+              </template>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <template #footer>
+        <el-button @click="viewTeamOpen = false">关 闭</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 技能选择弹窗 -->
+    <SkillSelector v-model="skillDialogOpen" :current-skills="teamSkillsInput" @save="onSkillSave" />
   </div>
 </template>
 
@@ -225,8 +354,9 @@ const {
   competition_status,
   competition_category,
   competition_type,
-  competition_level
-} = useDict('competition_status', 'competition_category', 'competition_type', 'competition_level')
+  competition_level,
+  team_status
+} = useDict('competition_status', 'competition_category', 'competition_type', 'competition_level', 'team_status')
 
 const competitionList = ref([])
 const loading = ref(true)
@@ -235,6 +365,23 @@ const detailOpen = ref(false)
 const applyOpen = ref(false)
 const applyLoading = ref(false)
 const currentCompetition = ref({})
+
+const createTeamOpen = ref(false)
+const joinTeamOpen = ref(false)
+const viewTeamOpen = ref(false)
+const teamLoading = ref(false)
+const myTeamInfo = ref(null)
+const teamMembers = ref([])
+
+const teamForm = ref({ teamName: '' })
+const joinForm = ref({ inviteCode: '' })
+const teamSkillsInput = ref('')
+const skillDialogOpen = ref(false)
+
+const inviteLoading = ref(false)
+const teacherList = ref([])
+const teamInvitations = ref([])
+const inviteForm = ref({ teacherId: null })
 
 const data = reactive({
   queryParams: {
@@ -247,6 +394,19 @@ const data = reactive({
 const { queryParams } = toRefs(data)
 
 import { listCompetition, getCompetition, applyCompetition } from '@/api/competition/hall'
+import { createTeam, joinTeam, getMyTeam, getTeamMembers, transferLeader, toggleTeamPublic, updateTeamSkills } from '@/api/competition/team'
+import { inviteTeacher, listTeamInvitations, cancelInvitation } from '@/api/competition/invitation'
+import auth from '@/plugins/auth'
+import SkillSelector from './SkillSelector.vue'
+
+const isTeacher = computed(() => auth.hasRole('teacher'))
+
+const isCompetitionFull = computed(() => {
+  const c = currentCompetition.value
+  return c.competitionType === '1'
+    && c.maxParticipants > 0
+    && c.currentParticipants >= c.maxParticipants
+})
 
 const subjectGroups = [
   { key: 'engineering', label: '工科', codes: ['03', '05'] },
@@ -330,6 +490,125 @@ function handleDetail(row) {
   getCompetition(row.competitionId).then(response => {
     currentCompetition.value = response.data
     detailOpen.value = true
+    if (currentCompetition.value.competitionType === '2') {
+      checkMyTeam()
+    } else {
+      myTeamInfo.value = null
+    }
+  })
+}
+
+function checkMyTeam() {
+  myTeamInfo.value = null
+  getMyTeam(currentCompetition.value.competitionId).then(response => {
+    if (response.data) {
+      myTeamInfo.value = response.data
+    }
+  }).catch(() => {})
+}
+
+function handleCreateTeam() {
+  detailOpen.value = false
+  teamForm.value.teamName = ''
+  nextTick(() => {
+    createTeamOpen.value = true
+  })
+}
+
+function handleJoinTeam() {
+  detailOpen.value = false
+  joinForm.value.inviteCode = ''
+  nextTick(() => {
+    joinTeamOpen.value = true
+  })
+}
+
+function handleViewTeam() {
+  detailOpen.value = false
+  nextTick(() => {
+    viewTeamOpen.value = true
+    loadTeamMembers()
+    loadTeamInvitations()
+  })
+}
+
+function loadTeamMembers() {
+  if (!myTeamInfo.value) return
+  getTeamMembers(myTeamInfo.value.teamId).then(response => {
+    teamMembers.value = response.data || []
+  })
+  teamSkillsInput.value = myTeamInfo.value.neededSkills || ''
+}
+
+function togglePublic(val) {
+  toggleTeamPublic(myTeamInfo.value.teamId, val === '1').then(() => {
+    proxy.$modal.msgSuccess(val === '1' ? '已公开招募' : '已关闭公开招募')
+  })
+}
+
+function saveSkills() {
+  updateTeamSkills(myTeamInfo.value.teamId, teamSkillsInput.value).then(() => {
+    proxy.$modal.msgSuccess('技能已更新')
+    checkMyTeam()
+  })
+}
+
+function onSkillSave(skills) {
+  teamSkillsInput.value = skills
+  saveSkills()
+}
+
+function handleTransferLeader(member) {
+  proxy.$modal.confirm('确定将队长移交给【' + member.userName + '】吗？移交后你将失去队长权限。', '提示', {
+    confirmButtonText: '确定移交',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    return transferLeader(myTeamInfo.value.teamId, member.userId)
+  }).then(() => {
+    proxy.$modal.msgSuccess('队长已移交')
+    checkMyTeam()
+    loadTeamMembers()
+  })
+}
+
+function submitCreateTeam() {
+  if (!teamForm.value.teamName.trim()) {
+    proxy.$modal.msgError('请输入队伍名称')
+    return
+  }
+  teamLoading.value = true
+  createTeam(currentCompetition.value.competitionId, teamForm.value.teamName.trim()).then(response => {
+    proxy.$modal.msgSuccess('队伍创建成功！邀请码：' + response.data.inviteCode)
+    teamLoading.value = false
+    createTeamOpen.value = false
+    myTeamInfo.value = response.data
+    nextTick(() => {
+      viewTeamOpen.value = true
+      loadTeamMembers()
+    })
+  }).catch(() => {
+    teamLoading.value = false
+  })
+}
+
+function submitJoinTeam() {
+  if (!joinForm.value.inviteCode.trim()) {
+    proxy.$modal.msgError('请输入邀请码')
+    return
+  }
+  teamLoading.value = true
+  joinTeam(currentCompetition.value.competitionId, joinForm.value.inviteCode.trim()).then(response => {
+    proxy.$modal.msgSuccess('成功加入队伍：' + response.data.teamName)
+    teamLoading.value = false
+    joinTeamOpen.value = false
+    myTeamInfo.value = response.data
+    nextTick(() => {
+      viewTeamOpen.value = true
+      loadTeamMembers()
+    })
+  }).catch(() => {
+    teamLoading.value = false
   })
 }
 
@@ -372,13 +651,60 @@ const tagTypeMap = {
   '保研加分': 'success', '综测加分': 'success', '综合测评加分': 'success', '立项支持': 'success',
   '双一流高校覆盖': 'warning', '挑战杯热身': 'warning', '国赛热身': 'warning',
   '数学建模': 'primary', '人工智能': 'primary', '客观题答题': 'info',
-  '国家一级社团': '', '互联网+': ''
+  '国家一级社团': 'info', '互联网+': 'info'
 }
 
 function getTagType(tag) {
   for (const [key, type] of Object.entries(tagTypeMap)) {
     if (tag.includes(key)) return type
   }
+  return 'info'
+}
+
+function loadTeamInvitations() {
+  if (!myTeamInfo.value || !myTeamInfo.value.teamId) return
+  listTeamInvitations(myTeamInfo.value.teamId).then(res => {
+    teamInvitations.value = res.data || []
+  })
+}
+
+function handleInviteTeacher() {
+  const teacherId = inviteForm.value.teacherId
+  if (!teacherId) {
+    proxy.$modal.msgError('请输入教师用户名或ID')
+    return
+  }
+  if (!myTeamInfo.value || !myTeamInfo.value.teamId) return
+  inviteLoading.value = true
+  inviteTeacher(myTeamInfo.value.teamId, {
+    teacherId: isNaN(teacherId) ? null : parseInt(teacherId),
+    teacherName: isNaN(teacherId) ? teacherId : '',
+    competitionId: currentCompetition.value.competitionId,
+    competitionName: currentCompetition.value.competitionName,
+    teamName: myTeamInfo.value.teamName
+  }).then(() => {
+    proxy.$modal.msgSuccess('邀请已发送')
+    inviteLoading.value = false
+    inviteForm.value.teacherId = ''
+    loadTeamInvitations()
+  }).catch(() => {
+    inviteLoading.value = false
+  })
+}
+
+function handleCancelInvitation(inv) {
+  proxy.$modal.confirm('确认撤销该邀请？').then(() => {
+    return cancelInvitation(inv.invitationId)
+  }).then(() => {
+    proxy.$modal.msgSuccess('已撤销')
+    loadTeamInvitations()
+  })
+}
+
+function invitationStatusType(status) {
+  if (status === '0') return 'warning'
+  if (status === '1') return 'success'
+  if (status === '2') return 'danger'
   return 'info'
 }
 

@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ruoyi-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: ruoyidemo
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql/ruoyidemo6.1.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./sql/com_insert.sql:/docker-entrypoint-initdb.d/02_com.sql
+      - ./sql/team_migration.sql:/docker-entrypoint-initdb.d/03_team.sql
+      - ./sql/market_migration.sql:/docker-entrypoint-initdb.d/04_market.sql
+      - ./sql/menu_market.sql:/docker-entrypoint-initdb.d/05_menu.sql
+      - ./sql/recovery_all.sql:/docker-entrypoint-initdb.d/06_recovery.sql
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  redis:
+    image: redis:7-alpine
+    container_name: ruoyi-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  app:
+    build: .
+    container_name: ruoyi-app
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+volumes:
+  mysql_data:
+  redis_data:

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CompetitionRetrospectMapper">
+
+    <resultMap type="CompetitionRetrospect" id="RetrospectResult">
+        <result property="retrospectId"    column="retrospect_id"    />
+        <result property="compId"          column="comp_id"          />
+        <result property="competitionName" column="competition_name" />
+        <result property="projectName"     column="project_name"     />
+        <result property="awardLevel"      column="award_level"      />
+        <result property="leaderName"      column="leader_name"      />
+        <result property="year"            column="year"             />
+        <result property="content"         column="content"          />
+        <result property="auditStatus"     column="audit_status"     />
+        <result property="rejectReason"    column="reject_reason"    />
+        <result property="auditBy"         column="audit_by"         />
+        <result property="auditTime"       column="audit_time"       />
+        <result property="delFlag"         column="del_flag"         />
+        <result property="createBy"        column="create_by"        />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateBy"        column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+    </resultMap>
+
+    <sql id="selectRetrospectVo">
+        select retrospect_id, comp_id, competition_name, project_name,
+               award_level, leader_name, year, content,
+               audit_status, reject_reason, audit_by, audit_time, del_flag,
+               create_by, create_time, update_by, update_time
+        from competition_retrospect
+    </sql>
+
+    <select id="selectRetrospectById" parameterType="Long" resultMap="RetrospectResult">
+        <include refid="selectRetrospectVo"/>
+        where retrospect_id = #{retrospectId} and del_flag = '0' and audit_status = '1'
+    </select>
+
+    <select id="selectRetrospectList" parameterType="CompetitionRetrospect" resultMap="RetrospectResult">
+        <include refid="selectRetrospectVo"/>
+        where del_flag = '0' and audit_status = '1'
+        <if test="projectName != null and projectName != ''">
+            AND project_name like concat('%', #{projectName}, '%')
+        </if>
+        <if test="competitionName != null and competitionName != ''">
+            AND competition_name like concat('%', #{competitionName}, '%')
+        </if>
+        <if test="awardLevel != null and awardLevel != ''">
+            AND award_level = #{awardLevel}
+        </if>
+        <if test="year != null and year != ''">
+            AND year = #{year}
+        </if>
+        order by retrospect_id desc
+    </select>
+
+    <select id="selectAuditList" parameterType="CompetitionRetrospect" resultMap="RetrospectResult">
+        <include refid="selectRetrospectVo"/>
+        where del_flag = '0'
+        <if test="auditStatus != null and auditStatus != ''">
+            AND audit_status = #{auditStatus}
+        </if>
+        <if test="projectName != null and projectName != ''">
+            AND project_name like concat('%', #{projectName}, '%')
+        </if>
+        order by retrospect_id desc
+    </select>
+
+    <select id="selectMySubmissions" parameterType="CompetitionRetrospect" resultMap="RetrospectResult">
+        <include refid="selectRetrospectVo"/>
+        where del_flag = '0'
+        and create_by = #{createBy}
+        order by create_time desc
+    </select>
+
+    <insert id="insertRetrospect" parameterType="CompetitionRetrospect" useGeneratedKeys="true" keyProperty="retrospectId">
+        insert into competition_retrospect
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="compId != null">comp_id,</if>
+            <if test="competitionName != null and competitionName != ''">competition_name,</if>
+            <if test="projectName != null and projectName != ''">project_name,</if>
+            <if test="awardLevel != null and awardLevel != ''">award_level,</if>
+            <if test="leaderName != null and leaderName != ''">leader_name,</if>
+            <if test="year != null and year != ''">year,</if>
+            <if test="content != null">content,</if>
+            <if test="auditStatus != null">audit_status,</if>
+            <if test="auditBy != null">audit_by,</if>
+            <if test="auditTime != null">audit_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="compId != null">#{compId},</if>
+            <if test="competitionName != null and competitionName != ''">#{competitionName},</if>
+            <if test="projectName != null and projectName != ''">#{projectName},</if>
+            <if test="awardLevel != null and awardLevel != ''">#{awardLevel},</if>
+            <if test="leaderName != null and leaderName != ''">#{leaderName},</if>
+            <if test="year != null and year != ''">#{year},</if>
+            <if test="content != null">#{content},</if>
+            <if test="auditStatus != null">#{auditStatus},</if>
+            <if test="auditBy != null">#{auditBy},</if>
+            <if test="auditTime != null">#{auditTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRetrospect" parameterType="CompetitionRetrospect">
+        update competition_retrospect
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="compId != null">comp_id = #{compId},</if>
+            <if test="competitionName != null and competitionName != ''">competition_name = #{competitionName},</if>
+            <if test="projectName != null and projectName != ''">project_name = #{projectName},</if>
+            <if test="awardLevel != null and awardLevel != ''">award_level = #{awardLevel},</if>
+            <if test="leaderName != null and leaderName != ''">leader_name = #{leaderName},</if>
+            <if test="year != null and year != ''">year = #{year},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="auditBy != null">audit_by = #{auditBy},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where retrospect_id = #{retrospectId}
+    </update>
+
+    <update id="auditRetrospect">
+        update competition_retrospect
+        set audit_status = #{auditStatus},
+            reject_reason = #{rejectReason},
+            audit_by     = #{auditBy},
+            audit_time   = #{auditTime},
+            update_time  = sysdate()
+        where retrospect_id = #{retrospectId}
+          and del_flag      = '0'
+          and audit_status  = '0'
+    </update>
+
+    <select id="selectRetrospectByIdRaw" parameterType="Long" resultMap="RetrospectResult">
+        <include refid="selectRetrospectVo"/>
+        where retrospect_id = #{retrospectId} and del_flag = '0'
+    </select>
+
+    <update id="deleteRetrospectByIds" parameterType="Long">
+        update competition_retrospect set del_flag = '2', update_time = sysdate()
+        where retrospect_id in
+        <foreach item="retrospectId" collection="array" open="(" separator="," close=")">
+            #{retrospectId}
+        </foreach>
+    </update>
+
+</mapper>

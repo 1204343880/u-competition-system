@@ -1175,5 +1175,6 @@ INSERT INTO `sys_user_role` VALUES (2, 2);
 INSERT INTO `sys_user_role` VALUES (3, 100);
 INSERT INTO `sys_user_role` VALUES (4, 2);
 INSERT INTO `sys_user_role` VALUES (5, 100);
+INSERT INTO `sys_user_role` VALUES (100, 100);
 
 SET FOREIGN_KEY_CHECKS = 1;
