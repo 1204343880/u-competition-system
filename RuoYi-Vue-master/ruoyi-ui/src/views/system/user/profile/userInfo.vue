@@ -24,9 +24,9 @@
          <el-form-item label="年级" prop="grade">
             <el-input v-model="form.grade" maxlength="10" placeholder="如：2024级" />
          </el-form-item>
-         <el-form-item label="技能标签" prop="skillTags">
-            <el-input v-model="form.skillTags" maxlength="100" placeholder="多个标签用逗号分隔，如：编程,路演,PPT" />
-         </el-form-item>
+          <el-form-item label="技能标签" prop="skillTags">
+             <SkillSelector v-model="selectedSkillIds" />
+          </el-form-item>
       </template>
       <el-form-item>
       <el-button type="primary" @click="submit">保存</el-button>
@@ -36,7 +36,9 @@
 </template>
 
 <script setup>
+import { ref, computed, watch, nextTick, getCurrentInstance } from 'vue'
 import { updateUserProfile } from "@/api/system/user"
+import SkillSelector from '@/components/SkillSelector/index.vue'
 
 const props = defineProps({
   user: {
@@ -47,16 +49,42 @@ const props = defineProps({
 const { proxy } = getCurrentInstance()
 
 const form = ref({})
+const selectedSkillIds = ref([])
 const rules = ref({
   nickName: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
   email: [{ required: true, message: "邮箱地址不能为空", trigger: "blur" }, { type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }],
   phonenumber: [{ required: true, message: "手机号码不能为空", trigger: "blur" }, { pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/, message: "请输入正确的手机号码", trigger: "blur" }],
 })
 
-// 竞赛系统扩展：判断当前用户是否为参赛学生角色
 const isStudent = computed(() => {
   return props.user?.roles?.some(role => role.roleKey === 'student')
 })
+
+// 技能名称 ↔ ID 互转（与 SkillSelector 内的数据保持一致）
+const nameToId = {
+  '路演答辩': 101, '项目PM': 102, '市场调研': 103,
+  'BP撰写': 201, '财务测算': 202, '专利/论文撰写': 203,
+  'PPT美工': 301, 'UI/UX设计': 302, '海报/视频剪辑': 303,
+  '后端架构': 401, '前端开发': 402, '算法模型': 403, '硬件单片机': 404
+}
+const idToName = Object.fromEntries(Object.entries(nameToId).map(([k, v]) => [v, k]))
+
+function tagsToIds(str) {
+  if (!str) return []
+  return String(str).split(',').map(s => s.trim()).filter(Boolean).map(n => nameToId[n]).filter(Boolean)
+}
+function idsToTags(ids) {
+  if (!ids || !ids.length) return ''
+  return ids.map(id => idToName[id]).filter(Boolean).join(',')
+}
+
+// SkillSelector 变更 → 回写 form.skillTags
+watch(selectedSkillIds, (ids) => {
+  const tags = idsToTags(ids)
+  if (form.value && tags !== form.value.skillTags) {
+    form.value.skillTags = tags
+  }
+}, { deep: true })
 
 /** 提交按钮 */
 function submit() {
@@ -66,7 +94,6 @@ function submit() {
         proxy.$modal.msgSuccess("修改成功")
         props.user.phonenumber = form.value.phonenumber
         props.user.email = form.value.email
-        // 竞赛系统扩展：回写学生专属字段
         if (isStudent.value) {
           props.user.studentNo = form.value.studentNo
           props.user.grade = form.value.grade
@@ -82,8 +109,7 @@ function close() {
   proxy.$tab.closePage()
 }
 
-// 回显当前登录用户信息
-// 竞赛系统扩展：学生角色额外回显 studentNo、grade、skillTags
+// 回显：用户数据 → form + SkillSelector ID 数组
 watch(() => props.user, user => {
   if (user) {
     form.value = { nickName: user.nickName, phonenumber: user.phonenumber, email: user.email, sex: user.sex }
@@ -92,6 +118,9 @@ watch(() => props.user, user => {
       form.value.grade = user.grade
       form.value.skillTags = user.skillTags
     }
+    nextTick(() => {
+      selectedSkillIds.value = tagsToIds(form.value.skillTags)
+    })
   }
-},{ immediate: true })
+}, { immediate: true })
 </script>

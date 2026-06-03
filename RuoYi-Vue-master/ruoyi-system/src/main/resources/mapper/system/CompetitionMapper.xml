@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CompetitionMapper">
+
+    <resultMap type="Competition" id="CompetitionResult">
+        <result property="competitionId"        column="competition_id"        />
+        <result property="competitionName"      column="competition_name"      />
+        <result property="category"             column="category"              />
+        <result property="categoryName"         column="category_name"         />
+        <result property="competitionType"      column="competition_type"      />
+        <result property="competitionLevel"     column="competition_level"     />
+        <result property="description"          column="description"           />
+        <result property="applyStartTime"       column="apply_start_time"      />
+        <result property="applyEndTime"         column="apply_end_time"        />
+        <result property="startTime"            column="start_time"            />
+        <result property="endTime"              column="end_time"              />
+        <result property="status"               column="status"                />
+        <result property="organizer"            column="organizer"             />
+        <result property="host"                 column="host"                  />
+        <result property="maxParticipants"      column="max_participants"      />
+        <result property="currentParticipants"  column="current_participants"  />
+        <result property="viewCount"            column="view_count"            />
+        <result property="tags"                 column="tags"                  />
+        <result property="delFlag"              column="del_flag"              />
+        <result property="createBy"             column="create_by"             />
+        <result property="createTime"           column="create_time"           />
+        <result property="updateBy"             column="update_by"             />
+        <result property="updateTime"           column="update_time"           />
+    </resultMap>
+
+    <sql id="selectCompetitionVo">
+        select competition_id, competition_name, category, category_name,
+               competition_type, competition_level,
+               description, apply_start_time, apply_end_time, start_time, end_time,
+               status, organizer, host, max_participants, current_participants,
+               view_count, tags,
+               del_flag, create_by, create_time, update_by, update_time
+        from competition
+    </sql>
+
+    <select id="selectCompetitionById" parameterType="Long" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        where competition_id = #{competitionId}
+    </select>
+
+    <select id="selectCompetitionList" parameterType="Competition" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        <where>
+            del_flag = '0'
+            <if test="competitionName != null and competitionName != ''">
+                AND competition_name like concat('%', #{competitionName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="competitionLevel != null and competitionLevel != ''">
+                AND competition_level = #{competitionLevel}
+            </if>
+            <if test="params.categoryList != null">
+                AND category in
+                <foreach item="item" collection="params.categoryList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        <choose>
+            <when test="params.sortBy == 'apply'">order by apply_start_time asc</when>
+            <when test="params.sortBy == 'start'">order by start_time asc</when>
+            <when test="params.sortBy == 'update'">order by update_time desc</when>
+            <when test="params.sortBy == 'view'">order by view_count desc</when>
+            <otherwise>order by competition_id desc</otherwise>
+        </choose>
+    </select>
+
+</mapper>

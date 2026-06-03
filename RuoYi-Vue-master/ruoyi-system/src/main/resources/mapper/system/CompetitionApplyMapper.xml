@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CompetitionApplyMapper">
+
+    <resultMap type="CompetitionApply" id="CompetitionApplyResult">
+        <result property="applyId"        column="apply_id"        />
+        <result property="competitionId"  column="competition_id"  />
+        <result property="userId"         column="user_id"         />
+        <result property="userName"       column="user_name"       />
+        <result property="nickName"       column="nick_name"       />
+        <result property="teamName"       column="team_name"       />
+        <result property="teamMembers"    column="team_members"    />
+        <result property="applyTime"      column="apply_time"      />
+        <result property="auditStatus"    column="audit_status"    />
+        <result property="auditTime"      column="audit_time"      />
+        <result property="auditRemark"    column="audit_remark"    />
+        <result property="delFlag"        column="del_flag"        />
+        <result property="createBy"       column="create_by"       />
+        <result property="createTime"     column="create_time"     />
+        <result property="updateBy"       column="update_by"       />
+        <result property="updateTime"     column="update_time"     />
+        <result property="remark"         column="remark"          />
+        <result property="competitionName" column="competition_name" />
+        <result property="compStatus"     column="comp_status"     />
+        <result property="categoryName"   column="category_name"   />
+        <result property="category"       column="category"        />
+    </resultMap>
+
+    <select id="selectApplyByCompetitionIdAndUserId" resultMap="CompetitionApplyResult">
+        select apply_id, competition_id, user_id, user_name, nick_name,
+               team_name, team_members, apply_time, audit_status, audit_time,
+               audit_remark, del_flag, create_by, create_time, update_by, update_time
+        from competition_apply
+        where competition_id = #{competitionId} and user_id = #{userId}
+          and del_flag = '0'
+        limit 1
+    </select>
+
+    <insert id="insertApply" parameterType="CompetitionApply" useGeneratedKeys="true" keyProperty="applyId">
+        insert into competition_apply (
+            competition_id, user_id, user_name, nick_name,
+            apply_time, audit_status, del_flag,
+            create_by, create_time
+        ) values (
+            #{competitionId}, #{userId}, #{userName}, #{nickName},
+            sysdate(), '0', '0',
+            #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateApply" parameterType="CompetitionApply">
+        update competition_apply
+        <set>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="auditRemark != null">audit_remark = #{auditRemark},</if>
+            update_by = #{updateBy},
+            update_time = sysdate()
+        </set>
+        where apply_id = #{applyId}
+    </update>
+
+    <select id="selectApplyListByUserId" parameterType="Long" resultMap="CompetitionApplyResult">
+        select a.*, c.competition_name, c.status as comp_status,
+               c.category_name, c.category
+        from competition_apply a
+        left join competition c on a.competition_id = c.competition_id
+        where a.user_id = #{userId} and a.del_flag = '0'
+        order by a.apply_time desc
+    </select>
+
+</mapper>

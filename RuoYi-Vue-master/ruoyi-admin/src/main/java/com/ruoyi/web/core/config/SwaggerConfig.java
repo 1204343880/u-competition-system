@@ -1,5 +1,6 @@
 package com.ruoyi.web.core.config;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,32 +11,30 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 
 /**
- * Swagger2的接口配置
- * 
+ * SpringDoc 接口配置
+ *
  * @author ruoyi
  */
 @Configuration
 public class SwaggerConfig
 {
-    /** 系统基础配置 */
     @Autowired
     private RuoYiConfig ruoyiConfig;
-    
-    /**
-     * 自定义的 OpenAPI 对象
-     */
+
     @Bean
     public OpenAPI customOpenApi()
     {
-        return new OpenAPI().components(new Components()
-            // 设置认证的请求头
+        return new OpenAPI()
+            .servers(List.of(new Server().url("/").description("本地服务")))
+            .components(new Components()
             .addSecuritySchemes("apikey", securityScheme()))
             .addSecurityItem(new SecurityRequirement().addList("apikey"))
             .info(getApiInfo());
     }
-    
+
     @Bean
     public SecurityScheme securityScheme()
     {
@@ -45,20 +44,13 @@ public class SwaggerConfig
             .in(SecurityScheme.In.HEADER)
             .scheme("Bearer");
     }
-    
-    /**
-     * 添加摘要信息
-     */
+
     public Info getApiInfo()
     {
         return new Info()
-            // 设置标题
-            .title("标题：若依管理系统_接口文档")
-            // 描述
-            .description("描述：用于管理集团旗下公司的人员信息,具体包括XXX,XXX模块...")
-            // 作者信息
+            .title("学科竞赛管理系统 - 接口文档")
+            .description("竞赛信息管理、报名、审核等功能模块接口")
             .contact(new Contact().name(ruoyiConfig.getName()))
-            // 版本
-            .version("版本号:" + ruoyiConfig.getVersion());
+            .version("v" + ruoyiConfig.getVersion());
     }
 }
