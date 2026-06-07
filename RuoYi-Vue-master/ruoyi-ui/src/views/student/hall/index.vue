@@ -1,8 +1,6 @@
 <template>
   <div class="hall-container">
-    <!-- 左侧筛选栏 -->
     <div class="hall-sidebar">
-      <!-- 学科分类 -->
       <div class="filter-section">
         <h4 class="filter-title">学科分类</h4>
         <div class="filter-items">
@@ -18,7 +16,6 @@
         </div>
       </div>
 
-      <!-- 竞赛级别 -->
       <div class="filter-section">
         <h4 class="filter-title">竞赛级别</h4>
         <div class="filter-items">
@@ -30,7 +27,6 @@
         </div>
       </div>
 
-      <!-- 排序方式 -->
       <div class="filter-section">
         <h4 class="filter-title">排序方式</h4>
         <div class="filter-items">
@@ -43,9 +39,7 @@
       </div>
     </div>
 
-    <!-- 右侧列表 -->
     <div class="hall-main">
-      <!-- 搜索栏 -->
       <el-form :model="queryParams" ref="queryRef" :inline="true" class="search-bar">
         <el-form-item prop="competitionName">
           <el-input
@@ -71,7 +65,6 @@
         </el-form-item>
       </el-form>
 
-      <!-- 结果概览 -->
       <div class="result-summary" v-if="!loading">
         <span>共 <strong>{{ total }}</strong> 个竞赛</span>
         <span v-if="activeSubjects.length" class="filter-tag">
@@ -82,65 +75,48 @@
         </span>
       </div>
 
-      <!-- 竞赛表格 -->
-      <el-table v-loading="loading" :data="competitionList">
-        <el-table-column label="竞赛名称" min-width="280">
-          <template #default="scope">
-            <div class="comp-cell">
-              <el-link type="primary" @click="handleDetail(scope.row)">{{ scope.row.competitionName }}</el-link>
-              <div class="comp-desc" :title="stripHtml(scope.row.description)">
-                {{ stripHtml(scope.row.description) }}
-              </div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="类别" width="90">
-          <template #default="scope">
-            <dict-tag :options="competition_category" :value="scope.row.category" />
-          </template>
-        </el-table-column>
-        <el-table-column label="级别/赛制" width="95">
-          <template #default="scope">
-            <div class="badge-stack">
-              <dict-tag :options="competition_level" :value="scope.row.competitionLevel" />
-              <dict-tag :options="competition_type" :value="scope.row.competitionType" />
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="主办方" prop="organizer" width="140" :show-overflow-tooltip="true" />
-        <el-table-column label="报名截止" width="100">
-          <template #default="scope">
-            <span>{{ parseTime(scope.row.applyEndTime, '{y}-{m}-{d}') }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="80">
-          <template #default="scope">
-            <dict-tag :options="competition_status" :value="scope.row.status" />
-          </template>
-        </el-table-column>
-        <el-table-column label="浏览" width="70" sortable="custom" prop="viewCount">
-          <template #default="scope">
-            <span v-if="scope.row.viewCount > 10000">{{ (scope.row.viewCount / 10000).toFixed(1) }}万</span>
-            <span v-else>{{ scope.row.viewCount }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="标签" min-width="140">
-          <template #default="scope">
+      <div v-loading="loading" class="comp-grid">
+        <el-card
+          v-for="item in competitionList"
+          :key="item.competitionId"
+          shadow="never"
+          class="comp-card"
+          @click="openDetail(item.competitionId)"
+        >
+          <div class="comp-card-top">
+            <dict-tag :options="competition_status" :value="item.status" />
+            <span class="comp-view-count">
+              <template v-if="item.viewCount > 10000">{{ (item.viewCount / 10000).toFixed(1) }}万</template>
+              <template v-else>{{ item.viewCount }}</template>
+              浏览
+            </span>
+          </div>
+          <h3 class="comp-name" :title="item.competitionName">{{ item.competitionName }}</h3>
+          <p class="comp-desc" :title="stripHtml(item.description)">
+            {{ stripHtml(item.description) || '暂无描述' }}
+          </p>
+          <div class="comp-badges">
+            <dict-tag :options="competition_category" :value="item.category" />
+            <dict-tag :options="competition_level" :value="item.competitionLevel" />
+            <dict-tag :options="competition_type" :value="item.competitionType" />
+          </div>
+          <div class="comp-meta">
+            <span class="comp-organizer" :title="item.organizer">{{ item.organizer || '-' }}</span>
+            <span class="comp-deadline">截止 {{ parseTime(item.applyEndTime, '{y}-{m}-{d}') }}</span>
+          </div>
+          <div class="comp-tags" v-if="parseTags(item.tags).length">
             <el-tag
-              v-for="tag in parseTags(scope.row.tags)"
+              v-for="tag in parseTags(item.tags)"
               :key="tag"
               size="small"
               :type="getTagType(tag)"
-              style="margin-right: 4px; margin-bottom: 2px"
             >{{ tag }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" align="center" width="70" fixed="right">
-          <template #default="scope">
-            <el-button link type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+          </div>
+          <div class="comp-action">
+            <span class="comp-action-text">查看详情 &rarr;</span>
+          </div>
+        </el-card>
+      </div>
 
       <pagination
         v-show="total > 0"
@@ -151,65 +127,6 @@
       />
     </div>
 
-    <!-- 详情弹窗 -->
-    <el-dialog :title="currentCompetition.competitionName" v-model="detailOpen" width="800px" append-to-body>
-      <div v-if="currentCompetition.competitionId" class="detail-body">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="竞赛名称" :span="2">{{ currentCompetition.competitionName }}</el-descriptions-item>
-          <el-descriptions-item label="竞赛类别">
-            <dict-tag :options="competition_category" :value="currentCompetition.category" />
-          </el-descriptions-item>
-          <el-descriptions-item label="竞赛级别">
-            <dict-tag :options="competition_level" :value="currentCompetition.competitionLevel" />
-          </el-descriptions-item>
-          <el-descriptions-item label="赛制">
-            <dict-tag :options="competition_type" :value="currentCompetition.competitionType" />
-          </el-descriptions-item>
-          <el-descriptions-item label="当前状态">
-            <dict-tag :options="competition_status" :value="currentCompetition.status" />
-          </el-descriptions-item>
-          <el-descriptions-item label="主办方">{{ currentCompetition.organizer }}</el-descriptions-item>
-          <el-descriptions-item label="承办方">{{ currentCompetition.host || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="报名开始">{{ parseTime(currentCompetition.applyStartTime) }}</el-descriptions-item>
-          <el-descriptions-item label="报名截止">{{ parseTime(currentCompetition.applyEndTime) }}</el-descriptions-item>
-          <el-descriptions-item label="比赛开始">{{ parseTime(currentCompetition.startTime) }}</el-descriptions-item>
-          <el-descriptions-item label="比赛结束">{{ parseTime(currentCompetition.endTime) }}</el-descriptions-item>
-          <el-descriptions-item label="已报名 / 上限">{{ currentCompetition.currentParticipants }} / {{ currentCompetition.maxParticipants }}</el-descriptions-item>
-          <el-descriptions-item label="浏览量">{{ currentCompetition.viewCount }}</el-descriptions-item>
-          <el-descriptions-item label="标签" :span="2">
-            <el-tag v-for="tag in parseTags(currentCompetition.tags)" :key="tag" size="small" :type="getTagType(tag)" style="margin-right: 4px">{{ tag }}</el-tag>
-            <span v-if="!parseTags(currentCompetition.tags).length">-</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="竞赛详情" :span="2">
-            <div class="rich-content" v-html="currentCompetition.description || '暂无详情'"></div>
-          </el-descriptions-item>
-        </el-descriptions>
-      </div>
-      <template #footer>
-        <template v-if="!isTeacher && currentCompetition.status === '0'">
-          <template v-if="isCompetitionFull">
-            <span style="color: #f56c6c; margin-right: 12px">名额已满（{{ currentCompetition.currentParticipants }}/{{ currentCompetition.maxParticipants }}）</span>
-          </template>
-          <template v-else>
-            <el-button v-if="currentCompetition.competitionType === '1'" type="primary" @click="handleApply">我要报名</el-button>
-            <template v-else-if="currentCompetition.competitionType === '2'">
-              <el-button v-if="!myTeamInfo" type="primary" @click="handleCreateTeam">创建队伍</el-button>
-              <el-button v-if="!myTeamInfo" type="success" @click="handleJoinTeam">加入队伍</el-button>
-              <el-button v-if="myTeamInfo" type="primary" @click="handleViewTeam">查看队伍</el-button>
-            </template>
-          </template>
-        </template>
-        <template v-else-if="!isTeacher && currentCompetition.competitionType === '2'">
-          <span style="color: #e6a23c; margin-right: 12px">
-            {{ currentCompetition.status === '3' ? '报名已截止，待开赛' : '报名已截止（' + parseTime(currentCompetition.applyEndTime, '{y}-{m}-{d}') + '）' }}
-          </span>
-        </template>
-        <template v-if="isTeacher" />
-        <el-button @click="detailOpen = false">关 闭</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 报名确认弹窗 -->
     <el-dialog title="确认报名" v-model="applyOpen" width="480px" append-to-body>
       <el-form :model="applyForm" label-width="80px">
         <el-form-item label="竞赛名称">
@@ -231,7 +148,6 @@
       </template>
     </el-dialog>
 
-    <!-- 创建队伍弹窗 -->
     <el-dialog title="创建队伍" v-model="createTeamOpen" width="480px" append-to-body>
       <el-form :model="teamForm" label-width="80px">
         <el-form-item label="竞赛名称">
@@ -250,7 +166,6 @@
       </template>
     </el-dialog>
 
-    <!-- 加入队伍弹窗 -->
     <el-dialog title="加入队伍" v-model="joinTeamOpen" width="480px" append-to-body>
       <el-form :model="joinForm" label-width="80px">
         <el-form-item label="竞赛名称">
@@ -266,7 +181,6 @@
       </template>
     </el-dialog>
 
-    <!-- 查看队伍弹窗 -->
     <el-dialog title="我的队伍" v-model="viewTeamOpen" width="600px" append-to-body>
       <div v-if="myTeamInfo">
         <el-descriptions :column="2" border>
@@ -339,7 +253,6 @@
       </template>
     </el-dialog>
 
-    <!-- 技能选择弹窗 -->
     <SkillSelector v-model="skillDialogOpen" :current-skills="teamSkillsInput" @save="onSkillSave" />
   </div>
 </template>
@@ -496,6 +409,11 @@ function handleDetail(row) {
       myTeamInfo.value = null
     }
   })
+}
+
+function openDetail(id) {
+  const resolved = useRouter().resolve({ path: '/match/hall/' + id })
+  window.open(resolved.href, '_blank')
 }
 
 function checkMyTeam() {
@@ -713,9 +631,18 @@ getList()
 
 <style scoped>
 .hall-container {
+  --md3-primary: #1a73e8;
+  --md3-title: #202124;
+  --md3-body: #5f6368;
+  --md3-border: #e0e0e0;
+  --md3-surface: #ffffff;
+  --md3-bg: #f8f9fa;
+  --md3-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+  --md3-shadow-hover: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+  --md3-radius-lg: 12px;
+  --md3-radius-pill: 8px;
   display: flex;
   gap: 16px;
-  min-height: calc(100vh - 140px);
 }
 
 .hall-sidebar {
@@ -770,12 +697,16 @@ getList()
 }
 
 .search-bar {
-  margin-bottom: 0;
+  margin-bottom: 12px;
   padding: 0;
 }
 .search-bar :deep(.el-form-item) {
   margin-bottom: 8px;
   margin-right: 8px;
+}
+.search-bar :deep(.el-input__wrapper),
+.search-bar :deep(.el-button) {
+  border-radius: 8px;
 }
 
 .result-summary {
@@ -798,6 +729,114 @@ getList()
   font-size: 12px;
 }
 
+.comp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.comp-card {
+  background: var(--md3-surface);
+  border-radius: 16px;
+  box-shadow: var(--md3-shadow);
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.comp-card:hover {
+  box-shadow: var(--md3-shadow-hover);
+}
+
+.comp-card :deep(.el-card__body) {
+  padding: 20px;
+}
+
+.comp-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.comp-view-count {
+  font-size: 12px;
+  color: var(--md3-body);
+}
+
+.comp-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--md3-title);
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.comp-desc {
+  font-size: 13px;
+  color: var(--md3-body);
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.comp-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.comp-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--md3-body);
+  margin-bottom: 12px;
+}
+
+.comp-organizer {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.comp-deadline {
+  flex-shrink: 0;
+}
+
+.comp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.comp-action {
+  padding-top: 12px;
+  border-top: 1px solid var(--md3-border);
+}
+
+.comp-action-text {
+  font-size: 13px;
+  color: var(--md3-primary);
+  font-weight: 500;
+}
+
+.teacher-section {
+  margin-bottom: 8px;
+}
+
 .rich-content {
   max-height: 400px;
   overflow-y: auto;
@@ -810,22 +849,9 @@ getList()
   color: #303133;
 }
 
-.comp-cell .comp-desc {
-  font-size: 12px;
-  color: #909399;
-  line-height: 1.5;
-  margin-top: 2px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.badge-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.hall-container :deep(.el-tag) {
+  border: none;
+  border-radius: 14px;
 }
 
 @media (max-width: 900px) {

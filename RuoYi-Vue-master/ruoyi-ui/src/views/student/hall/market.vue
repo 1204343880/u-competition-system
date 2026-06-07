@@ -1,17 +1,16 @@
 <template>
-  <div class="app-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
-      <div>
+  <div class="market-container">
+    <div class="market-toolbar">
+      <div class="market-skills">
         <el-tag
           v-for="skill in allSkills"
           :key="skill"
           :type="filterSkills.includes(skill) ? 'success' : 'info'"
-          style="margin-right: 6px; cursor: pointer"
-          size="small"
+          class="skill-chip"
           @click="toggleSkill(skill)"
         >{{ skill }}</el-tag>
       </div>
-      <div>
+      <div class="market-actions">
         <el-button :type="userMarketVisible ? 'danger' : 'success'" size="small" @click="toggleMyMarket">
           {{ userMarketVisible ? '隐藏我的信息' : '公开我的信息' }}
         </el-button>
@@ -20,24 +19,32 @@
       </div>
     </div>
 
-    <el-row :gutter="16">
-      <el-col v-for="user in userList" :key="user.userId" :span="6" style="margin-bottom: 16px">
-        <el-card shadow="hover">
-          <div style="text-align: center; margin-bottom: 8px">
-            <el-avatar :size="50" :src="user.avatar" />
-            <div style="font-weight: 600; margin-top: 4px">{{ user.nickName || user.userName }}</div>
-            <div style="color: #909399; font-size: 12px">{{ user.grade || '未知年级' }}</div>
-          </div>
-          <div style="text-align: center">
-            <el-tag v-for="s in (user.skillTags || '').split(',').filter(Boolean)" :key="s" size="small" type="primary" style="margin: 2px">{{ s.trim() }}</el-tag>
-            <span v-if="!user.skillTags" style="color: #c0c4cc; font-size: 12px">未填写技能</span>
-          </div>
-          <div style="text-align: center; margin-top: 10px">
-            <el-button type="success" size="small" @click="handleInvite(user)">邀请加入队伍</el-button>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <div class="user-grid">
+      <el-card
+        v-for="user in userList"
+        :key="user.userId"
+        shadow="never"
+        class="user-card"
+      >
+        <div class="user-avatar-area">
+          <el-avatar :size="56" :src="user.avatar" />
+          <div class="user-name">{{ user.nickName || user.userName }}</div>
+          <div class="user-grade">{{ user.grade || '未知年级' }}</div>
+        </div>
+        <div class="user-skills">
+          <el-tag
+            v-for="s in (user.skillTags || '').split(',').filter(Boolean)"
+            :key="s"
+            size="small"
+            type="primary"
+          >{{ s.trim() }}</el-tag>
+          <span v-if="!user.skillTags" class="no-skills">未填写技能</span>
+        </div>
+        <div class="user-actions">
+          <el-button type="success" size="small" @click="handleInvite(user)">邀请加入队伍</el-button>
+        </div>
+      </el-card>
+    </div>
 
     <el-empty v-if="!userList.length && !loading" description="暂无学生在人才市场展示" />
 
@@ -216,3 +223,112 @@ function handleReject(record) {
 
 getList()
 </script>
+
+<style scoped>
+.market-container {
+  --md3-primary: #1a73e8;
+  --md3-title: #202124;
+  --md3-body: #5f6368;
+  --md3-border: #e0e0e0;
+  --md3-surface: #ffffff;
+  --md3-bg: #f8f9fa;
+  --md3-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+  --md3-shadow-hover: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+  --md3-radius-lg: 12px;
+  --md3-radius-pill: 8px;
+}
+
+.market-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.market-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.skill-chip {
+  cursor: pointer;
+  border: none;
+  border-radius: 14px;
+}
+
+.market-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.user-card {
+  background: var(--md3-surface);
+  border-radius: 16px;
+  box-shadow: var(--md3-shadow);
+  border: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.user-card:hover {
+  box-shadow: var(--md3-shadow-hover);
+}
+
+.user-card :deep(.el-card__body) {
+  padding: 24px 20px 20px;
+}
+
+.user-avatar-area {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--md3-title);
+  margin-top: 8px;
+}
+
+.user-grade {
+  font-size: 12px;
+  color: var(--md3-body);
+  margin-top: 2px;
+}
+
+.user-skills {
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 14px;
+  min-height: 28px;
+}
+
+.no-skills {
+  font-size: 12px;
+  color: #c0c4cc;
+}
+
+.user-actions {
+  text-align: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--md3-border);
+}
+
+.market-container :deep(.el-tag) {
+  border: none;
+  border-radius: 14px;
+}
+</style>

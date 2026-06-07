@@ -2,8 +2,10 @@ import auth from '@/plugins/auth'
 import router, { constantRoutes, dynamicRoutes } from '@/router'
 import { getRouters } from '@/api/menu'
 import Layout from '@/layout/index'
+import PortalLayout from '@/layout/PortalLayout.vue'
 import ParentView from '@/components/ParentView'
 import InnerLink from '@/layout/components/InnerLink'
+import useUserStore from '@/store/modules/user'
 
 // 匹配views里面所有的.vue文件
 const modules = import.meta.glob('./../../views/**/*.vue')
@@ -33,22 +35,38 @@ const usePermissionStore = defineStore(
         this.sidebarRouters = routes
       },
       generateRoutes(roles) {
-        return new Promise(resolve => {
-          // 向后端请求路由数据
+        return new Promise((resolve, reject) => {
           getRouters().then(res => {
-            const sdata = JSON.parse(JSON.stringify(res.data))
-            const rdata = JSON.parse(JSON.stringify(res.data))
-            const defaultData = JSON.parse(JSON.stringify(res.data))
+            console.log('[generateRoutes] getRouters OK, items:', (res && res.data ? res.data.length : 0))
+            const rawData = res && res.data ? res.data : []
+            const sdata = JSON.parse(JSON.stringify(rawData))
+            const rdata = JSON.parse(JSON.stringify(rawData))
+            const defaultData = JSON.parse(JSON.stringify(rawData))
+
+            const userRoles = useUserStore().roles || []
+            const isStudent = userRoles.includes('student') || userRoles.includes('ROLE_STUDENT')
+            if (isStudent) {
+              [sdata, rdata, defaultData].forEach(data => swapLayoutComponent(data))
+            }
+
+            console.log('[generateRoutes] filtering sdata...')
             const sidebarRoutes = filterAsyncRouter(sdata)
+            console.log('[generateRoutes] filtering rdata...')
             const rewriteRoutes = filterAsyncRouter(rdata, false, true)
+            console.log('[generateRoutes] filtering defaultData...')
             const defaultRoutes = filterAsyncRouter(defaultData)
+            console.log('[generateRoutes] filterDynamicRoutes...')
             const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
             asyncRoutes.forEach(route => { router.addRoute(route) })
             this.setRoutes(rewriteRoutes)
             this.setSidebarRouters(constantRoutes.concat(sidebarRoutes))
             this.setDefaultRoutes(sidebarRoutes)
             this.setTopbarRoutes(defaultRoutes)
+            console.log('[generateRoutes] done, routes:', rewriteRoutes.length)
             resolve(rewriteRoutes)
+          }).catch(err => {
+            console.error('[generateRoutes] FAILED:', err)
+            reject(err)
           })
         })
       }
@@ -65,6 +83,8 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
       // Layout ParentView 组件特殊处理
       if (route.component === 'Layout') {
         route.component = Layout
+      } else if (route.component === 'PortalLayout') {
+        route.component = PortalLayout
       } else if (route.component === 'ParentView') {
         route.component = ParentView
       } else if (route.component === 'InnerLink') {
@@ -122,6 +142,14 @@ export const loadView = (view) => {
     }
   }
   return res
+}
+
+function swapLayoutComponent(routes) {
+  if (!Array.isArray(routes)) return
+  routes.forEach(route => {
+    if (route.component === 'Layout') route.component = 'PortalLayout'
+    if (route.children && route.children.length) swapLayoutComponent(route.children)
+  })
 }
 
 export default usePermissionStore

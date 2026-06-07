@@ -1,6 +1,6 @@
 <template>
   <div class="login">
-    <SchoolLogo :size="60" bg-color="#004b97" stroke-color="#004b97" />
+    <SchoolLogo :size="60" />
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
       <h3 class="title">竞赛信息管理系统</h3>
       <el-form-item prop="username">
@@ -70,6 +70,7 @@ import { getCodeImg } from "@/api/login"
 import Cookies from "js-cookie"
 import { encrypt, decrypt } from "@/utils/jsencrypt"
 import useUserStore from '@/store/modules/user'
+import SchoolLogo from '@/components/SchoolLogo.vue'
 import defaultSettings from '@/settings'
 
 const title = import.meta.env.VITE_APP_TITLE

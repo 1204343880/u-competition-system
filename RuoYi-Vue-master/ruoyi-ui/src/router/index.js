@@ -77,6 +77,13 @@ export const constantRoutes = [
     meta: { title: '锁定屏幕' }
   },
   {
+    path: '/match/hall/:competitionId(\\d+)',
+    component: () => import('@/views/student/hall/detail'),
+    name: 'CompetitionDetail',
+    hidden: true,
+    meta: { title: '竞赛详情' }
+  },
+  {
     path: '/user',
     component: Layout,
     hidden: true,

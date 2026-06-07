@@ -1,5 +1,6 @@
 <template>
-  <div class="app-container home">
+  <Dashboard v-if="isAdmin" />
+  <div v-else class="app-container home">
     <!-- 欢迎横幅 -->
     <div class="hero-section">
       <div class="hero-content">
@@ -129,8 +130,13 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { User, Clock, Calendar, Trophy, List, Edit, Document, Check, Collection } from '@element-plus/icons-vue'
 import useUserStore from '@/store/modules/user'
+import Dashboard from '@/views/dashboard/index.vue'
 
 const userStore = useUserStore()
+const isAdmin = computed(() => {
+  const roles = userStore.roles || []
+  return roles.includes('admin') || roles.includes('ROLE_ADMIN')
+})
 const userName = computed(() => userStore.nickName || userStore.name || 'admin')
 
 const currentDate = ref('')

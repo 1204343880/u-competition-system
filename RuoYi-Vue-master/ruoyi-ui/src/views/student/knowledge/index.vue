@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="knowledge-container">
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <el-tab-pane label="往届项目复盘" name="retrospect">
         <el-form :model="retrospectQuery" :inline="true" class="search-form">
@@ -18,8 +18,8 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="getList">搜索</el-button>
-            <el-button icon="Refresh" @click="resetRetrospectQuery">重置</el-button>
+            <el-button type="primary" @click="getList">搜索</el-button>
+            <el-button @click="resetRetrospectQuery">重置</el-button>
           </el-form-item>
         </el-form>
         <el-row class="mb8" :gutter="10">
@@ -27,26 +27,27 @@
             <el-button type="primary" plain icon="Plus" @click="handleAddRetrospect">投稿复盘</el-button>
           </el-col>
         </el-row>
-        <el-table v-loading="loading" :data="retrospectList">
-          <el-table-column label="项目名称" align="center" prop="projectName" :show-overflow-tooltip="true" />
-          <el-table-column label="竞赛名称" align="center" prop="competitionName" width="160" />
-          <el-table-column label="获奖级别" align="center" prop="awardLevel" width="100">
-            <template #default="scope">
-              <el-tag :type="scope.row.awardLevel === '国家级' ? 'danger' : 'warning'">
-                {{ scope.row.awardLevel }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="团队负责人" align="center" prop="leaderName" width="100" />
-          <el-table-column label="年份" align="center" prop="year" width="80" />
-          <el-table-column label="操作" align="center" width="180">
-            <template #default="scope">
-              <el-button link type="primary" icon="View" @click="handleViewRetrospect(scope.row)">查看</el-button>
-              <el-button link type="primary" icon="Edit" @click="handleEditRetrospect(scope.row)">编辑</el-button>
-              <el-button link type="danger" icon="Delete" @click="handleDeleteRetrospect(scope.row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="card-grid">
+          <el-card v-for="item in retrospectList" :key="item.retrospectId" shadow="never" class="knowledge-card">
+            <div class="card-top-row">
+              <el-tag :type="item.awardLevel === '国家级' ? 'danger' : 'warning'" size="small">{{ item.awardLevel }}</el-tag>
+              <span class="card-year">{{ item.year }}</span>
+            </div>
+            <h4 class="card-title" @click="handleViewRetrospect(item)" :title="item.projectName">
+              {{ item.projectName }}
+            </h4>
+            <div class="card-subtitle">{{ item.competitionName }}</div>
+            <div class="card-meta">
+              <span>负责人：{{ item.leaderName }}</span>
+            </div>
+            <div class="card-actions">
+              <el-button link type="primary" size="small" @click="handleViewRetrospect(item)">查看</el-button>
+              <el-button link type="primary" size="small" @click="handleEditRetrospect(item)">编辑</el-button>
+              <el-button link type="danger" size="small" @click="handleDeleteRetrospect(item)">删除</el-button>
+            </div>
+          </el-card>
+        </div>
+        <div v-if="!loading && !retrospectList.length" class="empty-hint">暂无复盘记录</div>
         <pagination
           v-show="retrospectTotal > 0"
           :total="retrospectTotal"
@@ -75,8 +76,8 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="getList">搜索</el-button>
-            <el-button icon="Refresh" @click="resetExperienceQuery">重置</el-button>
+            <el-button type="primary" round @click="getList">搜索</el-button>
+            <el-button round @click="resetExperienceQuery">重置</el-button>
           </el-form-item>
         </el-form>
         <el-row class="mb8" :gutter="10">
@@ -84,28 +85,27 @@
             <el-button type="primary" plain icon="Plus" @click="handleAddExperience">发布经验帖</el-button>
           </el-col>
         </el-row>
-        <el-table v-loading="loading" :data="experienceList">
-          <el-table-column label="标题" align="center" prop="title" :show-overflow-tooltip="true" />
-          <el-table-column label="作者" align="center" prop="author" width="100" />
-          <el-table-column label="分类" align="center" prop="category" width="120">
-            <template #default="scope">
-              <el-tag size="small">{{ scope.row.category }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="发布时间" align="center" prop="createTime" width="180">
-            <template #default="scope">
-              <span>{{ parseTime(scope.row.createTime) }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="浏览" align="center" prop="viewCount" width="80" />
-          <el-table-column label="操作" align="center" width="180">
-            <template #default="scope">
-              <el-button link type="primary" icon="View" @click="handleViewExperience(scope.row)">阅读</el-button>
-              <el-button link type="primary" icon="Edit" @click="handleEditExperience(scope.row)">编辑</el-button>
-              <el-button link type="danger" icon="Delete" @click="handleDeleteExperience(scope.row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="card-grid">
+          <el-card v-for="item in experienceList" :key="item.experienceId" shadow="never" class="knowledge-card">
+            <div class="card-top-row">
+              <el-tag size="small">{{ item.category }}</el-tag>
+              <span class="card-year">{{ item.viewCount }} 浏览</span>
+            </div>
+            <h4 class="card-title" @click="handleViewExperience(item)" :title="item.title">
+              {{ item.title }}
+            </h4>
+            <div class="card-meta">
+              <span>{{ item.author }}</span>
+              <span>{{ parseTime(item.createTime) }}</span>
+            </div>
+            <div class="card-actions">
+              <el-button link type="primary" size="small" @click="handleViewExperience(item)">阅读</el-button>
+              <el-button link type="primary" size="small" @click="handleEditExperience(item)">编辑</el-button>
+              <el-button link type="danger" size="small" @click="handleDeleteExperience(item)">删除</el-button>
+            </div>
+          </el-card>
+        </div>
+        <div v-if="!loading && !experienceList.length" class="empty-hint">暂无经验帖</div>
         <pagination
           v-show="experienceTotal > 0"
           :total="experienceTotal"
@@ -116,58 +116,44 @@
       </el-tab-pane>
 
       <el-tab-pane label="我的提交" name="mySubmissions">
-        <el-table v-loading="myLoading" :data="mySubmissionList">
-          <el-table-column label="类型" width="80" align="center">
-            <template #default="scope">
-              <el-tag :type="scope.row.experienceId ? 'success' : 'warning'" size="small">
-                {{ scope.row.experienceId ? '经验帖' : '复盘' }}
+        <div class="card-grid">
+          <el-card v-for="item in mySubmissionList" :key="(item.experienceId || item.retrospectId) + '-' + item._type" shadow="never" class="knowledge-card">
+            <div class="card-top-row">
+              <el-tag :type="item.experienceId ? 'success' : 'warning'" size="small">
+                {{ item.experienceId ? '经验帖' : '复盘' }}
               </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="标题/项目名" align="center" min-width="160" :show-overflow-tooltip="true">
-            <template #default="scope">
-              {{ scope.row.title || scope.row.projectName }}
-            </template>
-          </el-table-column>
-          <el-table-column label="审核状态" width="100" align="center">
-            <template #default="scope">
-              <el-tag v-if="scope.row.auditStatus === '0'" type="warning" size="small">待审核</el-tag>
-              <el-tag v-else-if="scope.row.auditStatus === '1'" type="success" size="small">已通过</el-tag>
-              <el-tag v-else-if="scope.row.auditStatus === '2'" type="danger" size="small">已驳回</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="驳回原因" min-width="200" align="center">
-            <template #default="scope">
-              <span v-if="scope.row.auditStatus === '2' && scope.row.rejectReason" style="color: #f56c6c; font-size: 12px">
-                {{ scope.row.rejectReason }}
-              </span>
-              <span v-else style="color: #c0c4cc">-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="提交时间" align="center" width="160">
-            <template #default="scope">
-              {{ parseTime(scope.row.createTime) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" align="center" width="160">
-            <template #default="scope">
+              <el-tag v-if="item.auditStatus === '0'" type="warning" size="small">待审核</el-tag>
+              <el-tag v-else-if="item.auditStatus === '1'" type="success" size="small">已通过</el-tag>
+              <el-tag v-else-if="item.auditStatus === '2'" type="danger" size="small">已驳回</el-tag>
+            </div>
+            <h4 class="card-title">
+              {{ item.title || item.projectName }}
+            </h4>
+            <div class="card-meta">
+              <span>{{ parseTime(item.createTime) }}</span>
+            </div>
+            <div v-if="item.auditStatus === '2' && item.rejectReason" class="card-reject">
+              驳回原因：{{ item.rejectReason }}
+            </div>
+            <div class="card-actions">
               <el-button
-                v-if="scope.row.auditStatus === '1'"
-                link type="primary" icon="View" size="small"
-                @click="handleViewMy(scope.row)"
+                v-if="item.auditStatus === '1'"
+                link type="primary" size="small"
+                @click="handleViewMy(item)"
               >查看</el-button>
               <el-button
-                v-if="scope.row.auditStatus === '2'"
-                link type="warning" icon="Edit" size="small"
-                @click="handleReSubmit(scope.row)"
+                v-if="item.auditStatus === '2'"
+                link type="warning" size="small"
+                @click="handleReSubmit(item)"
               >修改</el-button>
               <el-button
-                link type="danger" icon="Delete" size="small"
-                @click="handleDeleteMy(scope.row)"
+                link type="danger" size="small"
+                @click="handleDeleteMy(item)"
               >删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+            </div>
+          </el-card>
+        </div>
+        <div v-if="!myLoading && !mySubmissionList.length" class="empty-hint">暂无提交记录</div>
         <pagination
           v-show="myTotal > 0"
           :total="myTotal"
@@ -596,9 +582,121 @@ getList()
 </script>
 
 <style scoped>
+.knowledge-container {
+  --md3-primary: #1a73e8;
+  --md3-title: #202124;
+  --md3-body: #5f6368;
+  --md3-border: #e0e0e0;
+  --md3-surface: #ffffff;
+  --md3-bg: #f8f9fa;
+  --md3-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+  --md3-shadow-hover: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+  --md3-radius-lg: 12px;
+  --md3-radius-pill: 8px;
+}
+
 .search-form { margin-bottom: 10px; }
 .search-form .el-form-item { margin-bottom: 10px; }
+.search-form :deep(.el-input__wrapper),
+.search-form :deep(.el-button) { border-radius: 8px; }
 .mb8 { margin-bottom: 8px; }
+
 .detail-header h2 { margin: 0 0 12px 0; font-size: 20px; }
 .detail-meta { display: flex; gap: 20px; font-size: 13px; color: #909399; align-items: center; }
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.knowledge-card {
+  background: var(--md3-surface);
+  border-radius: 16px;
+  box-shadow: var(--md3-shadow);
+  border: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.knowledge-card:hover {
+  box-shadow: var(--md3-shadow-hover);
+}
+
+.knowledge-card :deep(.el-card__body) {
+  padding: 20px;
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-year {
+  font-size: 12px;
+  color: var(--md3-body);
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--md3-primary);
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card-subtitle {
+  font-size: 13px;
+  color: var(--md3-body);
+  margin-bottom: 10px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--md3-body);
+  margin-bottom: 12px;
+}
+
+.card-reject {
+  font-size: 12px;
+  color: #f56c6c;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: #fef0f0;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--md3-border);
+}
+
+.empty-hint {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--md3-body);
+  font-size: 14px;
+}
+
+.knowledge-container :deep(.el-tag) {
+  border: none;
+  border-radius: 14px;
+}
 </style>
