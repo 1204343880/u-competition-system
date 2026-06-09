@@ -37,7 +37,6 @@ const usePermissionStore = defineStore(
       generateRoutes(roles) {
         return new Promise((resolve, reject) => {
           getRouters().then(res => {
-            console.log('[generateRoutes] getRouters OK, items:', (res && res.data ? res.data.length : 0))
             const rawData = res && res.data ? res.data : []
             const sdata = JSON.parse(JSON.stringify(rawData))
             const rdata = JSON.parse(JSON.stringify(rawData))
@@ -45,24 +44,33 @@ const usePermissionStore = defineStore(
 
             const userRoles = useUserStore().roles || []
             const isStudent = userRoles.includes('student') || userRoles.includes('ROLE_STUDENT')
+            const isAdmin = userRoles.includes('admin') || userRoles.includes('ROLE_ADMIN')
             if (isStudent) {
               [sdata, rdata, defaultData].forEach(data => swapLayoutComponent(data))
             }
+            /* Admin 侧边栏过滤学生/教师专属菜单 */
+            if (isAdmin) {
+              const adminExclude = ['/hall', '/match', '/myrace', '/knowledge', '/teacher']
+              ;[sdata, rdata, defaultData].forEach(data => {
+                if (Array.isArray(data)) {
+                  for (let i = data.length - 1; i >= 0; i--) {
+                    if (data[i].path && adminExclude.some(p => data[i].path.startsWith(p))) {
+                      data.splice(i, 1)
+                    }
+                  }
+                }
+              })
+            }
 
-            console.log('[generateRoutes] filtering sdata...')
             const sidebarRoutes = filterAsyncRouter(sdata)
-            console.log('[generateRoutes] filtering rdata...')
             const rewriteRoutes = filterAsyncRouter(rdata, false, true)
-            console.log('[generateRoutes] filtering defaultData...')
             const defaultRoutes = filterAsyncRouter(defaultData)
-            console.log('[generateRoutes] filterDynamicRoutes...')
             const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
             asyncRoutes.forEach(route => { router.addRoute(route) })
             this.setRoutes(rewriteRoutes)
             this.setSidebarRouters(constantRoutes.concat(sidebarRoutes))
             this.setDefaultRoutes(sidebarRoutes)
             this.setTopbarRoutes(defaultRoutes)
-            console.log('[generateRoutes] done, routes:', rewriteRoutes.length)
             resolve(rewriteRoutes)
           }).catch(err => {
             console.error('[generateRoutes] FAILED:', err)

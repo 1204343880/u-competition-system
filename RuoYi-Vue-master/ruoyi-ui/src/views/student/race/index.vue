@@ -71,12 +71,18 @@
                 @click="handleViewTeam(item)"
               >查看队伍</el-button>
             </template>
-            <el-button
-              type="info"
-              plain
-              size="small"
-              @click="handleDetail(item)"
-            >详情</el-button>
+             <el-button
+               type="info"
+               plain
+               size="small"
+               @click="handleDetail(item)"
+             >详情</el-button>
+             <el-button
+               v-if="item.compStatus === '2'"
+               type="success"
+               size="small"
+               @click="handleViewResult(item)"
+             >查看成绩</el-button>
           </div>
         </div>
         <div class="race-card-divider"></div>
@@ -169,6 +175,31 @@
       </template>
     </el-dialog>
 
+    <!-- 查看成绩弹窗 -->
+    <el-dialog title="竞赛成绩" v-model="resultOpen" width="500px" append-to-body>
+      <div v-if="currentResult">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="竞赛名称">{{ currentResult.competitionName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="项目/队伍">{{ currentResult.projectName || currentResult.teamName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="获奖级别">
+            <el-tag v-if="currentResult.awardLevel" type="danger">{{ currentResult.awardLevel }}</el-tag>
+            <span v-else>-</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="分数">{{ currentResult.score ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item label="排名">{{ currentResult.ranking ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag v-if="currentResult.resultStatus === '1'" type="success">已确认</el-tag>
+            <el-tag v-else-if="currentResult.resultStatus === '0'" type="warning">待审核</el-tag>
+            <el-tag v-else type="info">已作废</el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <el-empty v-else description="暂无成绩记录" />
+      <template #footer>
+        <el-button @click="resultOpen = false">关 闭</el-button>
+      </template>
+    </el-dialog>
+
     <SkillSelector v-model="skillDialogOpen" :current-skills="raceTeamSkills" @save="onRaceSkillSave" />
   </div>
 </template>
@@ -190,6 +221,8 @@ const dialogTeamMembers = ref([])
 
 const raceTeamSkills = ref('')
 const skillDialogOpen = ref(false)
+const resultOpen = ref(false)
+const currentResult = ref(null)
 
 const queryParams = ref({
   pageNum: 1,
@@ -198,6 +231,7 @@ const queryParams = ref({
 
 import { listMyApplies, getCompetition, cancelApply } from '@/api/competition/hall'
 import { getMyTeams, getTeamMembers, leaveTeam, disbandTeam, transferLeader, toggleTeamPublic, updateTeamSkills } from '@/api/competition/team'
+import { getMyResults } from '@/api/competition/result'
 import SkillSelector from '@/views/student/hall/SkillSelector.vue'
 
 function getList() {
@@ -338,6 +372,15 @@ function handleRaceTransferLeader(member) {
     getList()
     teamDialogOpen.value = false
   })
+}
+
+function handleViewResult(item) {
+  currentResult.value = null
+  resultOpen.value = true
+  getMyResults().then(res => {
+    const results = res.data || res.rows || []
+    currentResult.value = results.find(r => r.competitionId == item.competitionId) || null
+  }).catch(() => {})
 }
 
 getList()
