@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -47,6 +48,23 @@ public class RedisCache
     public <T> void setCacheObject(final String key, final T value, final Integer timeout, final TimeUnit timeUnit)
     {
         redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
+    }
+
+    /**
+     * 带 TTL 随机抖动的缓存设置（防缓存雪崩）
+     * 使用 ThreadLocalRandom 避免高并发下 Random 的 CAS 自旋锁竞争
+     *
+     * @param key          缓存键
+     * @param value        缓存值
+     * @param baseMinutes  基础过期时间（分钟）
+     * @param jitterMinutes 随机抖动范围（分钟），实际 TTL = base + [0, jitter]
+     */
+    public <T> void setCacheObjectWithJitter(final String key, final T value,
+                                              final int baseMinutes, final int jitterMinutes)
+    {
+        int jitter = ThreadLocalRandom.current().nextInt(jitterMinutes + 1);
+        int ttl = baseMinutes + jitter;
+        redisTemplate.opsForValue().set(key, value, ttl, TimeUnit.MINUTES);
     }
 
     /**

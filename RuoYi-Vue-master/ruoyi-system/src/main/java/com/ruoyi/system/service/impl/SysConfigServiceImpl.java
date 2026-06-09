@@ -71,7 +71,7 @@ public class SysConfigServiceImpl implements ISysConfigService
         SysConfig retConfig = configMapper.selectConfig(config);
         if (StringUtils.isNotNull(retConfig))
         {
-            redisCache.setCacheObject(getCacheKey(configKey), retConfig.getConfigValue());
+            redisCache.setCacheObjectWithJitter(getCacheKey(configKey), retConfig.getConfigValue(), 60, 15);
             return retConfig.getConfigValue();
         }
         return StringUtils.EMPTY;
@@ -117,7 +117,7 @@ public class SysConfigServiceImpl implements ISysConfigService
         int row = configMapper.insertConfig(config);
         if (row > 0)
         {
-            redisCache.setCacheObject(getCacheKey(config.getConfigKey()), config.getConfigValue());
+            redisCache.setCacheObjectWithJitter(getCacheKey(config.getConfigKey()), config.getConfigValue(), 60, 15);
         }
         return row;
     }
@@ -140,7 +140,7 @@ public class SysConfigServiceImpl implements ISysConfigService
         int row = configMapper.updateConfig(config);
         if (row > 0)
         {
-            redisCache.setCacheObject(getCacheKey(config.getConfigKey()), config.getConfigValue());
+            redisCache.setCacheObjectWithJitter(getCacheKey(config.getConfigKey()), config.getConfigValue(), 60, 15);
         }
         return row;
     }
@@ -174,7 +174,7 @@ public class SysConfigServiceImpl implements ISysConfigService
         List<SysConfig> configsList = configMapper.selectConfigList(new SysConfig());
         for (SysConfig config : configsList)
         {
-            redisCache.setCacheObject(getCacheKey(config.getConfigKey()), config.getConfigValue());
+            redisCache.setCacheObjectWithJitter(getCacheKey(config.getConfigKey()), config.getConfigValue(), 60, 15);
         }
     }
 
