@@ -18,7 +18,9 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.system.domain.Competition;
+import com.ruoyi.system.domain.CompStatus;
 import com.ruoyi.system.service.ICompetitionService;
+import com.ruoyi.system.service.CompStatusGuard;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +33,9 @@ public class CompetitionManageController extends BaseController
 {
     @Autowired
     private ICompetitionService competitionService;
+
+    @Autowired
+    private CompStatusGuard compStatusGuard;
 
     @Operation(summary = "分页查询竞赛管理列表")
     @GetMapping("/list")
@@ -80,6 +85,16 @@ public class CompetitionManageController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody Competition competition)
     {
+        Competition exist = competitionService.selectCompetitionById(competition.getCompetitionId());
+        if (exist == null) return error("竞赛不存在");
+
+        CompStatus oldStatus = exist.getStatus();
+        CompStatus newStatus = competition.getStatus();
+        if (newStatus != null && oldStatus != newStatus)
+        {
+            compStatusGuard.requireCanTransition(oldStatus, newStatus);
+        }
+
         competition.setUpdateBy(SecurityUtils.getUsername());
         competition.setUpdateTime(new Date());
         competitionService.updateCompetition(competition);

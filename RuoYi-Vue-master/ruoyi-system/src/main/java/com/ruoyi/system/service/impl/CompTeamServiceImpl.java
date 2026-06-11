@@ -13,6 +13,7 @@ import com.ruoyi.system.mapper.CompTeamMapper;
 import com.ruoyi.system.mapper.CompTeamMemberMapper;
 import com.ruoyi.system.mapper.CompetitionMapper;
 import com.ruoyi.system.service.ICompTeamService;
+import com.ruoyi.system.service.CompStatusGuard;
 
 @Service
 public class CompTeamServiceImpl implements ICompTeamService
@@ -30,6 +31,9 @@ public class CompTeamServiceImpl implements ICompTeamService
     @Autowired
     private CompetitionMapper competitionMapper;
 
+    @Autowired
+    private CompStatusGuard compStatusGuard;
+
     @Override
     @Transactional
     public CompTeam createTeam(Long competitionId, String teamName, Long userId, String userName)
@@ -39,10 +43,7 @@ public class CompTeamServiceImpl implements ICompTeamService
         {
             throw new ServiceException("竞赛不存在");
         }
-        if (!"0".equals(competition.getStatus()))
-        {
-            throw new ServiceException("当前竞赛不在报名阶段");
-        }
+        compStatusGuard.requireRegistering(competition);
         if (!"2".equals(competition.getCompetitionType()))
         {
             throw new ServiceException("该竞赛为个人赛，请使用【我要报名】");
@@ -88,10 +89,7 @@ public class CompTeamServiceImpl implements ICompTeamService
         {
             throw new ServiceException("竞赛不存在");
         }
-        if (!"0".equals(competition.getStatus()))
-        {
-            throw new ServiceException("当前竞赛不在报名阶段");
-        }
+        compStatusGuard.requireRegistering(competition);
         if (!"2".equals(competition.getCompetitionType()))
         {
             throw new ServiceException("该竞赛为个人赛，请使用【我要报名】");

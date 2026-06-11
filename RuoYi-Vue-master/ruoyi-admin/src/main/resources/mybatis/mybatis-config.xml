@@ -15,6 +15,11 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         <setting name="logImpl"                  value="SLF4J"  />
         <!-- 使用驼峰命名法转换字段 -->
 		<!-- <setting name="mapUnderscoreToCamelCase" value="true"/> -->
-	</settings>
+    </settings>
+
+    <typeHandlers>
+        <typeHandler javaType="com.ruoyi.system.domain.CompStatus"
+                     handler="com.ruoyi.system.domain.handler.CompStatusTypeHandler"/>
+    </typeHandlers>
 	
 </configuration>

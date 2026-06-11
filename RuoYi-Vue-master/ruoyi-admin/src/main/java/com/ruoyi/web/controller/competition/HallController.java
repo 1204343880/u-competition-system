@@ -18,8 +18,10 @@ import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.system.domain.Competition;
 import com.ruoyi.system.domain.CompetitionApply;
+import com.ruoyi.system.domain.CompStatus;
 import com.ruoyi.system.service.ICompetitionApplyService;
 import com.ruoyi.system.service.ICompetitionService;
+import com.ruoyi.system.service.CompStatusGuard;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,6 +36,9 @@ public class HallController extends BaseController
 
     @Autowired
     private ICompetitionApplyService competitionApplyService;
+
+    @Autowired
+    private CompStatusGuard compStatusGuard;
 
     @Anonymous
     @Operation(summary = "分页查询竞赛列表")
@@ -52,7 +57,9 @@ public class HallController extends BaseController
     {
         Competition competition = new Competition();
         competition.setCompetitionName(competitionName);
-        competition.setStatus(status);
+        if (status != null && !status.isEmpty()) {
+            competition.setStatus(CompStatus.fromCode(status));
+        }
         competition.setCompetitionLevel(competitionLevel);
         if (categories != null && !categories.isEmpty()) {
             competition.getParams().put("categoryList", categories.split(","));
@@ -99,10 +106,7 @@ public class HallController extends BaseController
         {
             return error("竞赛不存在");
         }
-        if (!"0".equals(competition.getStatus()))
-        {
-            return error("当前竞赛不在报名阶段");
-        }
+        compStatusGuard.requireRegistering(competition);
 
         CompetitionApply existApply = competitionApplyService.selectApplyByCompetitionIdAndUserId(competitionId, userId);
         if (existApply != null)
@@ -162,10 +166,7 @@ public class HallController extends BaseController
         {
             return error("竞赛不存在");
         }
-        if (!"0".equals(competition.getStatus()))
-        {
-            return error("当前竞赛不在报名阶段，无法取消");
-        }
+        compStatusGuard.requireRegistering(competition);
 
         CompetitionApply existApply = competitionApplyService.selectApplyByCompetitionIdAndUserId(competitionId, userId);
         if (existApply == null)

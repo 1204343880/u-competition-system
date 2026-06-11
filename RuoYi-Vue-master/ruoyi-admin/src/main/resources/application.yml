@@ -122,6 +122,8 @@ mybatis:
   mapperLocations: classpath*:mapper/**/*Mapper.xml
   # 加载全局的配置文件
   configLocation: classpath:mybatis/mybatis-config.xml
+  # TypeHandler 扫描包
+  type-handlers-package: com.ruoyi.system.domain.handler
 
 # PageHelper分页插件
 pagehelper:

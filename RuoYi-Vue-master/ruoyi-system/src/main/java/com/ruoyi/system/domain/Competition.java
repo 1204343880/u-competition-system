@@ -34,7 +34,7 @@ public class Competition extends BaseEntity
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date endTime;
 
-    private String status;
+    private CompStatus status;
 
     private String publishStatus;
 
@@ -162,12 +162,12 @@ public class Competition extends BaseEntity
         this.endTime = endTime;
     }
 
-    public String getStatus()
+    public CompStatus getStatus()
     {
         return status;
     }
 
-    public void setStatus(String status)
+    public void setStatus(CompStatus status)
     {
         this.status = status;
     }

@@ -7,7 +7,7 @@ COPY ruoyi-ui/ ./
 RUN npm run build
 
 # 第二阶段：构建后端
-FROM maven:3.8-openjdk-8 AS backend
+FROM maven:3.9-eclipse-temurin-17 AS backend
 WORKDIR /app
 COPY pom.xml ./
 COPY ruoyi-common ./ruoyi-common
@@ -20,7 +20,7 @@ COPY --from=frontend /app/ruoyi-ui/dist ./ruoyi-admin/src/main/resources/static
 RUN mvn clean package -DskipTests -pl ruoyi-admin -am
 
 # 第三阶段：运行
-FROM openjdk:8-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=backend /app/ruoyi-admin/target/ruoyi-admin-*.jar app.jar
 EXPOSE 8080
