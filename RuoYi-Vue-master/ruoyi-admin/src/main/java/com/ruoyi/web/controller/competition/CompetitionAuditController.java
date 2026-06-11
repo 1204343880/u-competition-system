@@ -15,8 +15,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.framework.manager.AsyncManager;
-import com.ruoyi.framework.manager.factory.AsyncFactory;
+import com.ruoyi.framework.mq.RabbitMqProducer;
 import com.ruoyi.system.domain.CompTeam;
 import com.ruoyi.system.domain.CompetitionApply;
 import com.ruoyi.system.domain.UserNotification;
@@ -37,6 +36,9 @@ public class CompetitionAuditController extends BaseController
 
     @Autowired
     private ICompTeamService teamService;
+
+    @Autowired
+    private RabbitMqProducer rabbitMqProducer;
 
     @Operation(summary = "分页查询报名审核列表")
     @GetMapping("/apply/list")
@@ -139,7 +141,7 @@ public class CompetitionAuditController extends BaseController
             notification.setTitle("报名审核被拒绝");
             notification.setContent("你报名的【" + apply.getCompetitionName() + "】审核被拒绝");
         }
-        AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+        rabbitMqProducer.sendNotification(notification);
     }
 
     private void sendTeamNotification(CompTeam team, String auditStatus)
@@ -158,6 +160,6 @@ public class CompetitionAuditController extends BaseController
             notification.setTitle("队伍审核被驳回");
             notification.setContent("你的队伍【" + team.getTeamName() + "】审核被驳回，请修改后重新提交");
         }
-        AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+        rabbitMqProducer.sendNotification(notification);
     }
 }

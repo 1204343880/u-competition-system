@@ -15,8 +15,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.framework.manager.AsyncManager;
-import com.ruoyi.framework.manager.factory.AsyncFactory;
+import com.ruoyi.framework.mq.RabbitMqProducer;
 import com.ruoyi.system.domain.CompetitionExperience;
 import com.ruoyi.system.domain.CompetitionRetrospect;
 import com.ruoyi.system.domain.UserNotification;
@@ -37,6 +36,9 @@ public class KnowledgeAuditController extends BaseController
 
     @Autowired
     private ICompetitionExperienceService experienceService;
+
+    @Autowired
+    private RabbitMqProducer rabbitMqProducer;
 
     @Operation(summary = "分页查询复盘审核列表")
     @GetMapping("/retrospect/list")
@@ -171,7 +173,7 @@ public class KnowledgeAuditController extends BaseController
             notification.setContent("你的项目复盘【" + retrospect.getProjectName() + "】被驳回"
                     + (rejectReason != null ? "，原因：" + rejectReason : ""));
         }
-        AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+        rabbitMqProducer.sendNotification(notification);
     }
 
     private void sendExperienceNotification(CompetitionExperience experience, String auditStatus, String rejectReason)
@@ -203,6 +205,6 @@ public class KnowledgeAuditController extends BaseController
             notification.setContent("你的经验帖【" + experience.getTitle() + "】被驳回"
                     + (rejectReason != null ? "，原因：" + rejectReason : ""));
         }
-        AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+        rabbitMqProducer.sendNotification(notification);
     }
 }

@@ -17,8 +17,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.framework.manager.AsyncManager;
-import com.ruoyi.framework.manager.factory.AsyncFactory;
+import com.ruoyi.framework.mq.RabbitMqProducer;
 import com.ruoyi.system.domain.CompTeam;
 import com.ruoyi.system.domain.CompTeamMember;
 import com.ruoyi.system.domain.UserNotification;
@@ -38,6 +37,9 @@ public class TeamController extends BaseController
 
     @Autowired
     private ITeamInvitationRecordService invitationRecordService;
+
+    @Autowired
+    private RabbitMqProducer rabbitMqProducer;
 
     @Operation(summary = "创建队伍")
     @PostMapping("/create/{competitionId}")
@@ -122,7 +124,7 @@ public class TeamController extends BaseController
             notification.setBizId(teamId);
             notification.setTitle("队员退出队伍");
             notification.setContent("队员 " + leaverName + " 已退出你的队伍【" + team.getTeamName() + "】");
-            AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+            rabbitMqProducer.sendNotification(notification);
 
             return success("退出成功");
         }
@@ -156,7 +158,7 @@ public class TeamController extends BaseController
             notification.setBizId(teamId);
             notification.setTitle("你已被移出队伍");
             notification.setContent("你已被队长移出队伍【" + team.getTeamName() + "】");
-            AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+            rabbitMqProducer.sendNotification(notification);
 
             return success("踢出成功");
         }
@@ -193,7 +195,7 @@ public class TeamController extends BaseController
                 notification.setBizId(teamId);
                 notification.setTitle("队伍已解散");
                 notification.setContent("你的队伍【" + team.getTeamName() + "】已被队长解散");
-                AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+                rabbitMqProducer.sendNotification(notification);
             }
 
             return success("解散成功");

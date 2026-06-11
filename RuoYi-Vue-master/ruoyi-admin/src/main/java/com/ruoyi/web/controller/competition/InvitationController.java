@@ -15,8 +15,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.framework.manager.AsyncManager;
-import com.ruoyi.framework.manager.factory.AsyncFactory;
+import com.ruoyi.framework.mq.RabbitMqProducer;
 import com.ruoyi.system.domain.CompTeam;
 import com.ruoyi.system.domain.TeamTeacherInvitation;
 import com.ruoyi.system.domain.UserNotification;
@@ -34,6 +33,9 @@ public class InvitationController extends BaseController
 
     @Autowired
     private ICompTeamService teamService;
+
+    @Autowired
+    private RabbitMqProducer rabbitMqProducer;
 
     @Operation(summary = "学生-邀请教师指导")
     @PostMapping("/student/team/{teamId}/invite-teacher")
@@ -175,6 +177,6 @@ public class InvitationController extends BaseController
                     + " 已拒绝指导你的队伍【" + invitation.getTeamName() + "】"
                     + (replyMessage != null ? "，回复：" + replyMessage : ""));
         }
-        AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+        rabbitMqProducer.sendNotification(notification);
     }
 }

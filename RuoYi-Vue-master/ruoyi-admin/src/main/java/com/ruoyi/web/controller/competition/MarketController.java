@@ -15,8 +15,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.framework.manager.AsyncManager;
-import com.ruoyi.framework.manager.factory.AsyncFactory;
+import com.ruoyi.framework.mq.RabbitMqProducer;
 import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.system.domain.TeamInvitationRecord;
 import com.ruoyi.system.domain.UserNotification;
@@ -44,6 +43,9 @@ public class MarketController extends BaseController
 
     @Autowired
     private ITeamInvitationRecordService invitationRecordService;
+
+    @Autowired
+    private RabbitMqProducer rabbitMqProducer;
 
     @Anonymous
     @Operation(summary = "查询人才市场列表")
@@ -88,7 +90,7 @@ public class MarketController extends BaseController
             notification.setBizId(record.getId());
             notification.setTitle("收到组队邀请");
             notification.setContent("用户 " + loginUser.getUsername() + " 邀请你加入队伍");
-            AsyncManager.me().execute(AsyncFactory.recordNotification(notification));
+            rabbitMqProducer.sendNotification(notification);
 
             return success(record);
         }
