@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>ruoyi</artifactId>
-        <groupId>com.ruoyi</groupId>
+        <artifactId>innotrack-competition</artifactId>
+        <groupId>com.innotrack</groupId>
         <version>3.9.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ruoyi-framework</artifactId>
+    <artifactId>innotrack-framework</artifactId>
 
     <description>
         framework框架核心
@@ -61,8 +61,8 @@
 
         <!-- 系统模块-->
         <dependency>
-            <groupId>com.ruoyi</groupId>
-            <artifactId>ruoyi-system</artifactId>
+            <groupId>com.innotrack</groupId>
+            <artifactId>innotrack-system</artifactId>
         </dependency>
 
     </dependencies>

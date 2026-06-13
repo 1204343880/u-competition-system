@@ -1,8 +1,8 @@
 {
-  "name": "ruoyi",
+  "name": "innotrack-competition",
   "version": "3.9.2",
   "description": "学科竞赛管理系统",
-  "author": "若依",
+  "author": "",
   "license": "MIT",
   "type": "module",
   "scripts": {
