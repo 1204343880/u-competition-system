@@ -164,7 +164,7 @@ function bizTypeLabel(bizType) {
   padding: 10px 14px;
   border-bottom: 1px solid #f5f5f5;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.2s;
 }
 .user-notify-popover .notify-item:last-child { border-bottom: none; }
 .user-notify-popover .notify-item:hover { background: #f7f9fb; }

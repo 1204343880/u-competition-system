@@ -144,21 +144,21 @@ const currentTime = ref('')
 let timer = null
 
 const statsData = ref([
-  { label: '系统用户', value: '--', icon: 'User', color: '#409EFF', bgColor: '#ecf5ff' },
+  { label: '系统用户', value: '--', icon: 'User', color: '#1a73e8', bgColor: '#ecf5ff' },
   { label: '竞赛项目', value: '--', icon: 'Trophy', color: '#67C23A', bgColor: '#f0f9eb' },
   { label: '进行中', value: '--', icon: 'Clock', color: '#E6A23C', bgColor: '#fdf6ec' },
   { label: '已完成', value: '--', icon: 'Check', color: '#F56C6C', bgColor: '#fef0f0' }
 ])
 
 const quickActions = [
-  { title: '竞赛大厅', desc: '浏览全校竞赛', icon: 'Collection', color: '#409EFF', bgColor: '#ecf5ff', path: '/hall/list' },
+  { title: '竞赛大厅', desc: '浏览全校竞赛', icon: 'Collection', color: '#1a73e8', bgColor: '#ecf5ff', path: '/hall/list' },
   { title: '组队匹配', desc: '寻找队友组队', icon: 'User', color: '#67C23A', bgColor: '#f0f9eb', path: '/match/index' },
   { title: '薪火相传', desc: '往届经验分享', icon: 'Document', color: '#E6A23C', bgColor: '#fdf6ec', path: '/knowledge/index' },
   { title: '我的赛程', desc: '管理我的竞赛', icon: 'Edit', color: '#9b59b6', bgColor: '#f4f0f9', path: '/myrace/race' }
 ]
 
 const notices = [
-  { title: '欢迎使用铜陵学院学科竞赛管理平台', time: '刚刚', color: '#409EFF' },
+  { title: '欢迎使用铜陵学院学科竞赛管理平台', time: '刚刚', color: '#1a73e8' },
   { title: '系统已配置三级角色权限体系', time: '今日', color: '#67C23A' },
   { title: '参赛学生专属菜单已上线', time: '今日', color: '#E6A23C' }
 ]
@@ -269,7 +269,7 @@ onUnmounted(() => {
 .shape-3 {
   width: 40px;
   height: 40px;
-  background: rgba(64, 158, 255, 0.2);
+  background: rgba(26, 115, 232, 0.2);
   top: 20px;
   right: 80px;
 }
@@ -362,7 +362,7 @@ onUnmounted(() => {
   transform: translateY(-50%);
   width: 4px;
   height: 18px;
-  background: #409EFF;
+  background: #1a73e8;
   border-radius: 2px;
 }
 

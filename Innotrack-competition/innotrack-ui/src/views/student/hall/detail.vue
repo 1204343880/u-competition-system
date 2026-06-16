@@ -412,8 +412,8 @@ loadDetail()
 }
 
 .timeline-dot.active {
-  background: #409eff;
-  box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.15);
+  background: #1a73e8;
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
 }
 
 .timeline-line {
@@ -427,7 +427,7 @@ loadDetail()
 }
 
 .timeline-line.active {
-  background: #409eff;
+  background: #1a73e8;
 }
 
 .timeline-label {

@@ -8,9 +8,17 @@ $tiffany: #4AB7BD;
 $yellow: #FEC171;
 $panGreen: #30B08F;
 
+// 全局字体
+$font-family-base: 'Geist', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-family-mono: 'Geist Mono', 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Consolas', monospace;
+
+// 过渡动画
+$transition-fast: 0.2s;
+$transition-base: 0.3s;
+
 // 默认主题变量
 $menuText: #303133;
-$menuActiveText: #409eff;
+$menuActiveText: #1a73e8;
 $menuBg: #ffffff;
 $menuHover: #f5f7fa;
 
@@ -18,7 +26,7 @@ $menuHover: #f5f7fa;
 $menuLightBg: #ffffff;
 $menuLightHover: #f5f7fa;
 $menuLightText: #303133;
-$menuLightActiveText: #409eff;
+$menuLightActiveText: #1a73e8;
 
 // 基础变量
 $base-sidebar-width: 200px;
@@ -26,13 +34,13 @@ $sideBarWidth: 200px;
 
 // 菜单暗色变量
 $base-menu-color: #303133;
-$base-menu-color-active: #409eff;
+$base-menu-color-active: #1a73e8;
 $base-menu-background: #ffffff;
 $base-sub-menu-background: #ffffff;
 $base-sub-menu-hover: #f5f7fa;
 
 // 组件变量
-$--color-primary: #004b97;
+$--color-primary: #1a73e8;
 $--color-success: #67C23A;
 $--color-warning: #E6A23C;
 $--color-danger: #b81f64;
@@ -227,11 +235,11 @@ html.dark {
     &:not(.tags-view-container--chrome) .tags-view-wrapper .tags-view-item.active {
       background-color: var(--tags-card-active-bg) !important;
       border-color: var(--tags-card-active-border) !important;
-      color: var(--current-color, #409eff) !important;
+      color: var(      --current-color, #1a73e8) !important;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 
       &::before {
-        background: var(--current-color, #409eff) !important;
+        background: var(      --current-color, #1a73e8) !important;
       }
     }
   }

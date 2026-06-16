@@ -399,7 +399,7 @@ $tags-bar-height: 34px;
     color: $btn-color;
     font-size: 13px;
     user-select: none;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.2s, color 0.2s;
 
     &:hover:not(.disabled) {
       background: $btn-hover-bg;
@@ -481,7 +481,7 @@ $tags-bar-height: 34px;
     font-size: 13px;
     border-left: $divider;
     user-select: none;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.2s, color 0.2s;
 
     &:hover {
       background: $btn-hover-bg;
@@ -562,7 +562,7 @@ $tags-bar-height: 34px;
         color: var(--chrome-tab-text);
         padding-top: 0 !important;
         box-shadow: none !important;
-        transition: background 0.12s ease, color 0.12s ease, border-radius 0.12s ease;
+        transition: background 0.2s ease, color 0.2s ease, border-radius 0.2s ease;
 
         &::before,
         &::after {
@@ -576,7 +576,7 @@ $tags-bar-height: 34px;
           pointer-events: none;
           background: transparent !important;
           border-radius: 0 !important;
-          transition: box-shadow 0.12s ease;
+          transition: box-shadow 0.2s ease;
         }
 
         &::before {

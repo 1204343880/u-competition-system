@@ -1,9 +1,11 @@
+@use './variables.module.scss' as *;
+
 // global transition css
 
 /* fade */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.28s;
+  transition: opacity $transition-base;
 }
 
 .fade-enter-from,
@@ -15,7 +17,7 @@
 .fade-transform--move,
 .fade-transform-leave-active,
 .fade-transform-enter-active {
-  transition: all .5s;
+  transition: all $transition-base;
 }
 
 .fade-transform-enter-from {
@@ -31,7 +33,7 @@
 /* breadcrumb transition */
 .breadcrumb-enter-active,
 .breadcrumb-leave-active {
-  transition: all .5s;
+  transition: all $transition-base;
 }
 
 .breadcrumb-enter-from,
@@ -41,7 +43,7 @@
 }
 
 .breadcrumb-move {
-  transition: all .5s;
+  transition: all $transition-base;
 }
 
 .breadcrumb-leave-active {

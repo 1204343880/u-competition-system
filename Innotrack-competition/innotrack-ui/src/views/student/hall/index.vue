@@ -718,13 +718,13 @@ getList()
   color: #606266;
 }
 .result-summary strong {
-  color: #409eff;
+  color: #1a73e8;
 }
 .filter-tag {
   display: inline-block;
   padding: 2px 8px;
   background: #ecf5ff;
-  color: #409eff;
+  color: #1a73e8;
   border-radius: 3px;
   font-size: 12px;
 }
