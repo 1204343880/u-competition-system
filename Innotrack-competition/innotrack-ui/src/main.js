@@ -43,6 +43,10 @@ import ImageUpload from "@/components/ImageUpload"
 import ImagePreview from "@/components/ImagePreview"
 // 字典标签组件
 import DictTag from '@/components/DictTag'
+// 空状态组件
+import EmptyState from '@/components/EmptyState'
+// 骨架屏组件
+import Skeleton from '@/components/Skeleton'
 
 const app = createApp(App)
 
@@ -65,6 +69,8 @@ app.component('ImageUpload', ImageUpload)
 app.component('ImagePreview', ImagePreview)
 app.component('RightToolbar', RightToolbar)
 app.component('Editor', Editor)
+app.component('EmptyState', EmptyState)
+app.component('Skeleton', Skeleton)
 
 app.use(router)
 app.use(store)

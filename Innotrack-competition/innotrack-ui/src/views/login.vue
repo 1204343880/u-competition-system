@@ -174,12 +174,12 @@ getCookie()
   justify-content: center;
   align-items: center;
   height: 100%;
-  background: linear-gradient(135deg, #004b97 0%, #f2f6fc 100%);
+  background: linear-gradient(135deg, #1a73e8 0%, #f2f6fc 100%);
 }
 .title {
   margin: 20px auto 30px auto;
   text-align: center;
-  color: #004b97;
+  color: #1a73e8;
   font-weight: 600;
 }
 
@@ -226,7 +226,7 @@ getCookie()
   width: 100%;
   text-align: center;
   color: #666;
-  font-family: Arial;
+  font-family: 'Geist', 'Noto Sans SC', Arial, sans-serif;
   font-size: 12px;
   letter-spacing: 1px;
 }

@@ -48,7 +48,7 @@
   border-radius: 8px;
   border: none;
   outline: none;
-  transition: 600ms ease all;
+  transition: $transition-base ease all;
   position: relative;
   display: inline-block;
 
@@ -58,7 +58,7 @@
     &:before,
     &:after {
       width: 100%;
-      transition: 600ms ease all;
+      transition: $transition-base ease all;
     }
   }
 
@@ -70,7 +70,7 @@
     right: 0;
     height: 2px;
     width: 0;
-    transition: 400ms ease all;
+      transition: $transition-fast ease all;
   }
 
   &::after {

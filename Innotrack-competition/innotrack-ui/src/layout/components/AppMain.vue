@@ -38,7 +38,7 @@ function addIframe() {
 <style lang="scss" scoped>
 .app-main {
   /* 50= navbar  50  */
-  min-height: calc(100vh - 50px);
+  min-height: calc(100dvh - 50px);
   width: 100%;
   position: relative;
   overflow: hidden;
@@ -47,7 +47,7 @@ function addIframe() {
 .fixed-header + .app-main {
   overflow-y: auto;
   scrollbar-gutter: auto;
-  height: calc(100vh - 50px);
+  height: calc(100dvh - 50px);
   min-height: 0px;
 }
 
@@ -62,12 +62,12 @@ function addIframe() {
 .hasTagsView {
   .app-main {
     /* 84 = navbar + tags-view = 50 + 34 */
-    min-height: calc(100vh - 84px);
+    min-height: calc(100dvh - 84px);
   }
 
   .fixed-header + .app-main {
     margin-top: 84px;
-    height: calc(100vh - 84px);
+    height: calc(100dvh - 84px);
     min-height: 0px;
   }
 }

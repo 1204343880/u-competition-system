@@ -289,7 +289,7 @@ watch(searchPool, (list) => {
     align-items: center;
     padding-right: 10px;
     border-radius: 4px;
-    transition: background 0.15s;
+    transition: background 0.2s;
 
     .left {
       width: 60px;

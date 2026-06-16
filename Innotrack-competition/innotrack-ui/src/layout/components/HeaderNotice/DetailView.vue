@@ -116,7 +116,7 @@ defineExpose({
   max-width: 760px;
   margin: 0 auto;
   padding: 8px 8px 20px;
-  animation: notice-fade-up 0.28s ease both;
+  animation: notice-fade-up 0.3s ease both;
 }
 
 @keyframes notice-fade-up {

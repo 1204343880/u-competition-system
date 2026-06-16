@@ -89,7 +89,7 @@ function setLayout() {
 }
 
 .main-container:has(.fixed-header) {
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -109,7 +109,7 @@ function setLayout() {
   right: 0;
   z-index: 9;
   width: calc(100% - #{vars.$base-sidebar-width});
-  transition: width 0.28s;
+  transition: width 0.3s;
 }
 
 .hideSidebar .fixed-header {
