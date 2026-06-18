@@ -1,71 +1,101 @@
 <template>
-  <div class="detail-page">
-    <div class="detail-topbar">
-      <el-button text @click="goBack">
-        <el-icon><ArrowLeft /></el-icon>
-        返回竞赛列表
-      </el-button>
-      <span class="detail-title">{{ detail.competitionName }}</span>
-      <span class="detail-spacer"></span>
-    </div>
+  <div class="detail-page" v-loading="loading">
+    <div
+      class="hero-banner"
+      :style="{ backgroundImage: detail.coverImage ? `url(${detail.coverImage})` : undefined }"
+    >
+      <el-breadcrumb class="hero-breadcrumb" separator="/">
+        <el-breadcrumb-item :to="{ path: '/index' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item @click="goBack">竞赛大厅</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ detail.competitionName }}</el-breadcrumb-item>
+      </el-breadcrumb>
 
-    <div class="detail-content" v-loading="loading">
-      <div class="hero-card">
-        <div class="badges-row">
+      <div class="hero-body">
+        <div class="hero-badges">
           <dict-tag :options="competition_category" :value="detail.category" />
           <dict-tag :options="competition_level" :value="detail.competitionLevel" />
           <dict-tag :options="competition_type" :value="detail.competitionType" />
           <dict-tag :options="competition_status" :value="detail.status" />
         </div>
-
         <h1 class="hero-title">{{ detail.competitionName }}</h1>
-
-        <div class="meta-row">
-          <span><el-icon><UserFilled /></el-icon> {{ detail.organizer }}</span>
+        <div class="hero-meta">
+          <span v-if="detail.organizer"><el-icon><UserFilled /></el-icon> {{ detail.organizer }}</span>
           <span v-if="detail.host"><el-icon><OfficeBuilding /></el-icon> {{ detail.host }}</span>
-          <span><el-icon><View /></el-icon> {{ detail.viewCount }} 次浏览</span>
-          <span><el-icon><Avatar /></el-icon> {{ detail.currentParticipants || 0 }} / {{ detail.maxParticipants || '不限' }} 人已报名</span>
-        </div>
-
-        <div class="tags-row" v-if="parsedTags.length">
-          <el-tag v-for="tag in parsedTags" :key="tag" size="small" type="info">{{ tag }}</el-tag>
-        </div>
-
-        <div class="action-row">
-          <template v-if="detail.status === '0'">
-            <template v-if="detail.competitionType === '1'">
-              <el-button type="primary" @click="handleApply" :disabled="isFull">我要报名</el-button>
-              <span v-if="isFull" class="full-tip">名额已满</span>
-            </template>
-            <template v-else-if="detail.competitionType === '2'">
-              <el-button v-if="!myTeamInfo" type="primary" @click="handleCreateTeam">创建队伍</el-button>
-              <el-button v-if="!myTeamInfo" type="success" @click="handleJoinTeam">加入队伍</el-button>
-              <el-button v-if="myTeamInfo" type="primary" @click="handleViewTeam">查看队伍</el-button>
-            </template>
-          </template>
-          <template v-else-if="detail.competitionType === '2' && detail.status !== '0'">
-            <span class="deadline-tip">报名已截止</span>
-          </template>
+          <span><el-icon><View /></el-icon> {{ formatViewCount(detail.viewCount) }} 浏览</span>
+          <span><el-icon><Avatar /></el-icon> {{ detail.currentParticipants || 0 }}/{{ detail.maxParticipants || '不限' }} 人</span>
         </div>
       </div>
 
-      <div class="timeline-card">
-        <h3 class="card-title">竞赛日程</h3>
-        <div class="timeline-track">
-          <div class="timeline-node" v-for="(node, idx) in timelineNodes" :key="idx">
-            <div class="timeline-dot" :class="{ active: node.active }"></div>
-            <div class="timeline-line" v-if="idx < timelineNodes.length - 1" :class="{ active: node.active && timelineNodes[idx + 1].active }"></div>
-            <div class="timeline-label">{{ node.label }}</div>
-            <div class="timeline-date">{{ node.date }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="detail-card">
-        <h3 class="card-title">竞赛详情</h3>
-        <div class="rich-body" v-html="detail.description || '暂无详情'"></div>
+      <div class="hero-cta">
+        <template v-if="detail.status === '0'">
+          <template v-if="detail.competitionType === '1'">
+            <el-button size="large" type="primary" :disabled="isFull" @click="handleApply">
+              {{ isFull ? '名额已满' : '立即报名' }}
+            </el-button>
+          </template>
+          <template v-else-if="detail.competitionType === '2'">
+            <el-button v-if="!myTeamInfo" size="large" type="primary" @click="handleCreateTeam">创建队伍</el-button>
+            <el-button v-if="!myTeamInfo" size="large" plain @click="handleJoinTeam">加入队伍</el-button>
+            <el-button v-if="myTeamInfo" size="large" type="primary" @click="handleViewTeam">查看我的队伍</el-button>
+          </template>
+        </template>
+        <el-tag v-else size="large" type="warning" effect="dark">报名已截止</el-tag>
       </div>
     </div>
+
+    <div class="main-grid" v-if="detail.competitionId">
+      <div class="main-left">
+        <el-tabs v-model="activeTab" class="detail-tabs">
+          <el-tab-pane label="竞赛规程" name="description">
+            <div v-if="detail.description" class="rich-body" v-html="detail.description"></div>
+            <EmptyState v-else description="暂无详细规程" :show-image="false" />
+          </el-tab-pane>
+          <el-tab-pane label="赛程安排" name="schedule">
+            <div class="schedule-list">
+              <div
+                v-for="node in timelineItems"
+                :key="node.label"
+                class="schedule-item"
+                :class="{ active: node.active }"
+              >
+                <div class="schedule-dot"></div>
+                <div class="schedule-info">
+                  <span class="schedule-label">{{ node.label }}</span>
+                  <span class="schedule-date">{{ node.date || '待定' }}</span>
+                </div>
+              </div>
+              <EmptyState v-if="!timelineItems.length" description="暂无赛程安排" :show-image="false" />
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="奖项设置" name="prize">
+            <EmptyState description="暂未公布奖项信息" :show-image="false" />
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+
+      <div class="main-right">
+        <div class="sidebar-card">
+          <h3 class="sidebar-title">关键时间</h3>
+          <el-timeline v-if="timelineItems.length">
+            <el-timeline-item
+              v-for="node in timelineItems"
+              :key="node.label"
+              :timestamp="node.date || '待定'"
+              :color="node.active ? '#1a73e8' : '#dcdfe6'"
+              placement="top"
+            >
+              {{ node.label }}
+            </el-timeline-item>
+          </el-timeline>
+          <EmptyState v-else description="暂无时间信息" :show-image="false" />
+        </div>
+      </div>
+    </div>
+
+    <EmptyState
+      v-if="!loading && !detail.competitionId"
+      description="无法加载竞赛信息，请返回重试"
+    />
 
     <el-dialog title="确认报名" v-model="applyOpen" width="480px" append-to-body>
       <el-form label-width="80px">
@@ -141,11 +171,12 @@
 </template>
 
 <script setup>
-import { ArrowLeft, UserFilled, OfficeBuilding, View, Avatar } from '@element-plus/icons-vue'
+import { UserFilled, OfficeBuilding, View, Avatar } from '@element-plus/icons-vue'
 import { useRouter, useRoute } from 'vue-router'
 import useUserStore from '@/store/modules/user'
 import { getCompetition, applyCompetition } from '@/api/competition/hall'
 import { createTeam, joinTeam, getMyTeam } from '@/api/competition/team'
+import { parseTime } from '@/utils/ruoyi'
 
 const { proxy } = getCurrentInstance()
 const router = useRouter()
@@ -162,6 +193,7 @@ const {
 const loading = ref(true)
 const detail = ref({})
 const myTeamInfo = ref(null)
+const activeTab = ref('description')
 
 const applyOpen = ref(false)
 const applyLoading = ref(false)
@@ -185,34 +217,57 @@ const parsedTags = computed(() => {
   try { return JSON.parse(detail.value.tags) } catch (e) { return [] }
 })
 
-const timelineNodes = computed(() => {
+const timelineItems = computed(() => {
   const d = detail.value
-  const fmt = (val) => val ? parseTime(val, '{y}-{m}-{d} {h}:{i}') : '待定'
+  if (!d) return []
+  const fmt = (val) => val ? parseTime(val, '{y}-{m}-{d} {h}:{i}') : ''
   const now = Date.now()
-  const nodes = [
-    { label: '报名开始', date: fmt(d.applyStartTime), active: now >= new Date(d.applyStartTime).getTime() },
-    { label: '报名截止', date: fmt(d.applyEndTime), active: now >= new Date(d.applyEndTime).getTime() },
-    { label: '比赛开始', date: fmt(d.startTime), active: now >= new Date(d.startTime).getTime() },
-    { label: '比赛结束', date: fmt(d.endTime), active: now >= new Date(d.endTime).getTime() }
-  ]
-  return nodes
+  const items = []
+  if (d.applyStartTime) {
+    items.push({ label: '报名开始', date: fmt(d.applyStartTime), active: now >= new Date(d.applyStartTime).getTime() })
+  }
+  if (d.applyEndTime) {
+    items.push({ label: '报名截止', date: fmt(d.applyEndTime), active: now >= new Date(d.applyEndTime).getTime() })
+  }
+  if (d.startTime) {
+    items.push({ label: '比赛开始', date: fmt(d.startTime), active: now >= new Date(d.startTime).getTime() })
+  }
+  if (d.endTime) {
+    items.push({ label: '比赛结束', date: fmt(d.endTime), active: now >= new Date(d.endTime).getTime() })
+  }
+  return items
 })
 
 function goBack() {
-  router.push('/match/hall')
+  router.back()
+}
+
+function formatViewCount(count) {
+  if (!count) return '0'
+  if (count > 10000) return (count / 10000).toFixed(1) + '万'
+  return String(count)
 }
 
 function loadDetail() {
+  const competitionId = route.params.competitionId
+  if (competitionId == null || competitionId === '') {
+    loading.value = false
+    return
+  }
   loading.value = true
-  getCompetition(route.params.competitionId).then(response => {
-    detail.value = response.data
+  try {
+    getCompetition(competitionId).then(response => {
+      detail.value = response.data
+      loading.value = false
+      if (detail.value && detail.value.competitionType === '2') {
+        checkMyTeam()
+      }
+    }).catch(() => {
+      loading.value = false
+    })
+  } catch (e) {
     loading.value = false
-    if (detail.value.competitionType === '2') {
-      checkMyTeam()
-    }
-  }).catch(() => {
-    loading.value = false
-  })
+  }
 }
 
 function checkMyTeam() {
@@ -273,195 +328,266 @@ loadDetail()
 
 <style scoped>
 .detail-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: #f5f7fa;
 }
 
-.detail-topbar {
+.hero-banner {
+  height: 260px;
+  background: linear-gradient(135deg, #1a73e8 0%, #1557b0 40%, #0d47a1 100%);
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  padding: 24px 40px;
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 24px;
-  background: #fff;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 10px 30px rgba(26, 115, 232, 0.15);
+  margin-bottom: 32px;
 }
 
-.detail-topbar .detail-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.65) 100%);
+  z-index: 0;
 }
 
-.detail-spacer {
+.hero-breadcrumb {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-breadcrumb :deep(.el-breadcrumb__inner) {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-breadcrumb :deep(.el-breadcrumb__inner.is-link:hover) {
+  color: #fff;
+}
+
+.hero-breadcrumb :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
+  color: #fff;
+  font-weight: 500;
+}
+
+.hero-body {
+  position: relative;
+  z-index: 1;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
 }
 
-.detail-content {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px 24px;
-}
-
-.hero-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-  margin-bottom: 16px;
-}
-
-.badges-row {
+.hero-badges {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .hero-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--el-text-color-primary);
-  margin: 0 0 16px 0;
-  line-height: 1.3;
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  line-height: 1.25;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-.meta-row {
+.hero-meta {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
   font-size: 14px;
-  color: var(--el-text-color-regular);
-  margin-bottom: 14px;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-.meta-row span {
+.hero-meta span {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.tags-row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
+.hero-cta {
+  position: absolute;
+  right: 40px;
+  bottom: 24px;
+  z-index: 1;
 }
 
-.action-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-top: 8px;
-  border-top: 1px solid #ebeef5;
+.hero-cta .el-button--large {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 12px 32px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.full-tip {
-  color: #f56c6c;
-  font-size: 13px;
+.hero-cta .el-button--large:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(26, 115, 232, 0.4);
 }
 
-.deadline-tip {
-  color: #e6a23c;
-  font-size: 13px;
+.hero-cta .el-button--large.is-plain {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
 }
 
-.timeline-card {
+.hero-cta .el-button--large.is-plain:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #fff;
+}
+
+.main-grid {
+  max-width: 1280px;
+  margin: -24px auto 0;
+  padding: 0 24px 40px;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+  position: relative;
+  z-index: 2;
+}
+
+.main-left {
   background: #fff;
   border-radius: 12px;
-  padding: 24px 28px;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 8px 0;
+  min-height: 400px;
 }
 
-.card-title {
+.detail-tabs :deep(.el-tabs__header) {
+  margin: 0 24px;
+}
+
+.detail-tabs :deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background-color: #f0f2f5;
+}
+
+.detail-tabs :deep(.el-tabs__content) {
+  padding: 8px 24px 24px;
+}
+
+.main-right {
+  position: sticky;
+  top: 24px;
+}
+
+.sidebar-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin: 0 0 20px 0;
+  color: #202124;
+  margin: 0 0 16px 0;
 }
 
-.timeline-track {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  position: relative;
-}
-
-.timeline-node {
+.schedule-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  flex: 1;
+  gap: 0;
+}
+
+.schedule-item {
+  display: flex;
+  gap: 14px;
+  padding: 10px 0;
   position: relative;
 }
 
-.timeline-dot {
+.schedule-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 26px;
+  width: 2px;
+  height: calc(100% - 4px);
+  background: #e0e0e0;
+}
+
+.schedule-item.active:not(:last-child)::after {
+  background: #1a73e8;
+}
+
+.schedule-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: #dcdfe6;
-  margin-bottom: 20px;
-  z-index: 1;
   flex-shrink: 0;
+  margin-top: 3px;
+  z-index: 1;
 }
 
-.timeline-dot.active {
+.schedule-item.active .schedule-dot {
   background: #1a73e8;
-  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.12);
 }
 
-.timeline-line {
-  position: absolute;
-  top: 5px;
-  left: calc(50% + 8px);
-  width: calc(100% - 16px);
-  height: 2px;
-  background: #dcdfe6;
-  z-index: 0;
+.schedule-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.timeline-line.active {
-  background: #1a73e8;
+.schedule-label {
+  font-size: 14px;
+  color: #202124;
+  font-weight: 500;
 }
 
-.timeline-label {
-  font-size: 13px;
-  color: var(--el-text-color-regular);
-  margin-bottom: 4px;
-}
-
-.timeline-date {
+.schedule-date {
   font-size: 12px;
   color: #909399;
 }
 
-.detail-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px 28px;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-  margin-bottom: 16px;
-}
-
 .rich-body {
-  line-height: 1.8;
-  color: var(--el-text-color-regular);
+  line-height: 1.9;
+  color: #3c4043;
+  font-size: 15px;
   word-break: break-word;
 }
 
-.rich-body :deep(p) { margin: 6px 0; }
-.rich-body :deep(img) { max-width: 100%; }
-.rich-body :deep(strong) { color: var(--el-text-color-primary); }
+.rich-body :deep(p) { margin: 10px 0; }
+.rich-body :deep(img) { max-width: 100%; border-radius: 6px; margin: 12px 0; }
+.rich-body :deep(table) { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.rich-body :deep(td), .rich-body :deep(th) { border: 1px solid #e0e0e0; padding: 10px 14px; text-align: left; }
+.rich-body :deep(th) { background: #f8f9fa; font-weight: 600; color: #202124; }
+.rich-body :deep(strong) { color: #202124; }
+.rich-body :deep(ul), .rich-body :deep(ol) { padding-left: 24px; }
+.rich-body :deep(a) { color: #1a73e8; }
+.rich-body :deep(h2), .rich-body :deep(h3) { color: #202124; margin: 16px 0 8px; }
 
-@media (max-width: 768px) {
-  .detail-content { padding: 12px; }
-  .hero-card { padding: 16px; }
-  .hero-title { font-size: 20px; }
+@media (max-width: 900px) {
+  .hero-banner {
+    height: 200px;
+    padding: 16px 20px;
+  }
+
+  .hero-title {
+    font-size: 22px;
+  }
+
+  .hero-cta {
+    right: 20px;
+    bottom: 16px;
+  }
+
+  .main-grid {
+    grid-template-columns: 1fr;
+    padding: 0 12px 24px;
+  }
 }
 </style>
