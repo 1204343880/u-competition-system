@@ -76,46 +76,38 @@
       </div>
 
       <div v-loading="loading" class="comp-grid">
-        <el-card
+        <div
           v-for="item in competitionList"
           :key="item.competitionId"
-          shadow="never"
           class="comp-card"
           @click="openDetail(item.competitionId)"
         >
-          <div class="comp-card-top">
-            <dict-tag :options="competition_status" :value="item.status" />
-            <span class="comp-view-count">
-              <template v-if="item.viewCount > 10000">{{ (item.viewCount / 10000).toFixed(1) }}万</template>
-              <template v-else>{{ item.viewCount }}</template>
-              浏览
-            </span>
+          <div class="comp-card-cover">
+            <img
+              v-if="item.coverImage"
+              :src="item.coverImage"
+              class="comp-card-cover-img"
+              @error="onCoverError($event)"
+            />
+            <svg-icon v-else icon-class="education" class="comp-card-cover-icon" />
           </div>
-          <h3 class="comp-name" :title="item.competitionName">{{ item.competitionName }}</h3>
-          <p class="comp-desc" :title="stripHtml(item.description)">
-            {{ stripHtml(item.description) || '暂无描述' }}
-          </p>
-          <div class="comp-badges">
-            <dict-tag :options="competition_category" :value="item.category" />
-            <dict-tag :options="competition_level" :value="item.competitionLevel" />
-            <dict-tag :options="competition_type" :value="item.competitionType" />
+          <div class="comp-card-body">
+            <div class="comp-card-title-row">
+              <h3 class="comp-card-title">{{ item.competitionName }}</h3>
+              <span class="comp-card-status">{{ getStatusText(item.status) }}</span>
+            </div>
+            <div class="comp-card-organizer">{{ item.organizer || '-' }}</div>
+            <div class="comp-card-level">
+              <span>{{ getLevelLabel(item.competitionLevel) }}</span>
+              <span class="comp-card-divider">|</span>
+              <span>{{ formatViewCount(item.viewCount) }} 浏览</span>
+            </div>
+            <div class="comp-card-dates">
+              <span>报名截止 {{ parseTime(item.applyEndTime, '{y}-{m}-{d}') }}</span>
+              <span>比赛时间 {{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
+            </div>
           </div>
-          <div class="comp-meta">
-            <span class="comp-organizer" :title="item.organizer">{{ item.organizer || '-' }}</span>
-            <span class="comp-deadline">截止 {{ parseTime(item.applyEndTime, '{y}-{m}-{d}') }}</span>
-          </div>
-          <div class="comp-tags" v-if="parseTags(item.tags).length">
-            <el-tag
-              v-for="tag in parseTags(item.tags)"
-              :key="tag"
-              size="small"
-              :type="getTagType(tag)"
-            >{{ tag }}</el-tag>
-          </div>
-          <div class="comp-action">
-            <span class="comp-action-text">查看详情 &rarr;</span>
-          </div>
-        </el-card>
+        </div>
       </div>
 
       <pagination
@@ -259,7 +251,10 @@
 
 <script setup>
 import { Search } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 import useUserStore from '@/store/modules/user'
+
+const router = useRouter()
 
 const { proxy } = getCurrentInstance()
 const userStore = useUserStore()
@@ -412,8 +407,8 @@ function handleDetail(row) {
 }
 
 function openDetail(id) {
-  const resolved = useRouter().resolve({ path: '/match/hall/' + id })
-  window.open(resolved.href, '_blank')
+  if (id == null) return
+  router.push({ name: 'CompetitionDetail', params: { competitionId: id } })
 }
 
 function checkMyTeam() {
@@ -549,36 +544,6 @@ function submitApply() {
   })
 }
 
-function parseTags(tags) {
-  if (!tags) return []
-  try {
-    return JSON.parse(tags)
-  } catch (e) {
-    return []
-  }
-}
-
-function stripHtml(html) {
-  if (!html) return ''
-  const text = html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
-  return text.length > 80 ? text.substring(0, 80) + '...' : text
-}
-
-const tagTypeMap = {
-  'A类赛事': 'danger', 'B类赛事': 'warning', '国家级': 'danger', '国际级': 'danger',
-  '保研加分': 'success', '综测加分': 'success', '综合测评加分': 'success', '立项支持': 'success',
-  '双一流高校覆盖': 'warning', '挑战杯热身': 'warning', '国赛热身': 'warning',
-  '数学建模': 'primary', '人工智能': 'primary', '客观题答题': 'info',
-  '国家一级社团': 'info', '互联网+': 'info'
-}
-
-function getTagType(tag) {
-  for (const [key, type] of Object.entries(tagTypeMap)) {
-    if (tag.includes(key)) return type
-  }
-  return 'info'
-}
-
 function loadTeamInvitations() {
   if (!myTeamInfo.value || !myTeamInfo.value.teamId) return
   listTeamInvitations(myTeamInfo.value.teamId).then(res => {
@@ -624,6 +589,26 @@ function invitationStatusType(status) {
   if (status === '1') return 'success'
   if (status === '2') return 'danger'
   return 'info'
+}
+
+function getStatusText(status) {
+  const found = competition_status.value.find(s => s.value === String(status))
+  return found ? found.label : '-'
+}
+
+function getLevelLabel(level) {
+  const found = competition_level.value.find(l => l.value === String(level))
+  return found ? found.label : '-'
+}
+
+function onCoverError(e) {
+  e.target.style.display = 'none'
+}
+
+function formatViewCount(count) {
+  if (!count) return '0'
+  if (count > 10000) return (count / 10000).toFixed(1) + '万'
+  return String(count)
 }
 
 getList()
@@ -730,107 +715,104 @@ getList()
 }
 
 .comp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .comp-card {
-  background: var(--md3-surface);
-  border-radius: 16px;
-  box-shadow: var(--md3-shadow);
-  border: none;
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
-
 .comp-card:hover {
-  box-shadow: var(--md3-shadow-hover);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.comp-card :deep(.el-card__body) {
-  padding: 20px;
-}
-
-.comp-card-top {
+.comp-card-cover {
+  width: 160px;
+  height: 100px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: #e8eaed;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-}
-
-.comp-view-count {
-  font-size: 12px;
-  color: var(--md3-body);
-}
-
-.comp-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--md3-title);
-  margin: 0 0 8px 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  justify-content: center;
   overflow: hidden;
 }
-
-.comp-desc {
-  font-size: 13px;
-  color: var(--md3-body);
-  line-height: 1.5;
-  margin: 0 0 12px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.comp-card-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.comp-card-cover-icon {
+  font-size: 32px;
+  color: #bdc1c6;
 }
 
-.comp-badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.comp-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: var(--md3-body);
-  margin-bottom: 12px;
-}
-
-.comp-organizer {
+.comp-card-body {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comp-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comp-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 60%;
+  flex: 1;
+  min-width: 0;
 }
-
-.comp-deadline {
+.comp-card-status {
+  font-size: 12px;
+  color: #1a73e8;
+  background: rgba(26, 115, 232, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
-.comp-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-
-.comp-action {
-  padding-top: 12px;
-  border-top: 1px solid var(--md3-border);
-}
-
-.comp-action-text {
+.comp-card-organizer {
   font-size: 13px;
-  color: var(--md3-primary);
-  font-weight: 500;
+  color: #666666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comp-card-level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #999999;
+}
+.comp-card-divider {
+  color: #d0d0d0;
+}
+
+.comp-card-dates {
+  display: flex;
+  gap: 24px;
+  font-size: 12px;
+  color: #999999;
 }
 
 .teacher-section {
