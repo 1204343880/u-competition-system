@@ -156,3 +156,9 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+# AI Agent 配置
+agent:
+  python:
+    url: http://localhost:8500
+  shared-secret: ${AGENT_SHARED_SECRET}

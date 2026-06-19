@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.CompetitionExperience;
+import org.apache.ibatis.annotations.Param;
 
 public interface CompetitionExperienceMapper
 {
@@ -12,6 +13,8 @@ public interface CompetitionExperienceMapper
     List<CompetitionExperience> selectAuditList(CompetitionExperience experience);
 
     List<CompetitionExperience> selectMySubmissions(CompetitionExperience experience);
+
+    List<CompetitionExperience> searchForAgent(@Param("query") String query);
 
     int insertExperience(CompetitionExperience experience);
 

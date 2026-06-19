@@ -128,11 +128,11 @@ getList()
   --md3-primary: #1a73e8;
   --md3-title: #202124;
   --md3-body: #5f6368;
-  --md3-border: #e0e0e0;
-  --md3-surface: #ffffff;
-  --md3-bg: #f8f9fa;
-  --md3-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-  --md3-shadow-hover: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+  --md3-border: var(--student-line, rgba(31,35,41,.07));
+  --md3-surface: var(--student-surface, #fff);
+  --md3-bg: var(--student-bg, #f7f8fa);
+  --md3-shadow: var(--student-shadow, 0 1px 2px rgba(41,45,52,.04));
+  --md3-shadow-hover: var(--student-shadow-hover, 0 10px 26px rgba(38,43,51,.085));
   --md3-radius-lg: 12px;
   --md3-radius-pill: 8px;
 }
@@ -152,11 +152,12 @@ getList()
   border-radius: 16px;
   box-shadow: var(--md3-shadow);
   border: none;
-  transition: box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .team-card:hover {
   box-shadow: var(--md3-shadow-hover);
+  transform: translateY(-2px);
 }
 
 .team-card :deep(.el-card__body) {

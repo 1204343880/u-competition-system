@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.CompetitionRetrospect;
+import org.apache.ibatis.annotations.Param;
 
 public interface CompetitionRetrospectMapper
 {
@@ -12,6 +13,8 @@ public interface CompetitionRetrospectMapper
     List<CompetitionRetrospect> selectAuditList(CompetitionRetrospect retrospect);
 
     List<CompetitionRetrospect> selectMySubmissions(CompetitionRetrospect retrospect);
+
+    List<CompetitionRetrospect> searchForAgent(@Param("query") String query);
 
     int insertRetrospect(CompetitionRetrospect retrospect);
 

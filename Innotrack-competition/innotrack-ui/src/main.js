@@ -88,3 +88,12 @@ app.use(ElementPlus, {
 })
 
 app.mount('#app')
+
+const initialLoader = document.getElementById('loader-wrapper')
+if (initialLoader) {
+  requestAnimationFrame(() => {
+    initialLoader.classList.add('is-complete')
+    window.setTimeout(() => initialLoader.classList.add('is-hidden'), 160)
+    window.setTimeout(() => initialLoader.remove(), 420)
+  })
+}

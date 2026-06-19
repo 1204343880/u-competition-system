@@ -2,7 +2,11 @@
    <div class="profile-page">
       <!-- 顶部个人名片区 -->
       <div class="profile-card">
-         <div class="banner"></div>
+         <div class="banner">
+            <span>PERSONAL SPACE</span>
+            <strong>我的成长档案</strong>
+            <p>整理技能、经历与竞赛足迹，让每一次参与都有迹可循。</p>
+         </div>
          <div class="card-body">
             <div class="avatar-wrap"><userAvatar /></div>
             <div class="info-section">
@@ -133,26 +137,55 @@ onMounted(() => {
 <style scoped>
 .profile-page {
   min-height: calc(100vh - 84px);
-  background: #f5f7fa;
-  padding: 24px;
+  max-width: 1240px;
+  margin: 0 auto;
+  background: transparent;
+  padding: 0;
+  color: var(--student-ink, #25272b);
 }
 .profile-card {
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  box-shadow: var(--student-shadow, 0 1px 2px rgba(41,45,52,.04));
   overflow: hidden;
 }
 .banner {
-  height: 120px;
-  background: linear-gradient(135deg, #4f6ef7 0%, #7e93fb 50%, #a0b4ff 100%);
+  position: relative;
+  height: 172px;
+  padding: 34px 40px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fbff 0%, #edf4ff 100%);
 }
+.banner::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  right: -74px;
+  bottom: -174px;
+  border-radius: 50%;
+  background: rgba(26, 115, 232, .07);
+}
+.banner span { margin-bottom: 9px; color: #6f819d; font-size: 11px; font-weight: 650; letter-spacing: .14em; }
+.banner strong { color: #26374f; font-size: 27px; font-weight: 650; letter-spacing: -.03em; }
+.banner p { margin: 9px 0 0; color: #6b7584; font-size: 13px; }
+.banner > * { position: relative; z-index: 1; }
 .card-body {
-  padding: 0 24px 24px;
+  padding: 0 32px 28px;
   position: relative;
 }
 .avatar-wrap {
-  margin-top: -40px;
-  margin-bottom: 12px;
+  margin-top: -38px;
+  margin-bottom: 14px;
+  width: fit-content;
+  padding: 5px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(44,52,64,.08);
 }
 .info-section {
   display: flex;
@@ -160,23 +193,23 @@ onMounted(() => {
   align-items: flex-start;
 }
 .nickname {
-  font-size: 22px;
-  font-weight: 600;
-  color: #303133;
+  font-size: 23px;
+  font-weight: 650;
+  color: var(--student-ink, #25272b);
   margin-bottom: 6px;
 }
 .meta {
   font-size: 13px;
-  color: #909399;
+  color: var(--student-muted, #73777f);
   display: flex;
   align-items: center;
 }
 .content-card {
-  margin-top: 16px;
+  margin-top: 18px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  padding: 20px 24px;
+  border-radius: 16px;
+  box-shadow: var(--student-shadow, 0 1px 2px rgba(41,45,52,.04));
+  padding: 22px 28px 28px;
 }
 .block {
   margin-bottom: 24px;
@@ -184,10 +217,10 @@ onMounted(() => {
 .block-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--student-ink, #25272b);
   margin: 0 0 12px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--student-line, rgba(31,35,41,.07));
 }
 .skill-tags {
   display: flex;
@@ -220,10 +253,10 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  color: #606266;
+  color: #565b63;
 }
 .timeline-card {
-  border-radius: 8px;
+  border-radius: 12px;
 }
 .timeline-header {
   display: flex;
@@ -234,10 +267,19 @@ onMounted(() => {
 .comp-name {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--student-ink, #25272b);
 }
 .timeline-role {
   font-size: 13px;
-  color: #909399;
+  color: var(--student-muted, #73777f);
+}
+
+@media (max-width: 720px) {
+  .banner { height: 150px; padding: 28px 24px; }
+  .banner strong { font-size: 24px; }
+  .banner p { max-width: 78%; }
+  .card-body { padding: 0 22px 24px; }
+  .content-card { padding: 18px; }
+  .info-section { gap: 14px; }
 }
 </style>

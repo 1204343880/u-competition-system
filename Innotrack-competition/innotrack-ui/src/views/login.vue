@@ -169,34 +169,75 @@ getCookie()
 
 <style lang='scss' scoped>
 .login {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  background: linear-gradient(135deg, #1a73e8 0%, #f2f6fc 100%);
+  min-height: 100%;
+  padding: 40px 20px 72px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 14% 14%, rgba(26,115,232,.10), transparent 28%),
+    linear-gradient(175deg, #fbfcfe 0%, #f4f6f9 100%);
+}
+.login::after {
+  content: '';
+  position: absolute;
+  right: -150px;
+  bottom: -240px;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: rgba(26,115,232,.045);
+}
+.login > :deep(.school-logo),
+.login > :first-child {
+  position: relative;
+  z-index: 2;
 }
 .title {
-  margin: 20px auto 30px auto;
+  margin: 14px auto 30px;
   text-align: center;
-  color: #1a73e8;
-  font-weight: 600;
+  color: #26374f;
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -.025em;
 }
 
 .login-form {
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  border-radius: 18px;
+  background: #fff;
   width: 400px;
-  padding: 25px 25px 5px 25px;
+  margin-top: 18px;
+  padding: 34px 36px 14px;
   z-index: 1;
-  box-shadow: 0 8px 32px rgba(0, 75, 151, 0.15);
+  box-shadow: 0 20px 60px rgba(40,49,62,.10), inset 0 0 0 1px rgba(31,35,41,.035);
   .el-input {
-    height: 40px;
+    height: 46px;
     input {
-      height: 40px;
+      height: 46px;
     }
+  }
+  :deep(.el-input__wrapper) {
+    border-radius: 11px;
+    box-shadow: inset 0 0 0 1px rgba(31,35,41,.10);
+  }
+  :deep(.el-input__wrapper.is-focus) {
+    box-shadow: inset 0 0 0 1px #1a73e8, 0 0 0 3px rgba(26,115,232,.09);
+  }
+  :deep(.el-button) {
+    height: 46px;
+    border: 0;
+    border-radius: 11px;
+    font-weight: 600;
+    box-shadow: 0 6px 16px rgba(26,115,232,.16);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+  :deep(.el-button:hover) {
+    transform: translateY(-1px);
+    box-shadow: 0 9px 20px rgba(26,115,232,.20);
   }
   .input-icon {
     height: 39px;
@@ -211,7 +252,7 @@ getCookie()
 }
 .login-code {
   width: 33%;
-  height: 40px;
+  height: 46px;
   float: right;
   img {
     cursor: pointer;
@@ -225,13 +266,18 @@ getCookie()
   bottom: 0;
   width: 100%;
   text-align: center;
-  color: #666;
+  color: #8a8f97;
   font-family: 'Geist', 'Noto Sans SC', Arial, sans-serif;
   font-size: 12px;
   letter-spacing: 1px;
 }
 .login-code-img {
-  height: 40px;
+  height: 46px;
   padding-left: 12px;
+  border-radius: 10px;
+}
+@media (max-width: 480px) {
+  .login { padding: 24px 14px 64px; }
+  .login-form { width: 100%; padding: 30px 24px 12px; }
 }
 </style>

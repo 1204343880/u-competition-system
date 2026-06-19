@@ -61,6 +61,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by experience_id desc
     </select>
 
+    <select id="searchForAgent" resultMap="ExperienceResult">
+        <include refid="selectExperienceVo"/>
+        where del_flag = '0' and audit_status = '1'
+        <if test="query != null and query != ''">
+            AND (
+                title like concat('%', #{query}, '%')
+                OR author like concat('%', #{query}, '%')
+                OR category like concat('%', #{query}, '%')
+                OR content like concat('%', #{query}, '%')
+            )
+        </if>
+        order by experience_id desc
+        limit 20
+    </select>
+
     <select id="selectMySubmissions" parameterType="CompetitionExperience" resultMap="ExperienceResult">
         <include refid="selectExperienceVo"/>
         where del_flag = '0'

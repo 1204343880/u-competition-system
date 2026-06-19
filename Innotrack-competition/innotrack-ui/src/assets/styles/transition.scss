@@ -15,19 +15,33 @@
 
 /* fade-transform */
 .fade-transform--move,
-.fade-transform-leave-active,
 .fade-transform-enter-active {
-  transition: all $transition-base;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.fade-transform-leave-active {
+  transition: opacity 100ms ease;
 }
 
 .fade-transform-enter-from {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateY(6px);
 }
 
 .fade-transform-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-transform--move,
+  .fade-transform-enter-active,
+  .fade-transform-leave-active {
+    transition-duration: 1ms;
+  }
+
+  .fade-transform-enter-from {
+    transform: none;
+  }
 }
 
 /* breadcrumb transition */
