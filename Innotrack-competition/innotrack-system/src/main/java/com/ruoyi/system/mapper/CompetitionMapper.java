@@ -25,4 +25,6 @@ public interface CompetitionMapper
     int incrementParticipants(Long competitionId);
 
     int decrementParticipants(Long competitionId);
+
+    List<Competition> selectExpiringSoon(@Param("days") int days);
 }

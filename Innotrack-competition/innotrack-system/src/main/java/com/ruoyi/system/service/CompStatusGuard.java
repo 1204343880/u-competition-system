@@ -16,9 +16,20 @@ public class CompStatusGuard
      */
     public void requireRegistering(Competition competition)
     {
-        if (competition == null || competition.getStatus() != CompStatus.REGISTERING)
+        if (competition == null || !"1".equals(competition.getPublishStatus()) || competition.getStatus() != CompStatus.REGISTERING)
         {
             throw new ServiceException("当前竞赛不在报名阶段");
+        }
+    }
+
+    /**
+     * 强制要求竞赛已发布（非草稿状态）
+     */
+    public void requirePublished(Competition competition)
+    {
+        if (competition == null || !"1".equals(competition.getPublishStatus()))
+        {
+            throw new ServiceException("当前竞赛未发布，无法进行此操作");
         }
     }
 

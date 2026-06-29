@@ -1,6 +1,7 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.UserNotification;
 
 public interface UserNotificationMapper
@@ -11,9 +12,9 @@ public interface UserNotificationMapper
 
     int selectUnreadCount(Long userId);
 
-    int markAsRead(Long id, Long userId);
+    int markAsRead(@Param("id") Long id, @Param("userId") Long userId);
 
     int markAllAsRead(Long userId);
 
-    int deleteByIds(Long[] ids);
+    int deleteByIds(@Param("ids") Long[] ids, @Param("userId") Long userId);
 }

@@ -51,6 +51,15 @@ public class SysDeptServiceImpl implements ISysDeptService
     }
 
     /**
+     * 匿名注册使用的组织树查询，不进入依赖登录身份的数据权限切面。
+     */
+    @Override
+    public List<SysDept> selectRegistrationDeptList()
+    {
+        return deptMapper.selectRegistrationDeptList();
+    }
+
+    /**
      * 查询部门树结构信息
      * 
      * @param dept 部门信息

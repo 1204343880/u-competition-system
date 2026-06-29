@@ -167,6 +167,8 @@ function closeDialog() {
   right: 0;
   top: 0;
   bottom: 0;
+  display: grid;
+  place-items: center;
   color: #eee;
   background: rgba(0, 0, 0, 0.5);
   font-size: 24px;
@@ -174,7 +176,7 @@ function closeDialog() {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   cursor: pointer;
-  line-height: 110px;
+  line-height: 1;
   border-radius: 50%;
 }
 </style>

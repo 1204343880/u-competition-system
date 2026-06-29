@@ -20,6 +20,11 @@ public interface SysDeptMapper
     public List<SysDept> selectDeptList(SysDept dept);
 
     /**
+     * 查询学生注册可选的启用学院与专业，不应用登录用户的数据权限。
+     */
+    public List<SysDept> selectRegistrationDeptList();
+
+    /**
      * 根据角色ID查询部门树信息
      * 
      * @param roleId 角色ID

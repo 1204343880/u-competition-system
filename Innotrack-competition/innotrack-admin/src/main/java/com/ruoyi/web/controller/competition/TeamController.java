@@ -1,8 +1,11 @@
 package com.ruoyi.web.controller.competition;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.exceptions.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +19,9 @@ import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.utils.html.SafeTextUtils;
 import com.ruoyi.framework.mq.RabbitMqProducer;
 import com.ruoyi.system.domain.CompTeam;
 import com.ruoyi.system.domain.CompTeamMember;
@@ -41,6 +46,33 @@ public class TeamController extends BaseController
     @Autowired
     private RabbitMqProducer rabbitMqProducer;
 
+    private AjaxResult handleControllerException(Exception e)
+    {
+        if (e instanceof ServiceException)
+        {
+            return error(e.getMessage());
+        }
+        if (containsDatabaseCause(e))
+        {
+            return error("数据操作失败，请检查输入内容");
+        }
+        return error("系统内部错误，请联系管理员");
+    }
+
+    private boolean containsDatabaseCause(Throwable e)
+    {
+        Throwable cur = e;
+        while (cur != null)
+        {
+            if (cur instanceof SQLException || cur instanceof DataAccessException || cur instanceof PersistenceException)
+            {
+                return true;
+            }
+            cur = cur.getCause();
+        }
+        return false;
+    }
+
     @Operation(summary = "创建队伍")
     @PostMapping("/create/{competitionId}")
     public AjaxResult createTeam(
@@ -58,6 +90,7 @@ public class TeamController extends BaseController
         {
             return error("队名不能为空");
         }
+        teamName = SafeTextUtils.sanitizePlainText("队名", teamName.trim());
         try
         {
             CompTeam team = compTeamService.createTeam(competitionId, teamName.trim(),
@@ -66,7 +99,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -97,7 +130,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -130,7 +163,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -164,7 +197,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -202,7 +235,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -226,7 +259,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -261,7 +294,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -285,7 +318,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -360,7 +393,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 
@@ -382,7 +415,7 @@ public class TeamController extends BaseController
         }
         catch (Exception e)
         {
-            return error(e.getMessage());
+            return handleControllerException(e);
         }
     }
 }

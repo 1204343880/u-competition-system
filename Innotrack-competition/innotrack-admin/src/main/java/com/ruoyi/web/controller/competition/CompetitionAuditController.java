@@ -2,6 +2,8 @@ package com.ruoyi.web.controller.competition;
 
 import java.util.Date;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/system/competition/audit")
 public class CompetitionAuditController extends BaseController
 {
+    private static final Logger log = LoggerFactory.getLogger(CompetitionAuditController.class);
+
     @Autowired
     private ICompetitionApplyService applyService;
 
@@ -141,7 +145,7 @@ public class CompetitionAuditController extends BaseController
             notification.setTitle("报名审核被拒绝");
             notification.setContent("你报名的【" + apply.getCompetitionName() + "】审核被拒绝");
         }
-        rabbitMqProducer.sendNotification(notification);
+        sendNotificationSafely(notification);
     }
 
     private void sendTeamNotification(CompTeam team, String auditStatus)
@@ -160,6 +164,23 @@ public class CompetitionAuditController extends BaseController
             notification.setTitle("队伍审核被驳回");
             notification.setContent("你的队伍【" + team.getTeamName() + "】审核被驳回，请修改后重新提交");
         }
-        rabbitMqProducer.sendNotification(notification);
+        sendNotificationSafely(notification);
+    }
+
+    /**
+     * Notifications are auxiliary. A temporary MQ outage must not turn an
+     * already completed audit into a failed HTTP response.
+     */
+    private void sendNotificationSafely(UserNotification notification)
+    {
+        try
+        {
+            rabbitMqProducer.sendNotification(notification);
+        }
+        catch (Exception ex)
+        {
+            log.warn("Audit succeeded but notification delivery failed: bizType={}, bizId={}",
+                    notification.getBizType(), notification.getBizId(), ex);
+        }
     }
 }

@@ -21,9 +21,19 @@
          <el-form-item label="学号" prop="studentNo">
             <el-input v-model="form.studentNo" maxlength="20" placeholder="请输入学号" />
          </el-form-item>
-         <el-form-item label="年级" prop="grade">
-            <el-input v-model="form.grade" maxlength="10" placeholder="如：2024级" />
-         </el-form-item>
+          <el-form-item label="年级" prop="grade">
+             <el-input v-model="form.grade" maxlength="10" placeholder="如：2024级" />
+          </el-form-item>
+          <el-form-item label="学院" prop="collegeId">
+             <el-select v-model="form.collegeId" placeholder="请选择学院" style="width:100%" @change="handleCollegeChange">
+                <el-option v-for="college in colleges" :key="college.collegeId" :label="college.collegeName" :value="college.collegeId" />
+             </el-select>
+          </el-form-item>
+          <el-form-item label="专业" prop="deptId">
+             <el-select v-model="form.deptId" placeholder="请选择专业" style="width:100%" :disabled="!form.collegeId">
+                <el-option v-for="major in availableMajors" :key="major.deptId" :label="major.deptName" :value="major.deptId" />
+             </el-select>
+          </el-form-item>
           <el-form-item label="技能标签" prop="skillTags">
              <SkillSelector v-model="selectedSkillIds" />
           </el-form-item>
@@ -38,6 +48,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, getCurrentInstance } from 'vue'
 import { updateUserProfile } from "@/api/system/user"
+import { getRegisterDepartments } from '@/api/login'
 import SkillSelector from '@/components/SkillSelector/index.vue'
 
 const props = defineProps({
@@ -50,10 +61,19 @@ const { proxy } = getCurrentInstance()
 
 const form = ref({})
 const selectedSkillIds = ref([])
+const colleges = ref([])
+const availableMajors = computed(() => {
+  const college = colleges.value.find(item => item.collegeId === form.value.collegeId)
+  return college?.majors || []
+})
 const rules = ref({
   nickName: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
   email: [{ required: true, message: "邮箱地址不能为空", trigger: "blur" }, { type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }],
   phonenumber: [{ required: true, message: "手机号码不能为空", trigger: "blur" }, { pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/, message: "请输入正确的手机号码", trigger: "blur" }],
+  studentNo: [{ required: true, message: '学号不能为空', trigger: 'blur' }, { pattern: /^[A-Za-z0-9]{4,20}$/, message: '学号须为4到20位字母或数字', trigger: 'blur' }],
+  grade: [{ required: true, message: '年级不能为空', trigger: 'blur' }],
+  collegeId: [{ required: true, message: '请选择学院', trigger: 'change' }],
+  deptId: [{ required: true, message: '请选择专业', trigger: 'change' }],
 })
 
 const isStudent = computed(() => {
@@ -90,7 +110,8 @@ watch(selectedSkillIds, (ids) => {
 function submit() {
   proxy.$refs.userRef.validate(valid => {
     if (valid) {
-      updateUserProfile(form.value).then(() => {
+      const { collegeId, ...payload } = form.value
+      updateUserProfile(payload).then(() => {
         proxy.$modal.msgSuccess("修改成功")
         props.user.phonenumber = form.value.phonenumber
         props.user.email = form.value.email
@@ -98,10 +119,23 @@ function submit() {
           props.user.studentNo = form.value.studentNo
           props.user.grade = form.value.grade
           props.user.skillTags = form.value.skillTags
+          props.user.deptId = form.value.deptId
+          const college = colleges.value.find(item => item.collegeId === form.value.collegeId)
+          const major = college?.majors?.find(item => item.deptId === form.value.deptId)
+          props.user.dept = {
+            deptId: major?.deptId,
+            deptName: major?.deptName,
+            parentId: college?.collegeId,
+            parentName: college?.collegeName
+          }
         }
       })
     }
   })
+}
+
+function handleCollegeChange() {
+  form.value.deptId = null
 }
 
 /** 关闭按钮 */
@@ -117,10 +151,16 @@ watch(() => props.user, user => {
       form.value.studentNo = user.studentNo
       form.value.grade = user.grade
       form.value.skillTags = user.skillTags
+      form.value.collegeId = user.dept?.parentId || null
+      form.value.deptId = user.deptId || null
     }
     nextTick(() => {
       selectedSkillIds.value = tagsToIds(form.value.skillTags)
     })
   }
 }, { immediate: true })
+
+getRegisterDepartments().then(res => {
+  colleges.value = Array.isArray(res.data) ? res.data : []
+})
 </script>

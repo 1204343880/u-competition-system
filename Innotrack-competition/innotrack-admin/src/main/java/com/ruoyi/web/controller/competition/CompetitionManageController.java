@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.utils.html.SafeTextUtils;
 import com.ruoyi.system.domain.Competition;
 import com.ruoyi.system.domain.CompStatus;
 import com.ruoyi.system.service.ICompetitionService;
@@ -36,6 +38,41 @@ public class CompetitionManageController extends BaseController
 
     @Autowired
     private CompStatusGuard compStatusGuard;
+
+    private void sanitizeCompetitionInput(Competition competition)
+    {
+        if (competition == null)
+        {
+            throw new ServiceException("竞赛信息不能为空");
+        }
+        competition.setCompetitionName(SafeTextUtils.sanitizePlainText("竞赛名称", competition.getCompetitionName()));
+        competition.setCategory(SafeTextUtils.sanitizePlainText("竞赛类别", competition.getCategory()));
+        competition.setCategoryName(SafeTextUtils.sanitizePlainText("类别名称", competition.getCategoryName()));
+        competition.setOrganizer(SafeTextUtils.sanitizePlainText("主办方", competition.getOrganizer()));
+        competition.setHost(SafeTextUtils.sanitizePlainText("承办方", competition.getHost()));
+        competition.setTags(SafeTextUtils.sanitizePlainText("竞赛标签", competition.getTags()));
+        competition.setDescription(SafeTextUtils.sanitizeRichText(competition.getDescription()));
+
+        SafeTextUtils.validateLength("竞赛名称", competition.getCompetitionName(), 100);
+        SafeTextUtils.validateLength("竞赛类别", competition.getCategory(), 50);
+        SafeTextUtils.validateLength("类别名称", competition.getCategoryName(), 50);
+        SafeTextUtils.validateLength("竞赛描述", competition.getDescription(), 5000);
+        SafeTextUtils.validateLength("主办方", competition.getOrganizer(), 100);
+        SafeTextUtils.validateLength("承办方", competition.getHost(), 100);
+        SafeTextUtils.validateLength("竞赛标签", competition.getTags(), 255);
+
+        if ("2".equals(competition.getCompetitionType()))
+        {
+            if (competition.getTeamMaxMembers() == null || competition.getTeamMaxMembers() < 2)
+            {
+                throw new ServiceException("团队赛必须配置队伍人数上限，且不能小于2人");
+            }
+        }
+        else
+        {
+            competition.setTeamMaxMembers(null);
+        }
+    }
 
     @Operation(summary = "分页查询竞赛管理列表")
     @GetMapping("/list")
@@ -74,6 +111,7 @@ public class CompetitionManageController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody Competition competition)
     {
+        sanitizeCompetitionInput(competition);
         competition.setCreateBy(SecurityUtils.getUsername());
         competition.setCreateTime(new Date());
         competition.setPublishStatus("0");
@@ -85,6 +123,7 @@ public class CompetitionManageController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody Competition competition)
     {
+        sanitizeCompetitionInput(competition);
         Competition exist = competitionService.selectCompetitionById(competition.getCompetitionId());
         if (exist == null) return error("竞赛不存在");
 

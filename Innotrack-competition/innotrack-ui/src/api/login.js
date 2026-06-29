@@ -10,6 +10,7 @@ export function login(username, password, code, uuid) {
   }
   return request({
     url: '/login',
+    skipAuthExpired: true,
     headers: {
       isToken: false,
       repeatSubmit: false
@@ -23,8 +24,11 @@ export function login(username, password, code, uuid) {
 export function register(data) {
   return request({
     url: '/register',
+    skipAuthExpired: true,
+    showError: false,
     headers: {
-      isToken: false
+      isToken: false,
+      repeatSubmit: false
     },
     method: 'post',
     data: data
@@ -32,10 +36,11 @@ export function register(data) {
 }
 
 // 获取用户详细信息
-export function getInfo() {
+export function getInfo(options = {}) {
   return request({
     url: '/getInfo',
-    method: 'get'
+    method: 'get',
+    skipAuthExpired: options.skipAuthExpired === true
   })
 }
 
@@ -60,10 +65,36 @@ export function logout() {
 export function getCodeImg() {
   return request({
     url: '/captchaImage',
+    skipAuthExpired: true,
     headers: {
       isToken: false
     },
     method: 'get',
     timeout: 20000
+  })
+}
+
+// 获取学生注册可选的学院与专业
+export function getRegisterDepartments() {
+  return request({
+    url: '/register/departments',
+    skipAuthExpired: true,
+    headers: {
+      isToken: false
+    },
+    method: 'get'
+  })
+}
+
+// 发送邮箱验证码
+export function sendEmailCode(email) {
+  return request({
+    url: '/register/email/send',
+    skipAuthExpired: true,
+    headers: {
+      isToken: false
+    },
+    method: 'post',
+    data: { email: email }
   })
 }

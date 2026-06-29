@@ -223,7 +223,7 @@
             </el-tag>
           </div>
           <div style="display: flex; gap: 8px">
-            <el-input v-model="inviteForm.teacherId" placeholder="输入教师用户名或ID" size="small" style="width: 220px" />
+            <el-input v-model="inviteForm.teacherId" placeholder="请输入教师ID" size="small" style="width: 220px" />
             <el-button type="primary" size="small" :loading="inviteLoading" @click="handleInviteTeacher">发送邀请</el-button>
           </div>
         </div>
@@ -568,17 +568,17 @@ function loadTeamInvitations() {
 function handleInviteTeacher() {
   const teacherId = inviteForm.value.teacherId
   if (!teacherId) {
-    proxy.$modal.msgError('请输入教师用户名或ID')
+    proxy.$modal.msgError('请输入教师ID')
+    return
+  }
+  if (isNaN(teacherId)) {
+    proxy.$modal.msgError('教师ID必须是数字')
     return
   }
   if (!myTeamInfo.value || !myTeamInfo.value.teamId) return
   inviteLoading.value = true
   inviteTeacher(myTeamInfo.value.teamId, {
-    teacherId: isNaN(teacherId) ? null : parseInt(teacherId),
-    teacherName: isNaN(teacherId) ? teacherId : '',
-    competitionId: currentCompetition.value.competitionId,
-    competitionName: currentCompetition.value.competitionName,
-    teamName: myTeamInfo.value.teamName
+    teacherId: parseInt(teacherId)
   }).then(() => {
     proxy.$modal.msgSuccess('邀请已发送')
     inviteLoading.value = false

@@ -130,6 +130,9 @@
         <el-form-item label="人数上限" prop="maxParticipants">
           <el-input-number v-model="form.maxParticipants" :min="0" placeholder="0表示不限" style="width: 100%" />
         </el-form-item>
+        <el-form-item v-if="form.competitionType === '2'" label="队伍人数上限" prop="teamMaxMembers">
+          <el-input-number v-model="form.teamMaxMembers" :min="2" placeholder="团队赛必填，至少2人" style="width: 100%" />
+        </el-form-item>
         <el-form-item label="标签" prop="tags">
           <el-input v-model="form.tags" placeholder="请输入标签，逗号分隔" />
         </el-form-item>
@@ -159,6 +162,14 @@ const {
   competition_level
 } = useDict('competition_status', 'competition_category', 'competition_type', 'competition_level')
 
+function validateTeamMaxMembers(rule, value, callback) {
+  if (data.form.competitionType === '2' && (!value || value < 2)) {
+    callback(new Error('团队赛必须配置队伍人数上限，且不能小于2人'))
+  } else {
+    callback()
+  }
+}
+
 const competitionList = ref([])
 const open = ref(false)
 const loading = ref(true)
@@ -184,6 +195,7 @@ const data = reactive({
     category: [{ required: true, message: '竞赛类别不能为空', trigger: 'change' }],
     competitionLevel: [{ required: true, message: '竞赛级别不能为空', trigger: 'change' }],
     competitionType: [{ required: true, message: '赛制不能为空', trigger: 'change' }],
+    teamMaxMembers: [{ validator: validateTeamMaxMembers, trigger: 'change' }],
     organizer: [{ required: true, message: '主办方不能为空', trigger: 'blur' }]
   }
 })
@@ -219,6 +231,7 @@ function reset() {
     startTime: undefined,
     endTime: undefined,
     maxParticipants: 0,
+    teamMaxMembers: undefined,
     tags: undefined,
     description: undefined
   }

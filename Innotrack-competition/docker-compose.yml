@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ruoyidemo
     ports:
-      - "127.0.0.1:3306:3306"
+      - "127.0.0.1:3307:3306"
     volumes:
       - ./sql/ruoyidemo6.13.sql:/docker-entrypoint-initdb.d/01_init.sql
       - mysql_data:/var/lib/mysql
@@ -63,6 +63,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       MQ_PASSWORD: ${MQ_PASSWORD}
+      AGENT_SHARED_SECRET: ${AGENT_SHARED_SECRET}
       JAVA_OPTS: -Xms256m -Xmx512m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=256m
     deploy:
       resources:
@@ -77,7 +78,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ruoyi-ui/dist:/usr/share/nginx/html:ro
+      - ./innotrack-ui/dist:/usr/share/nginx/html:ro
     depends_on:
       - app
     deploy:

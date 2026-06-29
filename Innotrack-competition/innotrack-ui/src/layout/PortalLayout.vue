@@ -28,7 +28,7 @@
           </template>
         </nav>
         <div class="right-menu">
-          <header-search id="header-search" class="right-menu-item" />
+          <header-search id="header-search" class="right-menu-item portal-search" expanded />
           <screenfull id="screenfull" class="right-menu-item hover-effect" />
           <div class="right-menu-item hover-effect theme-switch-wrapper" @click="toggleTheme($event)">
             <svg-icon v-if="settingsStore.isDark" icon-class="sunny" />
@@ -64,7 +64,8 @@
 
     <transition name="el-fade-in">
       <div v-if="showFab" class="chat-fab" @click="chatVisible = true">
-        <el-icon :size="22"><ChatDotRound /></el-icon>
+        <el-icon :size="18"><ChatDotRound /></el-icon>
+        <span>竞赛助手</span>
       </div>
     </transition>
 
@@ -185,18 +186,32 @@ async function toggleTheme(event) {
 .portal-header-inner { display:flex; align-items:center; height:100%; padding:0 28px; max-width:1440px; margin:0 auto; }
 .portal-brand { display:flex; align-items:center; gap:10px; flex-shrink:0; }
 .portal-title { font-size:16px; font-weight:650; color:var(--student-ink); letter-spacing:-.01em; white-space:nowrap; }
-.portal-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:32px; height:100%; }
-.portal-nav-link { display:inline-flex; align-items:center; gap:4px; height:38px; padding:0 26px; border-radius:10px; font-size:15px; font-weight:500; color:#656a72; text-decoration:none; transition:background 180ms ease,color 180ms ease,transform 180ms ease; white-space:nowrap; cursor:pointer; user-select:none; }
-.portal-nav-link:hover { background:#f3f6fa; color:var(--student-ink); transform:translateY(-1px); }
-.portal-nav-link.active { background:rgba(26,115,232,.1); color:var(--portal-primary); }
+.portal-nav { flex:1; display:flex; align-items:center; justify-content:center; gap:12px; height:100%; }
+.portal-nav :deep(.el-dropdown) { height:100%; display:inline-flex; align-items:center; }
+.portal-nav-link { position:relative; display:inline-flex; align-items:center; gap:4px; height:100%; padding:0 18px; border-radius:0; font-size:14px; font-weight:500; color:#656a72; text-decoration:none; transition:color 180ms ease; white-space:nowrap; cursor:pointer; user-select:none; }
+.portal-nav-link::after { content:''; position:absolute; left:18px; right:18px; bottom:0; height:2px; border-radius:2px 2px 0 0; background:var(--portal-primary); opacity:0; transform:scaleX(.55); transition:opacity 180ms ease,transform 180ms ease; }
+.portal-nav-link:hover { color:var(--student-ink); }
+.portal-nav-link.active { background:transparent; color:var(--portal-primary); }
+.portal-nav-link.active::after { opacity:1; transform:scaleX(1); }
+.portal-nav-link:focus,
+.portal-nav-link:focus-visible {
+  outline:none;
+  color:var(--portal-primary);
+}
+.portal-nav-link:focus::after,
+.portal-nav-link:focus-visible::after {
+  opacity:1;
+  transform:scaleX(1);
+}
 .nav-arrow { font-size:12px; }
-.right-menu { height:100%; display:flex; align-items:center; margin-left:auto; flex-shrink:0; }
-.right-menu :deep(.right-menu-item) { display:inline-flex; align-items:center; justify-content:center; padding:0 8px; height:100%; font-size:18px; color:var(--el-text-color-regular,#5a5e66); }
+.right-menu { height:100%; display:flex; align-items:center; gap:6px; margin-left:auto; flex-shrink:0; }
+.right-menu :deep(.right-menu-item) { width:36px; height:36px; flex:none; display:inline-flex; align-items:center; justify-content:center; padding:0; border-radius:8px; font-size:18px; color:var(--el-text-color-regular,#5a5e66); }
+.right-menu :deep(.portal-search) { width:auto; height:auto; margin:0; padding:0; }
 .right-menu :deep(.hover-effect) { cursor:pointer; transition:background .3s; }
 .right-menu :deep(.hover-effect:hover) { background:rgba(128,128,128,.08); }
 .right-menu :deep(.theme-switch-wrapper svg) { transition:transform .3s; }
 .right-menu :deep(.theme-switch-wrapper:hover svg) { transform:scale(1.15); }
-.right-menu :deep(.avatar-container) { margin-right:0; padding-right:0; }
+.right-menu :deep(.avatar-container) { width:auto; height:36px; margin:0; padding:0 4px; }
 .right-menu :deep(.avatar-wrapper) { display:flex; align-items:center; }
 .right-menu :deep(.user-avatar) { width:30px; height:30px; margin-right:8px; border-radius:50%; }
 .right-menu :deep(.user-nickname) { font-size:14px; font-weight:700; color:var(--el-text-color-regular,#5a5e66); }
@@ -210,24 +225,27 @@ a { text-decoration:none; }
   position: fixed;
   bottom: 32px;
   right: 32px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--el-color-primary, #1a73e8);
-  color: #fff;
+  width: 108px;
+  height: 42px;
+  gap: 7px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.96);
+  color: var(--portal-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+  box-shadow: 0 6px 18px rgba(38,43,51,.12), inset 0 0 0 1px rgba(31,35,41,.06);
   z-index: 99;
   transition: transform 0.2s, box-shadow 0.2s;
 }
+.chat-fab span { font-size:13px; font-weight:600; }
 .chat-fab:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 22px rgba(26, 115, 232, 0.28);
 }
-@media (max-width:768px) { .portal-nav-link { padding:0 12px; font-size:14px; } .user-nickname { display:none; } .chat-fab { bottom: 20px; right: 20px; width: 44px; height: 44px; } }
+@media (max-width:1180px) { .right-menu :deep(.portal-search .search-trigger.is-expanded) { width:36px; justify-content:center; padding:0; } .right-menu :deep(.portal-search .search-placeholder),.right-menu :deep(.portal-search kbd) { display:none; } }
+@media (max-width:768px) { .portal-nav-link { padding:0 10px; font-size:13px; } .portal-nav-link::after { left:10px; right:10px; } .user-nickname { display:none; } .chat-fab { bottom:20px; right:20px; width:44px; height:44px; border-radius:12px; } .chat-fab span { display:none; } }
 @media (max-width:640px) { .portal-title { display:none; } }
 </style>
 

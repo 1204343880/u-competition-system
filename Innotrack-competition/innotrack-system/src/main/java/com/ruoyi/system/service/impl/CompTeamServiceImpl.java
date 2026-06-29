@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.html.SafeTextUtils;
 import com.ruoyi.system.domain.CompTeam;
 import com.ruoyi.system.domain.CompTeamMember;
 import com.ruoyi.system.domain.Competition;
@@ -38,11 +39,19 @@ public class CompTeamServiceImpl implements ICompTeamService
     @Transactional
     public CompTeam createTeam(Long competitionId, String teamName, Long userId, String userName)
     {
+        teamName = SafeTextUtils.sanitizePlainText("队名", teamName);
+        if (teamName == null || teamName.isEmpty())
+        {
+            throw new ServiceException("队名不能为空");
+        }
+        SafeTextUtils.validateLength("队名", teamName, 30);
+
         Competition competition = competitionMapper.selectCompetitionById(competitionId);
         if (competition == null)
         {
             throw new ServiceException("竞赛不存在");
         }
+        compStatusGuard.requirePublished(competition);
         compStatusGuard.requireRegistering(competition);
         if (!"2".equals(competition.getCompetitionType()))
         {
@@ -64,7 +73,12 @@ public class CompTeamServiceImpl implements ICompTeamService
         team.setLeaderName(userName);
         team.setInviteCode(inviteCode);
         team.setStatus("0");
-        team.setMaxMembers(5);
+        Integer teamMaxMembers = competition.getTeamMaxMembers();
+        if (teamMaxMembers == null || teamMaxMembers < 2)
+        {
+            throw new ServiceException("请先配置队伍人数上限");
+        }
+        team.setMaxMembers(teamMaxMembers);
         team.setCurrentMembers(1);
         team.setCreateBy(userName);
         teamMapper.insertTeam(team);
@@ -89,6 +103,7 @@ public class CompTeamServiceImpl implements ICompTeamService
         {
             throw new ServiceException("竞赛不存在");
         }
+        compStatusGuard.requirePublished(competition);
         compStatusGuard.requireRegistering(competition);
         if (!"2".equals(competition.getCompetitionType()))
         {

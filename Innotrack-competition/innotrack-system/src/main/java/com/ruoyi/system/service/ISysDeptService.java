@@ -20,6 +20,11 @@ public interface ISysDeptService
     public List<SysDept> selectDeptList(SysDept dept);
 
     /**
+     * 查询学生注册可选的启用学院与专业。
+     */
+    public List<SysDept> selectRegistrationDeptList();
+
+    /**
      * 查询部门树结构信息
      * 
      * @param dept 部门信息

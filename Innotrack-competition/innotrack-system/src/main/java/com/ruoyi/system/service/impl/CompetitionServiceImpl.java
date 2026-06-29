@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.html.SafeTextUtils;
 import com.ruoyi.system.domain.Competition;
 import com.ruoyi.system.mapper.CompetitionMapper;
 import com.ruoyi.system.service.ICompetitionService;
@@ -26,6 +27,27 @@ public class CompetitionServiceImpl implements ICompetitionService
     private static final int SENTINEL_BASE_MINUTES = 5;
     private static final int SENTINEL_JITTER_MINUTES = 2;
 
+    private Competition sanitizeOutput(Competition competition)
+    {
+        if (competition != null)
+        {
+            competition.setDescription(SafeTextUtils.sanitizeRichText(competition.getDescription()));
+        }
+        return competition;
+    }
+
+    private List<Competition> sanitizeOutput(List<Competition> competitions)
+    {
+        if (competitions != null)
+        {
+            for (Competition competition : competitions)
+            {
+                sanitizeOutput(competition);
+            }
+        }
+        return competitions;
+    }
+
     @Override
     public Competition selectCompetitionById(Long competitionId)
     {
@@ -37,11 +59,12 @@ public class CompetitionServiceImpl implements ICompetitionService
             {
                 return null;
             }
-            return cached;
+            return sanitizeOutput(cached);
         }
         Competition comp = competitionMapper.selectCompetitionById(competitionId);
         if (comp != null)
         {
+            sanitizeOutput(comp);
             redisCache.setCacheObjectWithJitter(cacheKey, comp, CACHE_BASE_MINUTES, CACHE_JITTER_MINUTES);
         }
         else
@@ -50,19 +73,19 @@ public class CompetitionServiceImpl implements ICompetitionService
             sentinel.setCompetitionId(SENTINEL_ID);
             redisCache.setCacheObjectWithJitter(cacheKey, sentinel, SENTINEL_BASE_MINUTES, SENTINEL_JITTER_MINUTES);
         }
-        return comp;
+        return sanitizeOutput(comp);
     }
 
     @Override
     public List<Competition> selectCompetitionList(Competition competition)
     {
-        return competitionMapper.selectCompetitionList(competition);
+        return sanitizeOutput(competitionMapper.selectCompetitionList(competition));
     }
 
     @Override
     public List<Competition> selectCompetitionManageList(Competition competition)
     {
-        return competitionMapper.selectCompetitionManageList(competition);
+        return sanitizeOutput(competitionMapper.selectCompetitionManageList(competition));
     }
 
     @Override
