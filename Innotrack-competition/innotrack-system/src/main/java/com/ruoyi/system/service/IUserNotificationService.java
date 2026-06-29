@@ -15,5 +15,5 @@ public interface IUserNotificationService
 
     int markAllAsRead(Long userId);
 
-    int deleteByIds(Long[] ids);
+    int deleteByIds(Long[] ids, Long userId);
 }

@@ -60,6 +60,12 @@ public interface ISysRoleService
     public SysRole selectRoleById(Long roleId);
 
     /**
+     * Query one role by its exact key without applying logged-in user data scope.
+     * Intended for trusted anonymous flows such as student self-registration.
+     */
+    public SysRole selectRoleByKey(String roleKey);
+
+    /**
      * 校验角色名称是否唯一
      * 
      * @param role 角色信息

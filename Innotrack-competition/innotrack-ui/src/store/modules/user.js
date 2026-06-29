@@ -41,9 +41,9 @@ const useUserStore = defineStore(
         })
       },
       // 获取用户信息
-      getInfo() {
+      getInfo(options = {}) {
         return new Promise((resolve, reject) => {
-          getInfo().then(res => {
+          getInfo(options).then(res => {
             const user = res.user
             let avatar = user.avatar || ""
             if (!isHttp(avatar)) {
@@ -80,6 +80,17 @@ const useUserStore = defineStore(
             reject(error)
           })
         })
+      },
+      // 清理本地失效登录态，不再调用需要有效 Token 的退出接口
+      resetToken() {
+        this.token = ''
+        this.id = ''
+        this.name = ''
+        this.nickName = ''
+        this.avatar = ''
+        this.roles = []
+        this.permissions = []
+        removeToken()
       },
       // 退出系统
       logOut() {

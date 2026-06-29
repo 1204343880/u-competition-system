@@ -44,6 +44,8 @@ public class Competition extends BaseEntity
 
     private Integer maxParticipants;
 
+    private Integer teamMaxMembers;
+
     private Integer currentParticipants;
 
     private Integer viewCount;
@@ -210,6 +212,16 @@ public class Competition extends BaseEntity
     public void setMaxParticipants(Integer maxParticipants)
     {
         this.maxParticipants = maxParticipants;
+    }
+
+    public Integer getTeamMaxMembers()
+    {
+        return teamMaxMembers;
+    }
+
+    public void setTeamMaxMembers(Integer teamMaxMembers)
+    {
+        this.teamMaxMembers = teamMaxMembers;
     }
 
     public Integer getCurrentParticipants()

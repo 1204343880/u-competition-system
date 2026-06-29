@@ -22,13 +22,28 @@ router.beforeEach(async (to, from) => {
   NProgress.start()
   if (getToken()) {
     to.meta.title && useSettingsStore().setTitle(to.meta.title)
-    const isLock = useLockStore().isLock
-    if (to.path === '/login') {
-      NProgress.done()
-      return { path: '/' }
-    }
-    if (isWhiteList(to.path)) {
+    // Registration is an anonymous flow. Never let a stale login token leak into it.
+    if (to.path === '/register') {
+      useUserStore().resetToken()
+      isRelogin.show = false
       return true
+    }
+    const isLock = useLockStore().isLock
+    if (isWhiteList(to.path)) {
+      const userStore = useUserStore()
+      if (userStore.roles.length > 0) {
+        NProgress.done()
+        return { path: '/' }
+      }
+      try {
+        await userStore.getInfo({ skipAuthExpired: true })
+        NProgress.done()
+        return { path: '/' }
+      } catch (error) {
+        userStore.resetToken()
+        isRelogin.show = false
+        return true
+      }
     }
     if (isLock && to.path !== '/lock') {
       NProgress.done()
@@ -51,20 +66,6 @@ router.beforeEach(async (to, from) => {
             router.addRoute(route)
           }
         })
-        const userRoles = useUserStore().roles || []
-        const isStudent = userRoles.includes('student') || userRoles.includes('ROLE_STUDENT')
-        if (isStudent && (to.path === '/' || to.path === '/index')) {
-          const defRoutes = usePermissionStore().defaultRoutes || []
-          const firstRoute = defRoutes.find(r => !r.hidden && r.children && r.children.length > 0 && r.path && r.path !== '/')
-          if (firstRoute) {
-            const firstChild = firstRoute.children[0]
-            if (firstChild && firstChild.path) {
-              const childPath = firstChild.path.startsWith('/') ? firstChild.path : firstRoute.path + '/' + firstChild.path
-              NProgress.done()
-              return { path: childPath, replace: true }
-            }
-          }
-        }
         // 重新导航到目标路由
         return { ...to, replace: true }
       } catch (err) {

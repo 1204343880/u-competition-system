@@ -20,6 +20,7 @@ spring:
     port: 5672
     username: admin
     password: ${MQ_PASSWORD}
+    connection-timeout: 10s
     listener:
       simple:
         retry:
@@ -27,6 +28,9 @@ spring:
           initial-interval: 3000ms
           max-attempts: 3
         acknowledge-mode: auto
+        missing-queues-fatal: false
+        concurrency: 1
+        max-concurrency: 3
 
 ruoyi:
   profile: /home/ruoyi/uploadPath

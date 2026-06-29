@@ -1,0 +1,231 @@
+package com.ruoyi.web.controller.competition;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.common.annotation.Anonymous;
+import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.system.domain.CompetitionApply;
+import com.ruoyi.system.domain.Competition;
+import com.ruoyi.system.domain.CompetitionResult;
+import com.ruoyi.system.mapper.CompetitionExperienceMapper;
+import com.ruoyi.system.mapper.CompetitionMapper;
+import com.ruoyi.system.mapper.CompetitionRetrospectMapper;
+import com.ruoyi.system.service.ICompetitionApplyService;
+import com.ruoyi.system.service.ICompetitionResultService;
+import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.mapper.SysUserMapper;
+
+@Anonymous
+@RestController
+@RequestMapping("/internal/agent")
+public class InternalAgentController
+{
+    @Value("${agent.shared-secret}")
+    private String sharedSecret;
+
+    @Autowired
+    private ISysUserService userService;
+
+    @Autowired
+    private ICompetitionApplyService applyService;
+
+    @Autowired
+    private ICompetitionResultService resultService;
+
+    @Autowired
+    private CompetitionMapper competitionMapper;
+
+    @Autowired
+    private CompetitionRetrospectMapper retrospectMapper;
+
+    @Autowired
+    private CompetitionExperienceMapper experienceMapper;
+
+    @Autowired
+    private SysUserMapper sysUserMapper;
+
+    @GetMapping("/users/{userId}/profile")
+    public AjaxResult profile(@RequestHeader(value = "X-Agent-Key", required = false) String agentKey,
+            @PathVariable Long userId)
+    {
+        AjaxResult denied = authorize(agentKey);
+        if (denied != null)
+        {
+            return denied;
+        }
+
+        SysUser user = userService.selectUserById(userId);
+        if (user == null || "2".equals(user.getDelFlag()))
+        {
+            return AjaxResult.error(404, "User not found");
+        }
+
+        List<String> history = new ArrayList<>();
+        for (CompetitionApply apply : applyService.selectApplyListByUserId(userId))
+        {
+            if ("1".equals(apply.getAuditStatus()))
+            {
+                history.add("Registered: " + value(apply.getCompetitionName()));
+            }
+        }
+        for (CompetitionResult result : resultService.selectResultsByUserId(userId))
+        {
+            history.add("Result: " + value(result.getCompetitionName()) + " - " + value(result.getAwardLevel()));
+        }
+
+        Map<String, Object> profile = new LinkedHashMap<>();
+        profile.put("user_id", user.getUserId());
+        profile.put("name", user.getNickName() == null ? user.getUserName() : user.getNickName());
+        profile.put("grade", value(user.getGrade()));
+        profile.put("major", user.getDept() == null ? "" : value(user.getDept().getDeptName()));
+        profile.put("skills", splitTags(user.getSkillTags()));
+        profile.put("interests", List.of());
+        profile.put("history", history);
+        return AjaxResult.success(profile);
+    }
+
+    @GetMapping("/competitions/search")
+    public AjaxResult competitions(@RequestHeader(value = "X-Agent-Key", required = false) String agentKey,
+            @RequestParam(value = "q", required = false, defaultValue = "") String query)
+    {
+        AjaxResult denied = authorize(agentKey);
+        return denied == null ? AjaxResult.success(competitionMapper.searchForAgent(query.trim())) : denied;
+    }
+
+    @GetMapping("/retrospects/search")
+    public AjaxResult retrospects(@RequestHeader(value = "X-Agent-Key", required = false) String agentKey,
+            @RequestParam(value = "q", required = false, defaultValue = "") String query)
+    {
+        AjaxResult denied = authorize(agentKey);
+        return denied == null ? AjaxResult.success(retrospectMapper.searchForAgent(query.trim())) : denied;
+    }
+
+    @GetMapping("/experiences/search")
+    public AjaxResult experiences(@RequestHeader(value = "X-Agent-Key", required = false) String agentKey,
+            @RequestParam(value = "q", required = false, defaultValue = "") String query)
+    {
+        AjaxResult denied = authorize(agentKey);
+        return denied == null ? AjaxResult.success(experienceMapper.searchForAgent(query.trim())) : denied;
+    }
+
+    @GetMapping("/competitions/{competitionId}/team/advise")
+    public AjaxResult teamAdvisor(@RequestHeader(value = "X-Agent-Key", required = false) String agentKey,
+            @PathVariable Long competitionId, @RequestParam(value = "user_id") Long userId)
+    {
+        AjaxResult denied = authorize(agentKey);
+        if (denied != null) return denied;
+
+        Competition comp = competitionMapper.selectCompetitionById(competitionId);
+        if (comp == null) return AjaxResult.error(404, "Competition not found");
+
+        SysUser currentUser = userService.selectUserById(userId);
+        if (currentUser == null) return AjaxResult.error(404, "User not found");
+
+        Set<String> requiredTags = splitTagSet(comp.getTags());
+        Set<String> mySkills = splitTagSet(currentUser.getSkillTags());
+
+        List<SysUser> marketUsers = sysUserMapper.selectMarketUsers(userId);
+        List<Map<String, Object>> recommendations = new ArrayList<>();
+        for (SysUser u : marketUsers)
+        {
+            Set<String> theirSkills = splitTagSet(u.getSkillTags());
+            Set<String> complement = new HashSet<>(theirSkills);
+            complement.removeAll(mySkills);
+            complement.retainAll(requiredTags);
+            int complementScore = complement.size();
+            if (complementScore == 0) continue;
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("user_id", u.getUserId());
+            item.put("name", value(u.getNickName()) + " (" + value(u.getUserName()) + ")");
+            item.put("skills", new ArrayList<>(theirSkills));
+            item.put("complement_skills", new ArrayList<>(complement));
+            item.put("complement_score", complementScore);
+            item.put("grade", value(u.getGrade()));
+            recommendations.add(item);
+        }
+        recommendations.sort((a, b) -> Integer.compare((int) b.get("complement_score"), (int) a.get("complement_score")));
+        return AjaxResult.success(recommendations.size() > 3 ? recommendations.subList(0, 3) : recommendations);
+    }
+
+    @GetMapping("/users/{userId}/deadlines")
+    public AjaxResult deadlineChecker(@RequestHeader(value = "X-Agent-Key", required = false) String agentKey,
+            @PathVariable Long userId,
+            @RequestParam(value = "days", defaultValue = "14") int days)
+    {
+        AjaxResult denied = authorize(agentKey);
+        if (denied != null) return denied;
+
+        SysUser user = userService.selectUserById(userId);
+        if (user == null) return AjaxResult.error(404, "User not found");
+
+        Set<String> mySkills = splitTagSet(user.getSkillTags());
+        List<Competition> expiring = competitionMapper.selectExpiringSoon(days);
+        List<Map<String, Object>> matched = new ArrayList<>();
+        for (Competition c : expiring)
+        {
+            Set<String> compTags = splitTagSet(c.getTags());
+            Set<String> overlap = new HashSet<>(compTags);
+            overlap.retainAll(mySkills);
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("competition_id", c.getCompetitionId());
+            item.put("competition_name", value(c.getCompetitionName()));
+            item.put("apply_end_time", c.getApplyEndTime() == null ? "" : c.getApplyEndTime().toString());
+            item.put("tags", new ArrayList<>(compTags));
+            item.put("matched_tags", new ArrayList<>(overlap));
+            item.put("match_score", overlap.size());
+            item.put("level", value(c.getCompetitionLevel()));
+            matched.add(item);
+        }
+        matched.sort((a, b) -> Integer.compare((int) b.get("match_score"), (int) a.get("match_score")));
+        return AjaxResult.success(matched);
+    }
+
+    private AjaxResult authorize(String agentKey)
+    {
+        if (agentKey == null || sharedSecret == null || sharedSecret.isBlank())
+        {
+            return AjaxResult.error(401, "Invalid agent credentials");
+        }
+        byte[] expected = sharedSecret.getBytes(StandardCharsets.UTF_8);
+        byte[] actual = agentKey.getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(expected, actual) ? null : AjaxResult.error(401, "Invalid agent credentials");
+    }
+
+    private List<String> splitTags(String tags)
+    {
+        if (tags == null || tags.isBlank())
+        {
+            return List.of();
+        }
+        return Arrays.stream(tags.split("[,，]"))
+                .map(String::trim)
+                .filter(tag -> !tag.isEmpty())
+                .toList();
+    }
+
+    private Set<String> splitTagSet(String tags)
+    {
+        return new HashSet<>(splitTags(tags));
+    }
+
+    private String value(String text)
+    {
+        return text == null ? "" : text;
+    }
+}

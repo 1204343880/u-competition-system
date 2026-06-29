@@ -21,6 +21,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="organizer"            column="organizer"             />
         <result property="host"                 column="host"                  />
         <result property="maxParticipants"      column="max_participants"      />
+        <result property="teamMaxMembers"       column="team_max_members"      />
         <result property="currentParticipants"  column="current_participants"  />
         <result property="viewCount"            column="view_count"            />
         <result property="tags"                 column="tags"                  />
@@ -43,7 +44,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                    ELSE '2'
                END AS computed_status,
                publish_status,
-               organizer, host, max_participants, current_participants,
+               organizer, host, max_participants, team_max_members, current_participants,
                view_count, tags,
                del_flag, create_by, create_time, update_by, update_time
         from competition
@@ -72,7 +73,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
         ) t
         <where>
-            <if test="status != null and status != ''">
+            <if test="status != null">
                 AND t.computed_status = #{status}
             </if>
         </where>
@@ -100,6 +101,27 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by competition_id desc
     </select>
 
+    <select id="searchForAgent" resultMap="CompetitionResult">
+        select * from (
+            <include refid="selectCompetitionVo"/>
+            where del_flag = '0' and publish_status = '1'
+            <if test="query != null and query != ''">
+                AND (
+                    competition_name like concat('%', #{query}, '%')
+                    OR category like concat('%', #{query}, '%')
+                    OR category_name like concat('%', #{query}, '%')
+                    OR competition_level like concat('%', #{query}, '%')
+                    OR description like concat('%', #{query}, '%')
+                    OR organizer like concat('%', #{query}, '%')
+                    OR host like concat('%', #{query}, '%')
+                    OR tags like concat('%', #{query}, '%')
+                )
+            </if>
+        ) t
+        order by competition_id desc
+        limit 20
+    </select>
+
     <insert id="insertCompetition" parameterType="Competition" useGeneratedKeys="true" keyProperty="competitionId">
         insert into competition
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -116,6 +138,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="organizer != null">organizer,</if>
             <if test="host != null">host,</if>
             <if test="maxParticipants != null">max_participants,</if>
+            <if test="teamMaxMembers != null">team_max_members,</if>
             <if test="tags != null">tags,</if>
             publish_status, del_flag, create_by, create_time
         </trim>
@@ -133,6 +156,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="organizer != null">#{organizer},</if>
             <if test="host != null">#{host},</if>
             <if test="maxParticipants != null">#{maxParticipants},</if>
+            <if test="teamMaxMembers != null">#{teamMaxMembers},</if>
             <if test="tags != null">#{tags},</if>
             #{publishStatus}, '0', #{createBy}, sysdate()
         </trim>
@@ -154,6 +178,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="organizer != null">organizer = #{organizer},</if>
             <if test="host != null">host = #{host},</if>
             <if test="maxParticipants != null">max_participants = #{maxParticipants},</if>
+            team_max_members = #{teamMaxMembers},
             <if test="tags != null">tags = #{tags},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
             update_time = sysdate()
@@ -185,5 +210,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update competition set current_participants = current_participants - 1
         where competition_id = #{competitionId} and current_participants > 0
     </update>
+
+    <select id="selectExpiringSoon" resultMap="CompetitionResult">
+        <include refid="selectCompetitionVo"/>
+        where del_flag = '0' and publish_status = '1'
+          and NOW() BETWEEN apply_start_time AND apply_end_time
+          and apply_end_time &lt;= DATE_ADD(NOW(), INTERVAL #{days} DAY)
+        order by apply_end_time asc
+        limit 20
+    </select>
 
 </mapper>

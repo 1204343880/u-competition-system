@@ -6,7 +6,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <resultMap type="CompetitionRetrospect" id="RetrospectResult">
         <result property="retrospectId"    column="retrospect_id"    />
-        <result property="compId"          column="comp_id"          />
         <result property="competitionName" column="competition_name" />
         <result property="projectName"     column="project_name"     />
         <result property="awardLevel"      column="award_level"      />
@@ -25,7 +24,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectRetrospectVo">
-        select retrospect_id, comp_id, competition_name, project_name,
+        select retrospect_id, competition_name, project_name,
                award_level, leader_name, year, content,
                audit_status, reject_reason, audit_by, audit_time, del_flag,
                create_by, create_time, update_by, update_time
@@ -67,6 +66,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by retrospect_id desc
     </select>
 
+    <select id="searchForAgent" resultMap="RetrospectResult">
+        <include refid="selectRetrospectVo"/>
+        where del_flag = '0' and audit_status = '1'
+        <if test="query != null and query != ''">
+            AND (
+                competition_name like concat('%', #{query}, '%')
+                OR project_name like concat('%', #{query}, '%')
+                OR award_level like concat('%', #{query}, '%')
+                OR leader_name like concat('%', #{query}, '%')
+                OR year like concat('%', #{query}, '%')
+                OR content like concat('%', #{query}, '%')
+            )
+        </if>
+        order by retrospect_id desc
+        limit 20
+    </select>
+
     <select id="selectMySubmissions" parameterType="CompetitionRetrospect" resultMap="RetrospectResult">
         <include refid="selectRetrospectVo"/>
         where del_flag = '0'
@@ -77,7 +93,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertRetrospect" parameterType="CompetitionRetrospect" useGeneratedKeys="true" keyProperty="retrospectId">
         insert into competition_retrospect
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="compId != null">comp_id,</if>
             <if test="competitionName != null and competitionName != ''">competition_name,</if>
             <if test="projectName != null and projectName != ''">project_name,</if>
             <if test="awardLevel != null and awardLevel != ''">award_level,</if>
@@ -92,7 +107,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="createTime != null">create_time,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="compId != null">#{compId},</if>
             <if test="competitionName != null and competitionName != ''">#{competitionName},</if>
             <if test="projectName != null and projectName != ''">#{projectName},</if>
             <if test="awardLevel != null and awardLevel != ''">#{awardLevel},</if>
@@ -111,7 +125,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="updateRetrospect" parameterType="CompetitionRetrospect">
         update competition_retrospect
         <trim prefix="SET" suffixOverrides=",">
-            <if test="compId != null">comp_id = #{compId},</if>
             <if test="competitionName != null and competitionName != ''">competition_name = #{competitionName},</if>
             <if test="projectName != null and projectName != ''">project_name = #{projectName},</if>
             <if test="awardLevel != null and awardLevel != ''">award_level = #{awardLevel},</if>

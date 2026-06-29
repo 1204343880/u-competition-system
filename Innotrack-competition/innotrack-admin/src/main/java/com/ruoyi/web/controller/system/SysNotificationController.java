@@ -30,6 +30,13 @@ public class SysNotificationController extends BaseController
 
     private static final String UNREAD_COUNT_KEY = "notification:unread:";
 
+    private void refreshUnreadCount(Long userId)
+    {
+        String key = UNREAD_COUNT_KEY + userId;
+        int count = notificationService.selectUnreadCount(userId);
+        redisCache.redisTemplate.opsForValue().set(key, count);
+    }
+
     @GetMapping("/list")
     public AjaxResult list()
     {
@@ -77,8 +84,7 @@ public class SysNotificationController extends BaseController
             return error("请先登录");
         }
         notificationService.markAsRead(id, loginUser.getUserId());
-        String key = UNREAD_COUNT_KEY + loginUser.getUserId();
-        redisCache.redisTemplate.opsForValue().decrement(key, 1);
+        refreshUnreadCount(loginUser.getUserId());
         return success();
     }
 
@@ -99,7 +105,17 @@ public class SysNotificationController extends BaseController
     @DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids)
     {
-        notificationService.deleteByIds(ids);
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        if (loginUser == null)
+        {
+            return error("请先登录");
+        }
+        int deleted = notificationService.deleteByIds(ids, loginUser.getUserId());
+        if (deleted == 0)
+        {
+            return error("通知不存在或无权删除");
+        }
+        refreshUnreadCount(loginUser.getUserId());
         return success();
     }
 }

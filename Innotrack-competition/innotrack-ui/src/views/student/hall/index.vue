@@ -80,32 +80,45 @@
           v-for="item in competitionList"
           :key="item.competitionId"
           class="comp-card"
+          role="link"
+          tabindex="0"
           @click="openDetail(item.competitionId)"
+          @keydown.enter="openDetail(item.competitionId)"
         >
           <div class="comp-card-cover">
             <img
-              v-if="item.coverImage"
+              v-if="item.coverImage && !failedCoverIds.has(item.competitionId)"
               :src="item.coverImage"
+              :alt="`${item.competitionName}封面`"
               class="comp-card-cover-img"
-              @error="onCoverError($event)"
+              loading="lazy"
+              @error="onCoverError(item.competitionId)"
             />
-            <svg-icon v-else icon-class="education" class="comp-card-cover-icon" />
+            <div v-else class="comp-card-cover-fallback" :class="getCategoryTone(item.category)">
+              <svg-icon icon-class="education" class="comp-card-cover-icon" />
+              <span>{{ item.categoryName || getCategoryLabel(item.category) }}</span>
+            </div>
           </div>
           <div class="comp-card-body">
-            <div class="comp-card-title-row">
-              <h3 class="comp-card-title">{{ item.competitionName }}</h3>
-              <span class="comp-card-status">{{ getStatusText(item.status) }}</span>
-            </div>
+            <h3 class="comp-card-title">{{ item.competitionName }}</h3>
             <div class="comp-card-organizer">{{ item.organizer || '-' }}</div>
-            <div class="comp-card-level">
-              <span>{{ getLevelLabel(item.competitionLevel) }}</span>
-              <span class="comp-card-divider">|</span>
-              <span>{{ formatViewCount(item.viewCount) }} 浏览</span>
+            <div class="comp-card-meta">
+              <span class="meta-chip">{{ getLevelLabel(item.competitionLevel) }}</span>
+              <span v-if="item.categoryName || item.category" class="meta-chip meta-chip-muted">
+                {{ item.categoryName || getCategoryLabel(item.category) }}
+              </span>
+              <span class="view-count">{{ formatViewCount(item.viewCount) }} 浏览</span>
             </div>
             <div class="comp-card-dates">
-              <span>报名截止 {{ parseTime(item.applyEndTime, '{y}-{m}-{d}') }}</span>
-              <span>比赛时间 {{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
+              <span><small>报名截止</small>{{ parseTime(item.applyEndTime, '{y}-{m}-{d}') }}</span>
+              <span><small>比赛时间</small>{{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
             </div>
+          </div>
+          <div class="comp-card-aside">
+            <span class="comp-card-status">{{ getStatusText(item.status) }}</span>
+            <el-button class="detail-button" type="primary" plain @click.stop="openDetail(item.competitionId)">
+              查看详情
+            </el-button>
           </div>
         </div>
       </div>
@@ -210,7 +223,7 @@
             </el-tag>
           </div>
           <div style="display: flex; gap: 8px">
-            <el-input v-model="inviteForm.teacherId" placeholder="输入教师用户名或ID" size="small" style="width: 220px" />
+            <el-input v-model="inviteForm.teacherId" placeholder="请输入教师ID" size="small" style="width: 220px" />
             <el-button type="primary" size="small" :loading="inviteLoading" @click="handleInviteTeacher">发送邀请</el-button>
           </div>
         </div>
@@ -269,6 +282,7 @@ const {
 const competitionList = ref([])
 const loading = ref(true)
 const total = ref(0)
+const failedCoverIds = ref(new Set())
 const detailOpen = ref(false)
 const applyOpen = ref(false)
 const applyLoading = ref(false)
@@ -554,17 +568,17 @@ function loadTeamInvitations() {
 function handleInviteTeacher() {
   const teacherId = inviteForm.value.teacherId
   if (!teacherId) {
-    proxy.$modal.msgError('请输入教师用户名或ID')
+    proxy.$modal.msgError('请输入教师ID')
+    return
+  }
+  if (isNaN(teacherId)) {
+    proxy.$modal.msgError('教师ID必须是数字')
     return
   }
   if (!myTeamInfo.value || !myTeamInfo.value.teamId) return
   inviteLoading.value = true
   inviteTeacher(myTeamInfo.value.teamId, {
-    teacherId: isNaN(teacherId) ? null : parseInt(teacherId),
-    teacherName: isNaN(teacherId) ? teacherId : '',
-    competitionId: currentCompetition.value.competitionId,
-    competitionName: currentCompetition.value.competitionName,
-    teamName: myTeamInfo.value.teamName
+    teacherId: parseInt(teacherId)
   }).then(() => {
     proxy.$modal.msgSuccess('邀请已发送')
     inviteLoading.value = false
@@ -601,8 +615,20 @@ function getLevelLabel(level) {
   return found ? found.label : '-'
 }
 
-function onCoverError(e) {
-  e.target.style.display = 'none'
+function getCategoryLabel(category) {
+  const found = competition_category.value.find(c => c.value === String(category))
+  return found ? found.label : '学科竞赛'
+}
+
+function getCategoryTone(category) {
+  const tones = ['tone-blue', 'tone-green', 'tone-amber', 'tone-violet', 'tone-cyan']
+  const value = String(category || '')
+  const index = value.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % tones.length
+  return tones[index]
+}
+
+function onCoverError(competitionId) {
+  failedCoverIds.value = new Set([...failedCoverIds.value, competitionId])
 }
 
 function formatViewCount(count) {
@@ -619,11 +645,11 @@ getList()
   --md3-primary: #1a73e8;
   --md3-title: #202124;
   --md3-body: #5f6368;
-  --md3-border: #e0e0e0;
-  --md3-surface: #ffffff;
-  --md3-bg: #f8f9fa;
-  --md3-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-  --md3-shadow-hover: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+  --md3-border: var(--student-line, rgba(31,35,41,.07));
+  --md3-surface: var(--student-surface, #fff);
+  --md3-bg: var(--student-bg, #f7f8fa);
+  --md3-shadow: var(--student-shadow, 0 1px 2px rgba(41,45,52,.04));
+  --md3-shadow-hover: var(--student-shadow-hover, 0 10px 26px rgba(38,43,51,.085));
   --md3-radius-lg: 12px;
   --md3-radius-pill: 8px;
   display: flex;
@@ -634,8 +660,9 @@ getList()
   width: 200px;
   flex-shrink: 0;
   background: #fff;
-  border-radius: 4px;
-  padding: 16px 12px;
+  border-radius: 16px;
+  padding: 20px 18px;
+  box-shadow: var(--md3-shadow);
   height: fit-content;
   position: sticky;
   top: 80px;
@@ -649,7 +676,7 @@ getList()
 .filter-section {
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--md3-border);
 }
 .filter-section:last-child {
   border-bottom: none;
@@ -710,36 +737,46 @@ getList()
   padding: 2px 8px;
   background: #ecf5ff;
   color: #1a73e8;
-  border-radius: 3px;
+  border-radius: 999px;
   font-size: 12px;
 }
 
 .comp-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
 .comp-card {
+  position: relative;
   display: flex;
   gap: 16px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  min-width: 0;
+  padding: 14px;
+  background: var(--md3-surface);
+  border: 0;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--md3-shadow);
+  transition: background 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 .comp-card:hover {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  box-shadow: var(--md3-shadow-hover);
+  transform: translateY(-2px);
+}
+.comp-card:focus-visible {
+  outline: 3px solid rgba(26, 115, 232, 0.2);
+  outline-offset: 2px;
 }
 
 .comp-card-cover {
-  width: 160px;
-  height: 100px;
+  width: 164px;
+  height: 104px;
   flex-shrink: 0;
-  border-radius: 6px;
-  background: #e8eaed;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f3f4;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -749,10 +786,34 @@ getList()
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.25s ease;
+}
+.comp-card:hover .comp-card-cover-img {
+  transform: scale(1.02);
+}
+.comp-card-cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #687386;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.comp-card-cover-fallback.tone-blue { background: linear-gradient(135deg, #f1f6ff 0%, #e5efff 100%); color: #5273a8; }
+.comp-card-cover-fallback.tone-green { background: linear-gradient(135deg, #f1faf5 0%, #e4f3ea 100%); color: #527c63; }
+.comp-card-cover-fallback.tone-amber { background: linear-gradient(135deg, #fffaf0 0%, #fff0d5 100%); color: #8a6a32; }
+.comp-card-cover-fallback.tone-violet { background: linear-gradient(135deg, #f8f4ff 0%, #eee7fa 100%); color: #715f91; }
+.comp-card-cover-fallback.tone-cyan { background: linear-gradient(135deg, #f2fafb 0%, #e2f1f3 100%); color: #4e7880; }
+.comp-card-cover-fallback .comp-card-cover-icon {
+  color: currentColor;
 }
 .comp-card-cover-icon {
-  font-size: 32px;
-  color: #bdc1c6;
+  font-size: 29px;
 }
 
 .comp-card-body {
@@ -760,59 +821,100 @@ getList()
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: center;
+  gap: 7px;
 }
 
-.comp-card-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 .comp-card-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--md3-title);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
-  min-width: 0;
-}
-.comp-card-status {
-  font-size: 12px;
-  color: #1a73e8;
-  background: rgba(26, 115, 232, 0.05);
-  padding: 2px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .comp-card-organizer {
   font-size: 13px;
-  color: #666666;
+  color: var(--md3-body);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.comp-card-level {
+.comp-card-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #999999;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  color: #7a8087;
 }
-.comp-card-divider {
-  color: #d0d0d0;
+.meta-chip {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: #eaf2fe;
+  color: #3c6fae;
+  white-space: nowrap;
+}
+.meta-chip-muted {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: #f1f3f4;
+  color: #687078;
+}
+.view-count {
+  margin-left: 2px;
+  white-space: nowrap;
 }
 
 .comp-card-dates {
   display: flex;
-  gap: 24px;
+  gap: 20px;
+  color: #4f555b;
   font-size: 12px;
-  color: #999999;
+}
+.comp-card-dates span {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+.comp-card-dates small {
+  color: #8a9097;
+  font-size: 12px;
+}
+
+.comp-card-aside {
+  width: 88px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.comp-card-status {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #eef5ff 0%, #e4efff 100%);
+  color: #1a73e8;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.detail-button {
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 7px;
+}
+
+@media (min-width: 1720px) {
+  .comp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .teacher-section {
@@ -839,6 +941,39 @@ getList()
 @media (max-width: 900px) {
   .hall-sidebar {
     display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .comp-card {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+  }
+  .comp-card-cover {
+    width: 120px;
+    height: 80px;
+  }
+  .comp-card-body {
+    flex-basis: calc(100% - 132px);
+  }
+  .comp-card-title {
+    font-size: 15px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .comp-card-dates {
+    flex-direction: column;
+    gap: 3px;
+  }
+  .comp-card-aside {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
   }
 }
 </style>

@@ -10,8 +10,6 @@ public class CompetitionRetrospect extends BaseEntity
 
     private Long retrospectId;
 
-    private Long compId;
-
     private String competitionName;
 
     private String projectName;
@@ -43,16 +41,6 @@ public class CompetitionRetrospect extends BaseEntity
     public void setRetrospectId(Long retrospectId)
     {
         this.retrospectId = retrospectId;
-    }
-
-    public Long getCompId()
-    {
-        return compId;
-    }
-
-    public void setCompId(Long compId)
-    {
-        this.compId = compId;
     }
 
     public String getCompetitionName()

@@ -88,6 +88,8 @@ public interface SysUserMapper
 
     public int updateShowInMarket(@Param("userId") Long userId, @Param("showInMarket") String showInMarket);
 
+    public List<SysUser> selectMarketUsers(@Param("excludeUserId") Long excludeUserId);
+
     /**
      * 更新用户登录信息（IP和登录时间）
      * 
@@ -146,4 +148,12 @@ public interface SysUserMapper
      * @return 结果
      */
     public SysUser checkEmailUnique(String email);
+
+    /**
+     * 校验学号是否唯一
+     *
+     * @param studentNo 学号
+     * @return 用户信息
+     */
+    public SysUser checkStudentNoUnique(String studentNo);
 }

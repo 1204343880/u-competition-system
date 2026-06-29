@@ -61,7 +61,7 @@ public class CompetitionResultController extends BaseController
     }
 
     @Operation(summary = "教师/管理员-录入成绩")
-    @PreAuthorize("@ss.hasAnyRole('admin','teacher')")
+    @PreAuthorize("@ss.hasAnyRoles('admin,teacher')")
     @PostMapping
     public AjaxResult add(@RequestBody CompetitionResult result)
     {
@@ -76,7 +76,7 @@ public class CompetitionResultController extends BaseController
     }
 
     @Operation(summary = "教师/管理员-修改成绩（仅待审核状态可修改）")
-    @PreAuthorize("@ss.hasAnyRole('admin','teacher')")
+    @PreAuthorize("@ss.hasAnyRoles('admin,teacher')")
     @PutMapping
     public AjaxResult edit(@RequestBody CompetitionResult result)
     {
@@ -115,7 +115,7 @@ public class CompetitionResultController extends BaseController
     }
 
     @Operation(summary = "教师/管理员-删除成绩")
-    @PreAuthorize("@ss.hasAnyRole('admin','teacher')")
+    @PreAuthorize("@ss.hasAnyRoles('admin,teacher')")
     @DeleteMapping("/{resultIds}")
     public AjaxResult remove(@PathVariable Long[] resultIds)
     {

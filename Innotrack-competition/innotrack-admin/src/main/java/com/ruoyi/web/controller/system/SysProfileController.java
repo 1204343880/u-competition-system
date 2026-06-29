@@ -15,6 +15,7 @@ import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.domain.entity.SysDept;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.DateUtils;
@@ -25,6 +26,7 @@ import com.ruoyi.common.utils.file.FileUtils;
 import com.ruoyi.common.utils.file.MimeTypeUtils;
 import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.service.ISysDeptService;
 
 /**
  * 个人信息 业务处理
@@ -37,6 +39,9 @@ public class SysProfileController extends BaseController
 {
     @Autowired
     private ISysUserService userService;
+
+    @Autowired
+    private ISysDeptService deptService;
 
     @Autowired
     private TokenService tokenService;
@@ -72,6 +77,16 @@ public class SysProfileController extends BaseController
         currentUser.setStudentNo(user.getStudentNo());
         currentUser.setGrade(user.getGrade());
         currentUser.setSkillTags(user.getSkillTags());
+        if (user.getDeptId() != null)
+        {
+            SysDept major = deptService.selectDeptById(user.getDeptId());
+            SysDept college = major == null ? null : deptService.selectDeptById(major.getParentId());
+            if (major == null || college == null || !"0".equals(major.getStatus()) || !"0".equals(college.getStatus()))
+            {
+                return error("学院或专业无效，请重新选择");
+            }
+            currentUser.setDeptId(major.getDeptId());
+        }
         if (StringUtils.isNotEmpty(user.getPhonenumber()) && !userService.checkPhoneUnique(currentUser))
         {
             return error("修改用户'" + loginUser.getUsername() + "'失败，手机号码已存在");

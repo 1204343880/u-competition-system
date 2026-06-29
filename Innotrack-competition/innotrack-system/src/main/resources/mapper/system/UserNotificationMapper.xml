@@ -17,7 +17,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <insert id="insertNotification" parameterType="UserNotification" useGeneratedKeys="true" keyProperty="id">
         insert into user_notification (user_id, biz_type, biz_id, title, content, is_read, create_time)
-        values (#{userId}, #{bizType}, #{bizId}, #{title}, #{content}, '0', sysdate())
+        values (#{userId}, #{bizType}, #{bizId}, #{title}, #{content}, #{isRead}, #{createTime})
     </insert>
 
     <select id="selectNotificationsByUserId" parameterType="Long" resultMap="NotificationResult">
@@ -41,9 +41,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where user_id = #{userId} and is_read = '0'
     </update>
 
-    <delete id="deleteByIds" parameterType="Long">
-        delete from user_notification where id in
-        <foreach item="id" collection="array" open="(" separator="," close=")">
+    <delete id="deleteByIds">
+        delete from user_notification
+        where user_id = #{userId}
+        and id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>

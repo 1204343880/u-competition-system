@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.framework.mq.RabbitMqProducer;
@@ -20,6 +21,7 @@ import com.ruoyi.system.domain.CompTeam;
 import com.ruoyi.system.domain.TeamTeacherInvitation;
 import com.ruoyi.system.domain.UserNotification;
 import com.ruoyi.system.service.ICompTeamService;
+import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.system.service.ITeamTeacherInvitationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,6 +37,9 @@ public class InvitationController extends BaseController
     private ICompTeamService teamService;
 
     @Autowired
+    private ISysUserService userService;
+
+    @Autowired
     private RabbitMqProducer rabbitMqProducer;
 
     @Operation(summary = "学生-邀请教师指导")
@@ -48,7 +53,38 @@ public class InvitationController extends BaseController
         {
             return error("请先登录");
         }
+        if (invitation == null || invitation.getTeacherId() == null)
+        {
+            return error("请选择指导教师");
+        }
+
+        CompTeam team = teamService.getTeamById(teamId);
+        if (team == null)
+        {
+            return error("队伍不存在");
+        }
+        if (!loginUser.getUserId().equals(team.getLeaderId()))
+        {
+            return error("仅队长可以邀请指导教师");
+        }
+
+        SysUser teacher = userService.selectUserById(invitation.getTeacherId());
+        if (teacher == null || "2".equals(teacher.getDelFlag()))
+        {
+            return error("指导教师不存在");
+        }
+        if (teacher.getRoles() == null || teacher.getRoles().stream()
+                .noneMatch(role -> "teacher".equals(role.getRoleKey())))
+        {
+            return error("所选用户不是指导教师");
+        }
+
         invitation.setTeamId(teamId);
+        invitation.setCompetitionId(team.getCompetitionId());
+        invitation.setCompetitionName(team.getCompetitionName());
+        invitation.setTeamName(team.getTeamName());
+        invitation.setTeacherName(teacher.getNickName() != null && !teacher.getNickName().isBlank()
+                ? teacher.getNickName() : teacher.getUserName());
         invitation.setStudentId(loginUser.getUserId());
         invitation.setStudentName(loginUser.getUser().getNickName() != null
                 ? loginUser.getUser().getNickName() : loginUser.getUsername());

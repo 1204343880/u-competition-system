@@ -329,7 +329,7 @@ loadDetail()
 <style scoped>
 .detail-page {
   min-height: 100dvh;
-  background: #f5f7fa;
+  background: transparent;
 }
 
 .hero-banner {
@@ -342,8 +342,8 @@ loadDetail()
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-radius: 0 0 24px 24px;
-  box-shadow: 0 10px 30px rgba(26, 115, 232, 0.15);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(26, 77, 138, 0.12);
   margin-bottom: 32px;
 }
 
@@ -456,8 +456,8 @@ loadDetail()
 
 .main-left {
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  box-shadow: var(--student-shadow, 0 1px 2px rgba(41,45,52,.04));
   padding: 8px 0;
   min-height: 400px;
 }
@@ -482,9 +482,9 @@ loadDetail()
 
 .sidebar-card {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 20px 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--student-shadow, 0 1px 2px rgba(41,45,52,.04));
 }
 
 .sidebar-title {

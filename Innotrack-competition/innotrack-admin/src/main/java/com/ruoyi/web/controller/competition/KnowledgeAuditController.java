@@ -2,6 +2,8 @@ package com.ruoyi.web.controller.competition;
 
 import java.util.Date;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.framework.mq.RabbitMqProducer;
@@ -21,6 +24,7 @@ import com.ruoyi.system.domain.CompetitionRetrospect;
 import com.ruoyi.system.domain.UserNotification;
 import com.ruoyi.system.service.ICompetitionExperienceService;
 import com.ruoyi.system.service.ICompetitionRetrospectService;
+import com.ruoyi.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,6 +35,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/system/knowledge/audit")
 public class KnowledgeAuditController extends BaseController
 {
+    private static final Logger log = LoggerFactory.getLogger(KnowledgeAuditController.class);
+
     @Autowired
     private ICompetitionRetrospectService retrospectService;
 
@@ -39,6 +45,9 @@ public class KnowledgeAuditController extends BaseController
 
     @Autowired
     private RabbitMqProducer rabbitMqProducer;
+
+    @Autowired
+    private ISysUserService userService;
 
     @Operation(summary = "分页查询复盘审核列表")
     @GetMapping("/retrospect/list")
@@ -151,15 +160,12 @@ public class KnowledgeAuditController extends BaseController
             return;
         }
         UserNotification notification = new UserNotification();
-        try
-        {
-            Long userId = Long.valueOf(retrospect.getCreateBy());
-            notification.setUserId(userId);
-        }
-        catch (NumberFormatException e)
+        Long userId = resolveNotificationUserId(retrospect.getCreateBy(), "retrospect", retrospect.getRetrospectId());
+        if (userId == null)
         {
             return;
         }
+        notification.setUserId(userId);
         notification.setBizType("knowledge");
         notification.setBizId(retrospect.getRetrospectId());
         if ("1".equals(auditStatus))
@@ -173,7 +179,7 @@ public class KnowledgeAuditController extends BaseController
             notification.setContent("你的项目复盘【" + retrospect.getProjectName() + "】被驳回"
                     + (rejectReason != null ? "，原因：" + rejectReason : ""));
         }
-        rabbitMqProducer.sendNotification(notification);
+        sendNotificationSafely(notification);
     }
 
     private void sendExperienceNotification(CompetitionExperience experience, String auditStatus, String rejectReason)
@@ -183,15 +189,12 @@ public class KnowledgeAuditController extends BaseController
             return;
         }
         UserNotification notification = new UserNotification();
-        try
-        {
-            Long userId = Long.valueOf(experience.getCreateBy());
-            notification.setUserId(userId);
-        }
-        catch (NumberFormatException e)
+        Long userId = resolveNotificationUserId(experience.getCreateBy(), "experience", experience.getExperienceId());
+        if (userId == null)
         {
             return;
         }
+        notification.setUserId(userId);
         notification.setBizType("knowledge");
         notification.setBizId(experience.getExperienceId());
         if ("1".equals(auditStatus))
@@ -205,6 +208,36 @@ public class KnowledgeAuditController extends BaseController
             notification.setContent("你的经验帖【" + experience.getTitle() + "】被驳回"
                     + (rejectReason != null ? "，原因：" + rejectReason : ""));
         }
-        rabbitMqProducer.sendNotification(notification);
+        sendNotificationSafely(notification);
+    }
+
+    private Long resolveNotificationUserId(String createBy, String bizType, Long bizId)
+    {
+        if (createBy == null || createBy.trim().isEmpty())
+        {
+            log.warn("Skip knowledge audit notification because createBy is empty: bizType={}, bizId={}", bizType, bizId);
+            return null;
+        }
+        SysUser user = userService.selectUserByUserName(createBy);
+        if (user == null || user.getUserId() == null)
+        {
+            log.warn("Skip knowledge audit notification because createBy user was not found: bizType={}, bizId={}, createBy={}",
+                    bizType, bizId, createBy);
+            return null;
+        }
+        return user.getUserId();
+    }
+
+    private void sendNotificationSafely(UserNotification notification)
+    {
+        try
+        {
+            rabbitMqProducer.sendNotification(notification);
+        }
+        catch (Exception ex)
+        {
+            log.warn("Knowledge audit succeeded but notification delivery failed: bizType={}, bizId={}, userId={}",
+                    notification.getBizType(), notification.getBizId(), notification.getUserId(), ex);
+        }
     }
 }

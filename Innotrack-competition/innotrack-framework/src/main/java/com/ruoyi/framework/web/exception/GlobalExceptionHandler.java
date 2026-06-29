@@ -1,8 +1,11 @@
 package com.ruoyi.framework.web.exception;
 
+import java.sql.SQLException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -28,6 +31,20 @@ import com.ruoyi.common.utils.html.EscapeUtil;
 public class GlobalExceptionHandler
 {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private boolean containsDatabaseCause(Throwable e)
+    {
+        Throwable cur = e;
+        while (cur != null)
+        {
+            if (cur instanceof SQLException || cur instanceof DataAccessException || cur instanceof PersistenceException)
+            {
+                return true;
+            }
+            cur = cur.getCause();
+        }
+        return false;
+    }
 
     /**
      * 权限校验异常
@@ -91,14 +108,41 @@ public class GlobalExceptionHandler
     }
 
     /**
+     * 数据库异常：避免将SQL、表名、字段名等内部结构返回给前端
+     */
+    @ExceptionHandler({ DataAccessException.class, SQLException.class })
+    public AjaxResult handleDataAccessException(Exception e, HttpServletRequest request)
+    {
+        String requestURI = request.getRequestURI();
+        log.error("请求地址'{}',发生数据库操作异常.", requestURI, e);
+        return AjaxResult.error("数据操作失败，请检查输入内容");
+    }
+
+    /**
+     * MyBatis持久层异常：避免将SQL、表名、字段名等内部结构返回给前端
+     */
+    @ExceptionHandler(PersistenceException.class)
+    public AjaxResult handlePersistenceException(PersistenceException e, HttpServletRequest request)
+    {
+        String requestURI = request.getRequestURI();
+        log.error("请求地址'{}',发生持久层异常.", requestURI, e);
+        return AjaxResult.error("数据操作失败，请检查输入内容");
+    }
+
+    /**
      * 拦截未知的运行时异常
      */
     @ExceptionHandler(RuntimeException.class)
     public AjaxResult handleRuntimeException(RuntimeException e, HttpServletRequest request)
     {
         String requestURI = request.getRequestURI();
+        if (containsDatabaseCause(e))
+        {
+            log.error("请求地址'{}',发生数据库相关运行时异常.", requestURI, e);
+            return AjaxResult.error("数据操作失败，请检查输入内容");
+        }
         log.error("请求地址'{}',发生未知异常.", requestURI, e);
-        return AjaxResult.error(e.getMessage());
+        return AjaxResult.error("系统内部错误，请联系管理员");
     }
 
     /**
@@ -108,8 +152,13 @@ public class GlobalExceptionHandler
     public AjaxResult handleException(Exception e, HttpServletRequest request)
     {
         String requestURI = request.getRequestURI();
+        if (containsDatabaseCause(e))
+        {
+            log.error("请求地址'{}',发生数据库相关系统异常.", requestURI, e);
+            return AjaxResult.error("数据操作失败，请检查输入内容");
+        }
         log.error("请求地址'{}',发生系统异常.", requestURI, e);
-        return AjaxResult.error(e.getMessage());
+        return AjaxResult.error("系统内部错误，请联系管理员");
     }
 
     /**

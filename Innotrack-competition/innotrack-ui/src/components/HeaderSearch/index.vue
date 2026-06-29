@@ -1,6 +1,10 @@
 <template>
   <div class="header-search">
-    <svg-icon class-name="search-icon" icon-class="search" @click.stop="click" />
+    <button class="search-trigger" :class="{ 'is-expanded': expanded }" type="button" @click.stop="click">
+      <svg-icon class-name="search-icon" icon-class="search" />
+      <span v-if="expanded" class="search-placeholder">搜索功能或页面</span>
+      <kbd v-if="expanded">Ctrl K</kbd>
+    </button>
     <el-dialog
       v-model="show"
       width="600"
@@ -84,6 +88,10 @@ import useSettingsStore from '@/store/modules/settings'
 import usePermissionStore from '@/store/modules/permission'
 
 const search = ref('')
+const props = defineProps({
+  expanded: { type: Boolean, default: false }
+})
+const expanded = computed(() => props.expanded)
 const options = ref([])
 const searchPool = ref([])
 const activeIndex = ref(-1)
@@ -98,6 +106,13 @@ function click() {
   show.value = !show.value
   if (show.value) {
     options.value = searchPool.value
+  }
+}
+
+function handleShortcut(event) {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    click()
   }
 }
 
@@ -238,7 +253,10 @@ function escapeRegExp(str) {
 
 onMounted(() => {
   searchPool.value = generateRoutes(routes.value)
+  window.addEventListener('keydown', handleShortcut)
 })
+
+onBeforeUnmount(() => window.removeEventListener('keydown', handleShortcut))
 
 watch(searchPool, (list) => {
   initFuse(list)
@@ -261,10 +279,53 @@ watch(searchPool, (list) => {
 }
 
 .header-search {
-  .search-icon {
-    cursor: pointer;
-    font-size: 18px;
-    vertical-align: middle;
+  display: flex;
+  align-items: center;
+}
+.search-trigger {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0;
+  color: #5f6368;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 180ms ease, box-shadow 180ms ease;
+
+  .search-icon { flex: none; font-size: 17px; vertical-align: middle; }
+
+  &.is-expanded {
+    width: 230px;
+    justify-content: flex-start;
+    padding: 0 10px 0 12px;
+    background: #f3f5f7;
+    box-shadow: inset 0 0 0 1px rgba(31,35,41,.045);
+  }
+
+  &:hover { background: #edf1f5; }
+
+  .search-placeholder {
+    min-width: 0;
+    flex: 1;
+    color: #858a92;
+    font-size: 13px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  kbd {
+    flex: none;
+    padding: 2px 5px;
+    color: #8b9098;
+    border: 1px solid rgba(31,35,41,.09);
+    border-radius: 5px;
+    background: rgba(255,255,255,.72);
+    font: 10px/1.3 inherit;
   }
 }
 

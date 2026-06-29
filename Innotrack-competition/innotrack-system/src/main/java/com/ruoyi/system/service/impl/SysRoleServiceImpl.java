@@ -138,6 +138,12 @@ public class SysRoleServiceImpl implements ISysRoleService
         return roleMapper.selectRoleById(roleId);
     }
 
+    @Override
+    public SysRole selectRoleByKey(String roleKey)
+    {
+        return roleMapper.checkRoleKeyUnique(roleKey);
+    }
+
     /**
      * 校验角色名称是否唯一
      * 

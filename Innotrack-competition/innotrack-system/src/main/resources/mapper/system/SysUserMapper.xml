@@ -41,6 +41,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="orderNum"  column="order_num"   />
         <result property="leader"    column="leader"      />
         <result property="status"    column="dept_status" />
+        <result property="parentName" column="parent_name" />
     </resultMap>
 	
     <resultMap id="RoleResult" type="SysRole">
@@ -54,10 +55,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	
 	<sql id="selectUserVo">
         select u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.avatar, u.phonenumber, u.password, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.pwd_update_date, u.student_no, u.grade, u.skill_tags, u.show_in_market, u.create_by, u.create_time, u.update_by, u.update_time, u.remark, 
-        d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.status as dept_status,
+        d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.status as dept_status, pd.dept_name as parent_name,
         r.role_id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.status as role_status
         from sys_user u
 		    left join sys_dept d on u.dept_id = d.dept_id
+		    left join sys_dept pd on d.parent_id = pd.dept_id
 		    left join sys_user_role ur on u.user_id = ur.user_id
 		    left join sys_role r on r.role_id = ur.role_id
     </sql>
@@ -156,6 +158,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	
 	<select id="checkEmailUnique" parameterType="String" resultMap="SysUserResult">
 		select user_id, email from sys_user where email = #{email} and del_flag = '0' limit 1
+	</select>
+
+	<select id="checkStudentNoUnique" parameterType="String" resultMap="SysUserResult">
+		select user_id, student_no from sys_user where student_no = #{studentNo} and del_flag = '0' limit 1
 	</select>
 	
 	<insert id="insertUser" parameterType="SysUser" useGeneratedKeys="true" keyProperty="userId">
@@ -257,5 +263,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  			#{userId}
         </foreach> 
  	</delete>
-	
-</mapper> 
+
+    <select id="selectMarketUsers" resultMap="SysUserResult" parameterType="Long">
+        select u.user_id, u.dept_id, u.user_name, u.nick_name, u.student_no, u.grade, u.skill_tags, u.show_in_market, u.phonenumber, u.email,
+               d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.status as dept_status, pd.dept_name as parent_name,
+               r.role_id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.status as role_status
+        from sys_user u
+        left join sys_dept d on u.dept_id = d.dept_id
+        left join sys_dept pd on d.parent_id = pd.dept_id
+        left join sys_user_role ur on u.user_id = ur.user_id
+        left join sys_role r on ur.role_id = r.role_id
+        where u.del_flag = '0' and u.show_in_market = '1'
+        <if test="excludeUserId != null">
+            and u.user_id != #{excludeUserId}
+        </if>
+        order by u.user_id desc
+        limit 50
+    </select>
+
+</mapper>

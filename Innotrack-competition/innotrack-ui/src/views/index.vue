@@ -1,505 +1,457 @@
 <template>
   <Dashboard v-if="isAdmin" />
-  <div v-else class="app-container home">
-    <!-- 欢迎横幅 -->
-    <div class="hero-section">
-      <div class="hero-content">
-        <div class="hero-text">
-          <h1 class="hero-title">学科竞赛管理系统</h1>
-          <p class="hero-subtitle">薪火互联-高校竞赛全流程管理系统</p>
-          <div class="hero-meta">
-            <span class="meta-item">
-              <el-icon><User /></el-icon> {{ userName }}
-            </span>
-            <span class="meta-item">
-              <el-icon><Clock /></el-icon> {{ currentTime }}
-            </span>
-            <span class="meta-item">
-              <el-icon><Calendar /></el-icon> {{ currentDate }}
-            </span>
-          </div>
-        </div>
-        <div class="hero-decoration">
-          <div class="deco-shape shape-1"></div>
-          <div class="deco-shape shape-2"></div>
-          <div class="deco-shape shape-3"></div>
+
+  <div v-else class="student-home">
+    <header class="welcome-panel">
+      <div class="welcome-copy">
+        <span class="eyebrow">{{ todayText }}</span>
+        <h1>{{ greeting }}，{{ userName }}</h1>
+        <p>{{ welcomeSummary }}</p>
+        <div class="welcome-actions">
+          <el-button type="primary" @click="go('/hall/list')">浏览竞赛</el-button>
+          <el-button @click="go('/myrace/race')">我的赛程</el-button>
         </div>
       </div>
+      <div class="hero-stats" aria-label="我的竞赛概览">
+        <div v-for="stat in statsData" :key="stat.label" class="hero-stat">
+          <span>{{ stat.label }}</span>
+          <strong>{{ loading ? '—' : stat.value }}</strong>
+        </div>
+      </div>
+    </header>
+
+    <div class="primary-grid">
+        <section class="home-panel task-panel">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">接下来</span>
+              <h2>我的待办</h2>
+            </div>
+            <button class="text-action" type="button" @click="go('/myrace/race')">
+              查看赛程 <el-icon><ArrowRight /></el-icon>
+            </button>
+          </div>
+
+          <div v-if="tasks.length" class="task-list">
+            <button
+              v-for="task in tasks"
+              :key="task.key"
+              type="button"
+              class="task-item"
+              @click="openCompetition(task.competitionId)"
+            >
+              <span class="task-state" :class="task.tone"><span></span></span>
+              <span class="task-content">
+                <strong>{{ task.title }}</strong>
+                <small>{{ task.description }}</small>
+              </span>
+              <span class="task-action">{{ task.action }} <el-icon><ArrowRight /></el-icon></span>
+            </button>
+          </div>
+
+          <div v-else class="empty-note">
+            <span class="empty-icon"><el-icon><Check /></el-icon></span>
+            <div><strong>暂时没有待处理事项</strong><p>去竞赛大厅看看最近有哪些新机会。</p></div>
+            <el-button text type="primary" @click="go('/hall/list')">发现竞赛</el-button>
+          </div>
+        </section>
+
+        <section class="home-panel recommend-panel">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">把握报名时间</span>
+              <h2>即将截止</h2>
+            </div>
+            <button class="text-action" type="button" @click="go('/hall/list')">
+              查看全部 <el-icon><ArrowRight /></el-icon>
+            </button>
+          </div>
+
+          <div v-if="closingSoon.length" class="recommend-list">
+            <button
+              v-for="(item, index) in closingSoon"
+              :key="item.competitionId"
+              type="button"
+              class="recommend-item"
+              @click="openCompetition(item.competitionId)"
+            >
+              <span class="recommend-cover" :class="`cover-${index % 3}`">
+                <img v-if="item.coverImage" :src="item.coverImage" :alt="`${item.competitionName}封面`" loading="lazy" />
+                <el-icon v-else><Trophy /></el-icon>
+              </span>
+              <span class="recommend-copy">
+                <strong>{{ item.competitionName }}</strong>
+                <small>{{ item.organizer || '主办方待公布' }}</small>
+                <span class="recommend-meta">
+                  <em>{{ levelLabel(item.competitionLevel) }}</em>
+                  <span>{{ deadlineText(item.applyEndTime) }}</span>
+                </span>
+              </span>
+              <el-icon class="recommend-arrow"><ArrowRight /></el-icon>
+            </button>
+          </div>
+          <div v-else class="empty-note compact">暂无即将截止的竞赛</div>
+        </section>
     </div>
 
-    <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stats-row">
-      <el-col :xs="24" :sm="12" :md="6" v-for="stat in statsData" :key="stat.label">
-        <div class="stat-card" :style="{ borderTopColor: stat.color }">
-          <div class="stat-icon" :style="{ backgroundColor: stat.bgColor }">
-            <el-icon :style="{ color: stat.color }"><component :is="stat.icon" /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-label">{{ stat.label }}</span>
-            <span class="stat-value">{{ stat.value }}</span>
-          </div>
-        </div>
-      </el-col>
-    </el-row>
+    <section class="home-panel quick-panel">
+      <div class="section-heading simple"><h2>快捷入口</h2></div>
+      <div class="quick-list">
+        <button v-for="item in quickActions" :key="item.title" type="button" class="quick-item" @click="go(item.path)">
+          <span class="quick-icon" :style="{ color: item.color, background: item.background }">
+            <el-icon><component :is="item.icon" /></el-icon>
+          </span>
+          <span><strong>{{ item.title }}</strong><small>{{ item.description }}</small></span>
+          <el-icon class="quick-arrow"><ArrowRight /></el-icon>
+        </button>
+      </div>
+    </section>
 
-    <!-- 快捷入口 + 通知 -->
-    <el-row :gutter="20">
-      <el-col :xs="24" :md="16">
-        <el-card shadow="never" class="section-card">
-          <template #header>
-            <div class="card-header">
-              <span class="card-title">快捷功能</span>
-            </div>
-          </template>
-          <el-row :gutter="16">
-            <el-col :xs="12" :sm="6" v-for="item in quickActions" :key="item.title">
-              <div class="quick-card" @click="$router.push(item.path)">
-                <div class="quick-icon-wrap" :style="{ backgroundColor: item.bgColor }">
-                  <el-icon :style="{ color: item.color, fontSize: '28px' }"><component :is="item.icon" /></el-icon>
-                </div>
-                <span class="quick-title">{{ item.title }}</span>
-                <span class="quick-desc">{{ item.desc }}</span>
-              </div>
-            </el-col>
-          </el-row>
-        </el-card>
-      </el-col>
+    <div class="bottom-grid">
+        <section class="home-panel notice-panel">
+          <div class="section-heading simple">
+            <h2>通知与提醒</h2>
+            <span v-if="unreadCount" class="unread-count">{{ unreadCount }} 条未读</span>
+          </div>
+          <div v-if="notices.length" class="notice-list">
+            <article v-for="(notice, index) in notices" :key="notice.noticeId || index" class="notice-item">
+              <span class="notice-dot" :class="`dot-${index % 3}`"></span>
+              <div><strong>{{ notice.noticeTitle || notice.title }}</strong><time>{{ noticeTime(notice.createTime || notice.time) }}</time></div>
+            </article>
+          </div>
+          <div v-else class="empty-note compact">暂无新通知</div>
+        </section>
 
-      <el-col :xs="24" :md="8">
-        <el-card shadow="never" class="section-card notice-card">
-          <template #header>
-            <div class="card-header">
-              <span class="card-title">系统公告</span>
-            </div>
-          </template>
-          <div class="notice-list">
-            <div class="notice-item" v-for="notice in notices" :key="notice.title">
-              <div class="notice-dot" :style="{ backgroundColor: notice.color }"></div>
-              <div class="notice-content">
-                <p class="notice-title">{{ notice.title }}</p>
-                <span class="notice-time">{{ notice.time }}</span>
-              </div>
+        <section class="home-panel platform-panel">
+          <div class="section-heading simple"><h2>平台信息</h2></div>
+          <div class="platform-grid">
+            <div v-for="item in platformInfo" :key="item.label" class="platform-item">
+              <span>{{ item.label }}</span>
+              <strong :class="{ healthy: item.healthy }">{{ item.value }}</strong>
             </div>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 技术架构 -->
-    <el-row :gutter="20">
-      <el-col :span="24">
-        <el-card shadow="never" class="section-card">
-          <template #header>
-            <div class="card-header">
-              <span class="card-title">系统信息</span>
-            </div>
-          </template>
-          <el-row :gutter="16">
-            <el-col :xs="12" :sm="6">
-              <div class="tech-item">
-                <span class="tech-label">系统版本</span>
-                <span class="tech-value">v3.9.2</span>
-              </div>
-            </el-col>
-            <el-col :xs="12" :sm="6">
-              <div class="tech-item">
-                <span class="tech-label">后端框架</span>
-                <span class="tech-value">SpringBoot</span>
-              </div>
-            </el-col>
-            <el-col :xs="12" :sm="6">
-              <div class="tech-item">
-                <span class="tech-label">前端框架</span>
-                <span class="tech-value">Vue 3 + Element Plus</span>
-              </div>
-            </el-col>
-            <el-col :xs="12" :sm="6">
-              <div class="tech-item">
-                <span class="tech-label">运行模式</span>
-                <span class="tech-value status-ok">正常</span>
-              </div>
-            </el-col>
-          </el-row>
-        </el-card>
-      </el-col>
-    </el-row>
+        </section>
+    </div>
   </div>
 </template>
 
 <script setup name="Index">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { User, Clock, Calendar, Trophy, List, Edit, Document, Check, Collection } from '@element-plus/icons-vue'
+import { computed, onMounted, ref } from 'vue'
+import {
+  ArrowRight, Bell, Check, Clock, Collection, Document,
+  Edit, Trophy, User
+} from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 import useUserStore from '@/store/modules/user'
 import Dashboard from '@/views/dashboard/index.vue'
+import { listCompetition, listMyApplies } from '@/api/competition/hall'
+import { getMyTeams } from '@/api/competition/team'
+import { getMyResults } from '@/api/competition/result'
+import { listNoticeTop } from '@/api/system/notice'
 
+const router = useRouter()
 const userStore = useUserStore()
+const loading = ref(true)
+const myEntries = ref([])
+const closingSoon = ref([])
+const competitionTotal = ref(0)
+const resultCount = ref(0)
+const notices = ref([])
+
 const isAdmin = computed(() => {
   const roles = userStore.roles || []
   return roles.includes('admin') || roles.includes('ROLE_ADMIN')
 })
-const userName = computed(() => userStore.nickName || userStore.name || 'admin')
+const userName = computed(() => userStore.nickName || userStore.name || '同学')
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 6) return '夜深了'
+  if (hour < 11) return '早上好'
+  if (hour < 14) return '中午好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
+})
+const todayText = computed(() => new Intl.DateTimeFormat('zh-CN', {
+  month: 'long', day: 'numeric', weekday: 'long'
+}).format(new Date()))
 
-const currentDate = ref('')
-const currentTime = ref('')
-let timer = null
-
-const statsData = ref([
-  { label: '系统用户', value: '--', icon: 'User', color: '#1a73e8', bgColor: '#ecf5ff' },
-  { label: '竞赛项目', value: '--', icon: 'Trophy', color: '#67C23A', bgColor: '#f0f9eb' },
-  { label: '进行中', value: '--', icon: 'Clock', color: '#E6A23C', bgColor: '#fdf6ec' },
-  { label: '已完成', value: '--', icon: 'Check', color: '#F56C6C', bgColor: '#fef0f0' }
-])
-
-const quickActions = [
-  { title: '竞赛大厅', desc: '浏览全校竞赛', icon: 'Collection', color: '#1a73e8', bgColor: '#ecf5ff', path: '/hall/list' },
-  { title: '组队匹配', desc: '寻找队友组队', icon: 'User', color: '#67C23A', bgColor: '#f0f9eb', path: '/match/index' },
-  { title: '薪火相传', desc: '往届经验分享', icon: 'Document', color: '#E6A23C', bgColor: '#fdf6ec', path: '/knowledge/index' },
-  { title: '我的赛程', desc: '管理我的竞赛', icon: 'Edit', color: '#9b59b6', bgColor: '#f4f0f9', path: '/myrace/race' }
-]
-
-const notices = [
-  { title: '欢迎使用铜陵学院学科竞赛管理平台', time: '刚刚', color: '#1a73e8' },
-  { title: '系统已配置三级角色权限体系', time: '今日', color: '#67C23A' },
-  { title: '参赛学生专属菜单已上线', time: '今日', color: '#E6A23C' }
-]
-
-function updateTime() {
-  const now = new Date()
-  currentDate.value = now.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' })
-  currentTime.value = now.toLocaleTimeString('zh-CN', { hour12: false })
-}
-
-onMounted(() => {
-  updateTime()
-  timer = setInterval(updateTime, 1000)
+const ongoingCount = computed(() => myEntries.value.filter(item => String(item.compStatus ?? item.status) === '1').length)
+const pendingCount = computed(() => myEntries.value.filter(item => {
+  const compStatus = String(item.compStatus ?? item.status ?? '')
+  const auditStatus = String(item.auditStatus ?? item.teamStatus ?? '')
+  return compStatus === '0' && (auditStatus === '0' || auditStatus === '')
+}).length)
+const welcomeSummary = computed(() => {
+  if (!myEntries.value.length) return '从一场感兴趣的比赛开始，建立属于你的竞赛旅程。'
+  if (pendingCount.value) return `你有 ${pendingCount.value} 项事项需要继续处理，别错过重要节点。`
+  if (ongoingCount.value) return `你有 ${ongoingCount.value} 项比赛正在进行，保持节奏。`
+  return '你的竞赛安排都在轨道上，去看看最近的新机会吧。'
 })
 
-onUnmounted(() => {
-  if (timer) clearInterval(timer)
+const statsData = computed(() => [
+  { label: '已参与', value: myEntries.value.length, icon: Trophy, color: '#1a73e8', background: '#eaf2fe' },
+  { label: '进行中', value: ongoingCount.value, icon: Clock, color: '#18865b', background: '#e9f6ef' },
+  { label: '待处理', value: pendingCount.value, icon: Edit, color: '#b06000', background: '#fff3df' },
+  { label: '获奖与成果', value: resultCount.value, icon: Check, color: '#8354b3', background: '#f3ecfa' }
+])
+
+const tasks = computed(() => myEntries.value.slice(0, 4).map((item, index) => {
+  const compStatus = String(item.compStatus ?? item.status ?? '')
+  const auditStatus = String(item.auditStatus ?? item.teamStatus ?? '')
+  let description = '查看竞赛进度与下一步安排'
+  let action = '查看进度'
+  let tone = 'blue'
+  if (compStatus === '0' && auditStatus === '0') {
+    description = item.entryType === 'team' ? '队伍尚未完成确认，请及时检查成员信息' : '报名信息正在等待审核'
+    action = item.entryType === 'team' ? '完善队伍' : '查看报名'
+    tone = 'amber'
+  } else if (compStatus === '1') {
+    description = '比赛正在进行，请留意材料提交与赛程通知'
+    action = '继续参赛'
+    tone = 'green'
+  } else if (compStatus === '2') {
+    description = '比赛已经结束，可以查看成绩与成果记录'
+    action = '查看结果'
+    tone = 'violet'
+  }
+  return {
+    key: `${item.competitionId}-${item.entryType || index}`,
+    competitionId: item.competitionId,
+    title: item.competitionName || '未命名竞赛',
+    description, action, tone
+  }
+}))
+
+const quickActions = [
+  { title: '竞赛大厅', description: '发现并报名感兴趣的比赛', icon: Collection, color: '#1a73e8', background: '#eaf2fe', path: '/hall/list' },
+  { title: '组队匹配', description: '寻找队友，补齐团队能力', icon: User, color: '#18865b', background: '#e9f6ef', path: '/match/index' },
+  { title: '薪火相传', description: '阅读学长学姐的参赛经验', icon: Document, color: '#b06000', background: '#fff3df', path: '/knowledge/index' },
+  { title: '我的赛程', description: '管理报名、队伍与比赛进度', icon: Edit, color: '#8354b3', background: '#f3ecfa', path: '/myrace/race' }
+]
+
+const unreadCount = computed(() => notices.value.filter(item => item.isRead === false || item.readFlag === '0').length)
+const platformInfo = computed(() => {
+  const now = new Date()
+  const startYear = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1
+  return [
+    { label: '当前学年', value: `${startYear}—${startYear + 1}` },
+    { label: '开放竞赛', value: `${competitionTotal.value} 项` },
+    { label: '当前身份', value: '参赛学生' },
+    { label: '服务状态', value: '运行正常', healthy: true }
+  ]
+})
+
+function go(path) { router.push(path) }
+function openCompetition(id) {
+  if (id == null) return
+  router.push({ name: 'CompetitionDetail', params: { competitionId: id } })
+}
+function levelLabel(level) {
+  return ({ '1': '校级', '2': '市级', '3': '省级', '4': '国家级', '5': '国际级' })[String(level)] || '竞赛'
+}
+function deadlineText(value) {
+  if (!value) return '时间待公布'
+  const deadline = new Date(value)
+  const days = Math.ceil((deadline.getTime() - Date.now()) / 86400000)
+  if (days < 0) return '报名已截止'
+  if (days === 0) return '今天截止'
+  if (days <= 7) return `${days} 天后截止`
+  return `${deadline.getMonth() + 1}月${deadline.getDate()}日截止`
+}
+function noticeTime(value) {
+  if (!value) return '最近'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
+  const diff = Math.floor((Date.now() - date.getTime()) / 86400000)
+  if (diff <= 0) return '今天'
+  if (diff === 1) return '昨天'
+  if (diff < 7) return `${diff} 天前`
+  return `${date.getMonth() + 1}月${date.getDate()}日`
+}
+
+function normalizeEntries(applyData, teamData) {
+  const applies = (applyData || []).map(item => ({ ...item, entryType: 'individual' }))
+  const teams = (teamData || []).map(item => ({
+    ...item,
+    entryType: 'team',
+    compStatus: item.compStatus,
+    teamStatus: item.status
+  }))
+  const merged = [...applies, ...teams]
+  const seen = new Set()
+  return merged.filter(item => {
+    const key = `${item.competitionId}-${item.entryType}-${item.teamId || ''}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+onMounted(async () => {
+  if (isAdmin.value) return
+  const [applyRes, teamRes, competitionRes, resultRes, noticeRes] = await Promise.allSettled([
+    listMyApplies(),
+    getMyTeams(),
+    listCompetition({ pageNum: 1, pageSize: 200, status: '0' }),
+    getMyResults(),
+    listNoticeTop()
+  ])
+
+  const applies = applyRes.status === 'fulfilled' ? (applyRes.value.data || []) : []
+  const teams = teamRes.status === 'fulfilled' ? (teamRes.value.data || []) : []
+  myEntries.value = normalizeEntries(applies, teams)
+  const competitionRows = competitionRes.status === 'fulfilled'
+    ? (competitionRes.value.rows || competitionRes.value.data || [])
+    : []
+  const now = Date.now()
+  closingSoon.value = competitionRows
+    .filter(item => {
+      const deadline = new Date(item.applyEndTime).getTime()
+      return Number.isFinite(deadline) && deadline >= now
+    })
+    .sort((a, b) => new Date(a.applyEndTime).getTime() - new Date(b.applyEndTime).getTime())
+    .slice(0, 4)
+  competitionTotal.value = competitionRes.status === 'fulfilled'
+    ? Number(competitionRes.value.total || competitionRows.length)
+    : 0
+  const results = resultRes.status === 'fulfilled' ? (resultRes.value.data || resultRes.value.rows || []) : []
+  resultCount.value = Array.isArray(results) ? results.length : 0
+  const noticeData = noticeRes.status === 'fulfilled' ? (noticeRes.value.data || noticeRes.value.rows || []) : []
+  notices.value = Array.isArray(noticeData) ? noticeData.slice(0, 5) : []
+  loading.value = false
 })
 </script>
 
-<style scoped lang="scss">
-.home {
-  padding: 0;
+<style scoped>
+.student-home {
+  --blue: #1a73e8;
+  --ink: #25272b;
+  --muted: #73777f;
+  --surface: var(--el-bg-color-overlay, #fff);
+  max-width: 1180px;
+  margin: 0 auto;
+  color: var(--ink);
 }
 
-/* ====== 欢迎横幅 ====== */
-.hero-section {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  border-radius: 16px;
-  margin-bottom: 20px;
+.welcome-panel {
+  position: relative;
+  min-height: 202px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  align-items: center;
+  gap: 44px;
+  padding: 30px 38px;
   overflow: hidden;
-  position: relative;
-}
-
-.hero-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 40px 48px;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-text {
-  color: #fff;
-}
-
-.hero-title {
-  font-size: 36px;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  letter-spacing: 2px;
-}
-
-.hero-subtitle {
-  font-size: 16px;
-  opacity: 0.85;
-  margin: 0 0 24px 0;
-  font-weight: 300;
-}
-
-.hero-meta {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  opacity: 0.8;
-  padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-}
-
-.hero-decoration {
-  width: 200px;
-  height: 160px;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.deco-shape {
-  position: absolute;
-  border-radius: 50%;
-}
-
-.shape-1 {
-  width: 120px;
-  height: 120px;
-  background: rgba(255, 255, 255, 0.04);
-  top: 0;
-  right: 20px;
-}
-
-.shape-2 {
-  width: 70px;
-  height: 70px;
-  background: rgba(255, 255, 255, 0.07);
-  top: 60px;
-  right: -10px;
-}
-
-.shape-3 {
-  width: 40px;
-  height: 40px;
-  background: rgba(26, 115, 232, 0.2);
-  top: 20px;
-  right: 80px;
-}
-
-/* ====== 统计卡片 ====== */
-.stats-row {
-  margin-bottom: 20px !important;
-}
-
-.stat-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border-top: 3px solid;
-  transition: all 0.3s ease;
-  cursor: default;
-  margin-bottom: 10px;
-}
-
-.stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-}
-
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-label {
-  font-size: 13px;
-  color: #909399;
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: #303133;
-}
-
-/* ====== 通用卡片 ====== */
-.section-card {
-  border-radius: 12px;
-  border: 1px solid #f0f0f0;
-  margin-bottom: 20px;
-}
-
-.section-card :deep(.el-card__header) {
-  border-bottom: 1px solid #f5f5f5;
-  padding: 16px 20px;
-}
-
-.section-card :deep(.el-card__body) {
-  padding: 8px 20px 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  position: relative;
-  padding-left: 14px;
-}
-
-.card-title::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 18px;
-  background: #1a73e8;
-  border-radius: 2px;
-}
-
-/* ====== 快捷功能 ====== */
-.quick-card {
-  text-align: center;
-  padding: 24px 12px;
-  cursor: pointer;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  margin-bottom: 8px;
-}
-
-.quick-card:hover {
-  background: #f8f9ff;
-  transform: translateY(-3px);
-}
-
-.quick-icon-wrap {
-  width: 56px;
-  height: 56px;
   border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 12px;
+  background: linear-gradient(135deg, #f9fbfe 0%, #f0f5fc 100%);
 }
+.welcome-copy { position: relative; z-index: 1; }
+.eyebrow { display: block; margin-bottom: 10px; color: #6e7f99; font-size: 13px; font-weight: 500; }
+.welcome-copy h1 { margin: 0; font-size: clamp(27px, 2.7vw, 34px); font-weight: 650; letter-spacing: -.035em; }
+.welcome-copy p { margin: 10px 0 18px; color: #626b78; font-size: 14px; }
+.welcome-actions { display: flex; gap: 8px; }
+.welcome-actions :deep(.el-button) { height: 38px; padding: 0 18px; border: 0; border-radius: 9px; }
+.welcome-actions :deep(.el-button:not(.el-button--primary)) { background: rgba(255,255,255,.8); box-shadow: 0 1px 2px rgba(40,47,59,.06); }
+.hero-stats { position:relative; z-index:1; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); min-width:0; }
+.hero-stat { min-width:0; display:flex; flex-direction:column-reverse; align-items:flex-start; gap:8px; padding:4px 16px; border-left:1px solid rgba(26,57,94,.09); }
+.hero-stat:first-child { border-left:0; padding-left:0; }
+.hero-stat span { color:#758196; font-size:11px; white-space:nowrap; }
+.hero-stat strong { color:#26374f; font-size:25px; font-weight:600; line-height:1; letter-spacing:-.04em; }
 
-.quick-title {
-  display: block;
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 4px;
+.primary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:18px; margin-top:18px; }
+.home-panel {
+  padding:24px;
+  border-radius:16px;
+  background:var(--surface);
+  box-shadow:inset 0 0 0 1px rgba(31,35,41,.035), 0 1px 2px rgba(41,45,52,.035);
 }
+.section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.section-heading.simple { align-items: center; }
+.section-heading h2 { margin: 2px 0 0; font-size: 18px; font-weight: 650; letter-spacing: -.02em; }
+.section-kicker { color: #92969c; font-size: 12px; }
+.text-action { display: inline-flex; align-items: center; gap: 4px; padding: 0; color: #747982; border: 0; background: none; cursor: pointer; font-size: 13px; }
+.text-action:hover { color: var(--blue); }
 
-.quick-desc {
-  display: block;
-  font-size: 12px;
-  color: #909399;
+.task-list { display: flex; flex-direction: column; }
+.task-item { width: 100%; display: flex; align-items: center; gap: 14px; padding: 15px 4px; text-align: left; border: 0; border-bottom: 1px solid rgba(31,35,41,.055); background: transparent; cursor: pointer; }
+.task-item:last-child { border-bottom: 0; }
+.task-item:hover .task-content strong,.task-item:hover .task-action { color: var(--blue); }
+.task-state { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px; background: #eef4ff; }
+.task-state span { width: 8px; height: 8px; border-radius: 50%; background: #1a73e8; }
+.task-state.amber { background:#fff3df }.task-state.amber span { background:#d18420 }
+.task-state.green { background:#e9f6ef }.task-state.green span { background:#2b9a6b }
+.task-state.violet { background:#f3ecfa }.task-state.violet span { background:#8a61b4 }
+.task-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.task-content strong { overflow: hidden; color: var(--ink); font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; transition: color .18s; }
+.task-content small { overflow: hidden; color: #848890; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.task-action { display: inline-flex; align-items: center; gap: 3px; color: #7d8289; font-size: 12px; white-space: nowrap; transition: color .18s; }
+
+.quick-panel { margin-top:18px; padding:4px 0 0; background:transparent; box-shadow:none; }
+.quick-panel .section-heading { margin:0 0 12px 2px; }
+.quick-list { display:flex; gap:0; padding:8px 10px; overflow:hidden; border-radius:16px; background:#fff; box-shadow:inset 0 0 0 1px rgba(31,35,41,.035),0 1px 2px rgba(41,45,52,.035); }
+.quick-item { position:relative; flex:1 1 0; min-width:0; min-height:84px; display:flex; flex-direction:row; align-items:center; gap:12px; padding:13px 16px; text-align:left; border:0; border-right:1px solid rgba(31,35,41,.06); border-radius:10px; background:transparent; cursor:pointer; transition:transform .18s ease-out,background .18s ease-out; }
+.quick-item:last-child { border-right:0; }
+.quick-item:nth-child(n) { background:transparent; }
+.quick-item:hover { background:#f7f9fb; transform:translateY(-1px); }
+.quick-icon { width:36px; height:36px; flex:none; display:grid; place-items:center; border-radius:9px; font-size:17px; }
+.quick-item > span:nth-child(2) { display:flex; flex-direction:column; gap:5px; min-width:0; }
+.quick-item strong { font-size:14px; font-weight:600; }.quick-item small { color:#898d94; font-size:11px; line-height:1.45; }
+.quick-arrow { position:absolute; top:50%; right:12px; color:#c0c3c8; transform:translateY(-50%); }
+
+.recommend-list { display:flex; flex-direction:column; gap:0; }
+.recommend-item { min-width:0; display:flex; align-items:center; gap:12px; padding:12px 2px; text-align:left; border:0; border-bottom:1px solid rgba(31,35,41,.055); border-radius:0; background:transparent; cursor:pointer; transition:transform .18s,color .18s; }
+.recommend-item:last-child { border-bottom:0; }
+.recommend-item:hover { color:var(--blue); transform:translateX(2px); }
+.recommend-cover { width:52px; height:44px; flex:none; display:grid; place-items:center; overflow:hidden; border-radius:9px; color:#5d7eb4; background:linear-gradient(135deg,#eff5ff,#e3edff); font-size:18px; }
+.recommend-cover.cover-1 { color:#57816a; background:linear-gradient(135deg,#eff9f3,#e2f2e8); }
+.recommend-cover.cover-2 { color:#956f38; background:linear-gradient(135deg,#fff8e9,#ffedcc); }
+.recommend-cover img { width:100%; height:100%; object-fit:cover; }
+.recommend-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+.recommend-copy > strong { font-size:13px; font-weight:600; line-height:1.45; white-space:normal; overflow-wrap:anywhere; }
+.recommend-copy > small { color:#8b8f96; font-size:11px; line-height:1.45; white-space:normal; overflow-wrap:anywhere; }
+.recommend-meta { display:flex; align-items:center; gap:7px; margin-top:2px; color:#777c83; font-size:10px; }
+.recommend-meta em { color:#5277a7; font-style:normal; }
+.recommend-arrow { flex:none; color:#b6b9be; }
+
+.notice-list { display:flex; flex-direction:column; gap:2px; }
+.notice-item { display:flex; gap:10px; padding:11px 3px; }
+.notice-dot { width:7px; height:7px; flex:none; margin-top:5px; border-radius:50%; background:#1a73e8; }
+.notice-dot.dot-1 { background:#d18420 }.notice-dot.dot-2 { background:#2b9a6b }
+.notice-item > div { min-width:0; display:flex; flex-direction:column; gap:5px; }
+.notice-item strong { overflow:hidden; font-size:13px; font-weight:500; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+.notice-item time { color:#a0a3a8; font-size:11px; }
+.unread-count { padding:3px 7px; color:#1a73e8; border-radius:999px; background:#eaf2fe; font-size:10px; }
+
+.bottom-grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr); gap:18px; margin-top:18px; }
+.notice-panel,.platform-panel { min-height:238px; }
+.platform-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.platform-item { min-height:72px; display:flex; flex-direction:column; justify-content:center; gap:7px; padding:13px 4px; border-bottom:1px solid rgba(31,35,41,.055); background:transparent; }
+.platform-item:nth-last-child(-n+2) { border-bottom:0; }
+.platform-item span { color:#92969c; font-size:11px; }
+.platform-item strong { color:#3e4248; font-size:15px; font-weight:600; }
+.platform-item strong.healthy { color:#25835c; }
+
+.empty-note { min-height:92px; display:flex; align-items:center; gap:12px; color:#858990; font-size:13px; }
+.empty-note strong { color:#4b4f55; font-size:14px; }.empty-note p { margin:4px 0 0; font-size:12px; }
+.empty-note .el-button { margin-left:auto; }.empty-note.compact { min-height:56px; justify-content:center; }
+.empty-icon { width:34px; height:34px; flex:none; display:grid; place-items:center; color:#2b9a6b; border-radius:10px; background:#e9f6ef; }
+
+@media (max-width: 980px) {
+  .primary-grid,.bottom-grid { grid-template-columns:1fr; }
+  .quick-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .quick-item:nth-child(2) { border-right:0; }
+  .quick-item:nth-child(-n+2) { border-bottom:1px solid rgba(31,35,41,.06); }
 }
-
-/* ====== 公告 ====== */
-.notice-card {
-  height: 100%;
-}
-
-.notice-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.notice-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #fafafa;
-  transition: background 0.2s;
-}
-
-.notice-item:hover {
-  background: #f5f5f5;
-}
-
-.notice-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-top: 6px;
-  flex-shrink: 0;
-}
-
-.notice-content {
-  flex: 1;
-}
-
-.notice-title {
-  margin: 0 0 4px 0;
-  font-size: 14px;
-  color: #303133;
-  line-height: 1.4;
-}
-
-.notice-time {
-  font-size: 12px;
-  color: #c0c4cc;
-}
-
-/* ====== 系统信息 ====== */
-.tech-item {
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: #fafafa;
-  margin-bottom: 8px;
-}
-
-.tech-label {
-  display: block;
-  font-size: 12px;
-  color: #909399;
-  margin-bottom: 4px;
-}
-
-.tech-value {
-  font-size: 14px;
-  color: #303133;
-  font-weight: 600;
-}
-
-.status-ok {
-  color: #67C23A;
-}
-
-/* ====== 响应式 ====== */
-@media (max-width: 768px) {
-  .hero-content {
-    flex-direction: column;
-    padding: 28px 24px;
-  }
-
-  .hero-title {
-    font-size: 26px;
-  }
-
-  .hero-decoration {
-    display: none;
-  }
-
-  .hero-meta {
-    gap: 12px;
-  }
-
-  .stat-card {
-    margin-bottom: 10px;
-  }
+@media (max-width: 720px) {
+  .welcome-panel { min-height:auto; grid-template-columns:1fr; gap:26px; padding:28px 24px; }
+  .hero-stats { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 0; }
+  .hero-stat:nth-child(3) { border-left:0; padding-left:0; }
+  .primary-grid,.bottom-grid { display:flex; flex-direction:column; }
+  .quick-list { grid-template-columns:1fr; }
+  .quick-item { min-height:78px; border-right:0; border-bottom:1px solid rgba(31,35,41,.06); }
+  .quick-item:last-child { border-bottom:0; }
+  .recommend-list { grid-template-columns:1fr; }
+  .home-panel { padding:20px 17px; }
+  .task-action { display:none; }
 }
 </style>
