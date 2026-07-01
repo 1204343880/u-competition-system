@@ -1,0 +1,88 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ruoyi-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ruoyidemo
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password --performance-schema=0 --innodb-buffer-pool-size=64M
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+
+  redis:
+    image: redis:7-alpine
+    container_name: ruoyi-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 64mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ruoyi-rabbitmq
+    restart: always
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: ${MQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+
+  app:
+    image: ${APP_IMAGE}
+    container_name: ruoyi-app
+    restart: always
+    expose:
+      - "8080"
+    depends_on:
+      - mysql
+      - redis
+      - rabbitmq
+    environment:
+      SPRING_PROFILES_ACTIVE: druid,docker
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      MQ_PASSWORD: ${MQ_PASSWORD}
+      AGENT_SHARED_SECRET: ${AGENT_SHARED_SECRET}
+      JAVA_OPTS: ${JAVA_OPTS:-"-Xms256m -Xmx512m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=256m"}
+    deploy:
+      resources:
+        limits:
+          memory: 800M
+
+  nginx:
+    image: ${NGINX_IMAGE}
+    container_name: ruoyi-nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    deploy:
+      resources:
+        limits:
+          memory: 50M
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
