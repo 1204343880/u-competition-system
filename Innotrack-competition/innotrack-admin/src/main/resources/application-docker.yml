@@ -31,6 +31,14 @@ spring:
         missing-queues-fatal: false
         concurrency: 1
         max-concurrency: 3
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 ruoyi:
   profile: /home/ruoyi/uploadPath
