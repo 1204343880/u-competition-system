@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+.vscode
+logs
+node_modules
+**/node_modules
+performance/results
+performance/.tmp
+*.log
+stderr.log
+stderr2.log
+stdout.log
+stdout2.log
