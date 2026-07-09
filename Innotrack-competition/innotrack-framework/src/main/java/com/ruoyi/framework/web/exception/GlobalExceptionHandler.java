@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -19,6 +20,7 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.text.Convert;
 import com.ruoyi.common.exception.DemoModeException;
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.exception.base.BaseException;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.html.EscapeUtil;
 
@@ -78,6 +80,28 @@ public class GlobalExceptionHandler
         log.error(e.getMessage(), e);
         Integer code = e.getCode();
         return StringUtils.isNotNull(code) ? AjaxResult.error(code, e.getMessage()) : AjaxResult.error(e.getMessage());
+    }
+
+    /**
+     * User and captcha related business exceptions.
+     */
+    @ExceptionHandler(BaseException.class)
+    public AjaxResult handleBaseException(BaseException e, HttpServletRequest request)
+    {
+        String requestURI = request.getRequestURI();
+        log.warn("Request uri '{}', business exception '{}'", requestURI, e.getMessage());
+        return AjaxResult.warn(e.getMessage());
+    }
+
+    /**
+     * Invalid JSON request body.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public AjaxResult handleHttpMessageNotReadableException(HttpMessageNotReadableException e, HttpServletRequest request)
+    {
+        String requestURI = request.getRequestURI();
+        log.warn("Request uri '{}', invalid JSON body '{}'", requestURI, e.getMessage());
+        return AjaxResult.error(HttpStatus.BAD_REQUEST, "请求参数格式错误");
     }
 
     /**

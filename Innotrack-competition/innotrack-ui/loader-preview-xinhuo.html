@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>薪火地球加载页预览</title>
+</head>
+<body>
+  <main class="globe-loader" aria-label="薪火地球加载页预览">
+    <section class="globe-panel" role="status" aria-live="polite" aria-label="让每一颗火种找到下一站">
+      <div class="globe-visual" data-globe-wrap>
+        <canvas class="globe-canvas" data-globe-canvas aria-hidden="true"></canvas>
+        <div class="globe-aura" aria-hidden="true"></div>
+        <div class="flame-stickers" data-flame-stickers aria-hidden="true"></div>
+      </div>
+
+      <div class="globe-copy">
+        <p class="globe-kicker">SAI XUE GONG SHENG</p>
+        <h1>让每一颗火种找到下一站</h1>
+        <p>从被带着练手，到独立成事；再照亮后来的人。</p>
+        <div class="globe-progress" aria-hidden="true"></div>
+      </div>
+
+      <div class="fallback-copy" data-globe-fallback hidden>
+        <strong>火种正在汇聚</strong>
+        <span>当前环境暂不支持 WebGL，已切换为静态预览。</span>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/src/loader-preview/globe-flame.js"></script>
+</body>
+</html>
