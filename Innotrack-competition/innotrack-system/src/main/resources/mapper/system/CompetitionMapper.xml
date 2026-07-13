@@ -107,19 +107,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             where del_flag = '0' and publish_status = '1'
             <if test="query != null and query != ''">
                 AND (
-                    competition_name like concat('%', #{query}, '%')
-                    OR category like concat('%', #{query}, '%')
-                    OR category_name like concat('%', #{query}, '%')
-                    OR competition_level like concat('%', #{query}, '%')
-                    OR description like concat('%', #{query}, '%')
-                    OR organizer like concat('%', #{query}, '%')
-                    OR host like concat('%', #{query}, '%')
-                    OR tags like concat('%', #{query}, '%')
+                    competition_name REGEXP REPLACE(#{query}, ' ', '|')
+                    OR category REGEXP REPLACE(#{query}, ' ', '|')
+                    OR category_name REGEXP REPLACE(#{query}, ' ', '|')
+                    OR competition_level REGEXP REPLACE(#{query}, ' ', '|')
+                    OR description REGEXP REPLACE(#{query}, ' ', '|')
+                    OR organizer REGEXP REPLACE(#{query}, ' ', '|')
+                    OR host REGEXP REPLACE(#{query}, ' ', '|')
+                    OR tags REGEXP REPLACE(#{query}, ' ', '|')
                 )
             </if>
         ) t
         order by competition_id desc
-        limit 20
     </select>
 
     <insert id="insertCompetition" parameterType="Competition" useGeneratedKeys="true" keyProperty="competitionId">

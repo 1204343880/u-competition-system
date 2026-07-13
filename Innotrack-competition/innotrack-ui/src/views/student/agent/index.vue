@@ -1,246 +1,124 @@
 <template>
-  <section class="agent-chat">
-    <header class="chat-header">
-      <div class="assistant-identity">
-        <div class="assistant-logo">
-          <el-icon :size="24"><ChatDotRound /></el-icon>
-        </div>
-        <div>
-          <h1>竞赛智能助手</h1>
-          <p><span class="online-dot"></span>在线 · 为你提供竞赛建议</p>
-        </div>
+  <div class="agent-chat">
+    <div class="chat-header">
+      <div class="chat-header-icon">
+        <el-icon :size="18"><ChatDotRound /></el-icon>
       </div>
-      <button class="close-button" type="button" aria-label="关闭助手" @click="emit('close')">
-        <el-icon :size="20"><Close /></el-icon>
-      </button>
-    </header>
-
-    <main ref="bodyRef" class="chat-body">
-      <div v-if="messages.length === 0" class="welcome-panel">
-        <div class="welcome-orbit">
-          <div class="welcome-logo">
-            <el-icon :size="32"><ChatDotRound /></el-icon>
-          </div>
-        </div>
-        <h2>你好，我是你的竞赛助手</h2>
-        <p>我可以结合你的专业、技能和参赛经历，帮你寻找更合适的比赛与备赛方向。</p>
-
-        <div class="quick-actions">
-          <button v-for="item in quickQuestions" :key="item.text" type="button" @click="sendQuick(item.text)">
-            <span class="quick-icon">{{ item.icon }}</span>
-            <span>{{ item.text }}</span>
-            <span class="quick-arrow">→</span>
-          </button>
-        </div>
+      <div class="chat-header-text">
+        <span class="chat-header-title">竞赛助手</span>
+        <span class="chat-header-sub">基于你的画像和学校数据回答</span>
       </div>
-
-      <template v-for="(msg, idx) in messages" :key="idx">
+      <el-icon class="chat-header-close" :size="18" @click="$emit('close')"><Close /></el-icon>
+    </div>
+    <div class="chat-messages" ref="msgList">
+      <div v-for="(msg, idx) in messages" :key="idx" class="chat-msg" :class="msg.role">
         <div
-          v-if="msg.content || msg.thinking || msg.steps?.length || !loading"
-          class="chat-msg"
-          :class="msg.role"
-        >
-          <div v-if="msg.role === 'ai'" class="msg-avatar">
-            <el-icon :size="17"><ChatDotRound /></el-icon>
-          </div>
-          <div class="msg-content">
-            <div class="msg-bubble" v-html="renderMsg(msg)"></div>
-            <span v-if="msg.time" class="msg-time">{{ msg.time }}</span>
-          </div>
-        </div>
-      </template>
-
-      <div v-if="loading && waitingForFirstToken" class="chat-msg ai">
-        <div class="msg-avatar">
-          <el-icon :size="17"><ChatDotRound /></el-icon>
-        </div>
-        <div class="msg-content">
-          <div class="msg-bubble typing">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <footer class="chat-footer">
-      <div class="composer" :class="{ focused: inputFocused }">
-        <el-input
-          v-model="input"
-          type="textarea"
-          :autosize="{ minRows: 1, maxRows: 4 }"
-          resize="none"
-          placeholder="问问我比赛推荐、备赛方法……"
-          :disabled="loading"
-          @focus="inputFocused = true"
-          @blur="inputFocused = false"
-          @keydown.enter.exact.prevent="send"
+          v-if="msg.role === 'ai' && msg.content"
+          class="msg-bubble ai-bubble"
+          v-html="msg.content"
         />
-        <button
-          class="send-button"
-          type="button"
-          aria-label="发送消息"
-          :disabled="loading || !input.trim()"
-          @click="send"
-        >
-          <el-icon :size="18"><Promotion /></el-icon>
-        </button>
+        <div v-if="msg.role === 'user'" class="msg-bubble user-bubble">
+          {{ msg.content }}
+        </div>
+        <div v-if="msg.role === 'ai' && msg.steps && msg.steps.length" class="msg-steps">
+          <span v-for="(step, si) in msg.steps" :key="si" class="step-dot" />
+        </div>
       </div>
-      <p class="composer-tip">Enter 发送 · Shift + Enter 换行</p>
-    </footer>
-  </section>
+      <!-- 推荐卡片区域 -->
+      <div v-if="recommendations.length > 0 && !loading" class="rec-cards">
+        <div class="rec-cards-header">
+          <el-icon :size="16"><Trophy /></el-icon>
+          <span>为你推荐的竞赛</span>
+        </div>
+        <div
+          v-for="rec in recommendations"
+          :key="rec.competition_id || rec.rank"
+          class="rec-card"
+          @click="navigateToCompetition(rec)"
+        >
+          <div class="rec-card-top">
+            <span class="rec-rank">#{{ rec.rank }}</span>
+            <span class="rec-name">{{ rec.competition_name }}</span>
+            <span class="rec-score">{{ rec.match_score.toFixed(0) }}分</span>
+          </div>
+          <div v-if="rec.match_reasons && rec.match_reasons.length" class="rec-reasons">
+            <span v-for="(reason, ri) in rec.match_reasons" :key="ri" class="rec-tag">{{ reason }}</span>
+          </div>
+          <div v-if="rec.ability_gaps && rec.ability_gaps.length" class="rec-gaps">
+            <span class="gap-label">能力缺口：</span>
+            <span v-for="(gap, gi) in rec.ability_gaps" :key="gi" class="gap-tag">{{ gap }}</span>
+          </div>
+          <div v-if="rec.deadline" class="rec-deadline">
+            <el-icon :size="12"><Clock /></el-icon>
+            <span>截止：{{ rec.deadline }}</span>
+          </div>
+          <div class="rec-card-action">
+            <span>查看详情 <el-icon :size="12"><ArrowRight /></el-icon></span>
+          </div>
+        </div>
+      </div>
+      <div v-if="loading" class="chat-typing">
+        <span class="dot" />
+        <span class="dot" />
+        <span class="dot" />
+      </div>
+    </div>
+    <div class="chat-input">
+      <el-input
+        v-model="input"
+        placeholder="输入你的问题..."
+        :disabled="loading"
+        @keyup.enter="send"
+      />
+      <el-button type="primary" :disabled="loading || !input.trim()" @click="send">
+        <el-icon><Promotion /></el-icon>
+      </el-button>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { computed, nextTick, ref } from 'vue'
-import { ChatDotRound, Close, Promotion } from '@element-plus/icons-vue'
+import { ref, nextTick, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ArrowRight, ChatDotRound, Clock, Close, Promotion, Trophy } from '@element-plus/icons-vue'
 import { getToken } from '@/utils/auth'
 
+const router = useRouter()
+const route = useRoute()
+
 const emit = defineEmits(['close'])
-
 const input = ref('')
-const inputFocused = ref(false)
 const loading = ref(false)
+const sessionId = ref('')
 const messages = ref([])
-const bodyRef = ref(null)
-const sessionId = ref(Date.now().toString(36) + Math.random().toString(36).slice(2, 8))
+const msgList = ref(null)
+const recommendationPlan = ref(null)
+const recommendations = ref([])
+const currentContext = ref(null)
 
-const quickQuestions = [
-  { icon: '🏆', text: '推荐适合我的竞赛' },
-  { icon: '✨', text: '分析一下我的优势' },
-  { icon: '📚', text: '怎么准备蓝桥杯' },
-  { icon: '👥', text: '组队有什么建议' }
-]
+let abortController = null
 
-const toolLabels = {
-  search_profile: '查询个人画像',
-  search_competitions: '搜索相关竞赛',
-  search_retrospects: '查找往届复盘',
-  search_experiences: '查找备赛经验',
-  synthesis: '整理分析结果',
-  intent: '理解你的问题'
-}
-
-const waitingForFirstToken = computed(() => {
-  if (!loading.value) return false
-  const last = messages.value[messages.value.length - 1]
-  if (!last || last.role !== 'ai') return true
-  return !last.content && !last.thinking && !last.steps?.length
-})
+// Q3: 用 route watch 替代 window 全局变量
+watch(() => route.params.competitionId, (id) => {
+  if (id) {
+    currentContext.value = {
+      competition_id: id,
+      competition_name: route.query.name || '',
+      page_type: 'hall_detail'
+    }
+  } else {
+    currentContext.value = null
+  }
+}, { immediate: true })
 
 function timeNow() {
-  const date = new Date()
-  return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+  return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
 }
-
-function escapeHtml(value = '') {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-}
-
-function renderInlineMarkdown(value) {
-  return value
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/__(.+?)__/g, '<strong>$1</strong>')
-    .replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>')
-}
-
-function renderMarkdown(value = '') {
-  const codeBlocks = []
-  const tokenized = value.replace(/```([\w-]*)\n?([\s\S]*?)```/g, (_, language, code) => {
-    const index = codeBlocks.push({ language, code: code.replace(/\n$/, '') }) - 1
-    return `\u0000CODE_BLOCK_${index}\u0000`
-  })
-  const lines = escapeHtml(tokenized).split('\n')
-  const output = []
-  let paragraph = []
-  let listType = ''
-
-  const closeParagraph = () => {
-    if (!paragraph.length) return
-    output.push(`<p>${paragraph.map(renderInlineMarkdown).join('<br>')}</p>`)
-    paragraph = []
+async function scrollBottom() {
+  await nextTick()
+  if (msgList.value) {
+    msgList.value.scrollTop = msgList.value.scrollHeight
   }
-  const closeList = () => {
-    if (!listType) return
-    output.push(`</${listType}>`)
-    listType = ''
-  }
-
-  for (const line of lines) {
-    const codeMatch = line.match(/^\u0000CODE_BLOCK_(\d+)\u0000$/)
-    const headingMatch = line.match(/^(#{1,3})\s+(.+)$/)
-    const unorderedMatch = line.match(/^\s*[-*]\s+(.+)$/)
-    const orderedMatch = line.match(/^\s*\d+\.\s+(.+)$/)
-
-    if (codeMatch) {
-      closeParagraph()
-      closeList()
-      const block = codeBlocks[Number(codeMatch[1])]
-      const languageClass = block.language ? ` class="language-${escapeHtml(block.language)}"` : ''
-      output.push(`<pre><code${languageClass}>${escapeHtml(block.code)}</code></pre>`)
-    } else if (headingMatch) {
-      closeParagraph()
-      closeList()
-      const level = headingMatch[1].length
-      output.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`)
-    } else if (unorderedMatch || orderedMatch) {
-      closeParagraph()
-      const nextListType = unorderedMatch ? 'ul' : 'ol'
-      if (listType !== nextListType) {
-        closeList()
-        listType = nextListType
-        output.push(`<${listType}>`)
-      }
-      output.push(`<li>${renderInlineMarkdown((unorderedMatch || orderedMatch)[1])}</li>`)
-    } else if (!line.trim()) {
-      closeParagraph()
-      closeList()
-    } else {
-      closeList()
-      paragraph.push(line)
-    }
-  }
-  closeParagraph()
-  closeList()
-  return output.join('')
-}
-
-function renderMsg(msg) {
-  let html = renderMarkdown(msg.content || '')
-  if (msg.thinking) {
-    html = `<details class="thinking-box"><summary>查看分析过程</summary>${renderMarkdown(msg.thinking)}</details>${html}`
-  }
-  if (msg.steps?.length) {
-    const hiddenSteps = new Set(['intent', 'synthesis'])
-    const visibleSteps = msg.steps.filter(step =>
-      step.tool && !step.tool.startsWith('agent') && !hiddenSteps.has(step.tool)
-    )
-    if (visibleSteps.length) {
-      const stepHtml = visibleSteps.map(step => {
-        const label = toolLabels[step.tool] || step.tool
-        const stateClass = step.status === 'error' ? 'is-error' : 'is-ok'
-        const statusText = step.status === 'error' ? `${label}失败` : `已${label}`
-        return `<div class="tool-step ${stateClass}"><i></i><span>${escapeHtml(statusText)}</span></div>`
-      }).join('')
-      const onlyStep = visibleSteps[0]
-      const onlyLabel = toolLabels[onlyStep.tool] || onlyStep.tool
-      const summary = visibleSteps.length === 1
-        ? (onlyStep.status === 'error' ? `${onlyLabel}失败` : `已${onlyLabel}`)
-        : `已完成 ${visibleSteps.length} 项信息查询`
-      html = `<details class="thinking-box tool-box"><summary>${escapeHtml(summary)}</summary>${stepHtml}</details>${html}`
-    }
-  }
-  return html
-}
-
-function sendQuick(text) {
-  input.value = text
-  send()
 }
 
 async function send() {
@@ -249,30 +127,37 @@ async function send() {
 
   input.value = ''
   loading.value = true
+  recommendations.value = []
+  recommendationPlan.value = null
+
   messages.value.push({ role: 'user', content: text, time: timeNow() })
-  const aiMsg = { role: 'ai', content: '', thinking: '', steps: [], time: '' }
+  const aiMsg = { role: 'ai', content: '', steps: [], time: '' }
   messages.value.push(aiMsg)
   await scrollBottom()
 
+  // Q3: 用组件级 currentContext + 消费 window.__pendingAgentContext 作为兜底
+  const context = currentContext.value || window.__pendingAgentContext || null
+  window.__pendingAgentContext = null
+
+  const body = { message: text, session_id: sessionId.value }
+  if (context) body.context = context
+
+  abortController = new AbortController()
   try {
     const response = await fetch('/student/agent/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`
+        'Authorization': 'Bearer ' + getToken()
       },
-      body: JSON.stringify({ message: text, session_id: sessionId.value })
+      body: JSON.stringify(body),
+      signal: abortController.signal
     })
-
-    if (!response.ok) {
-      aiMsg.content = `服务暂时不可用（${response.status}），请稍后再试。`
-      return
-    }
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
-    let currentEvent = ''
+    let sseEvent = ''
 
     while (true) {
       const { done, value } = await reader.read()
@@ -280,302 +165,115 @@ async function send() {
       buffer += decoder.decode(value, { stream: true })
       const lines = buffer.split('\n')
       buffer = lines.pop() || ''
-
       for (const line of lines) {
         if (line.startsWith('event: ')) {
-          currentEvent = line.slice(7).trim()
+          sseEvent = line.slice(7).trim()
         } else if (line.startsWith('data: ')) {
           try {
-            handleEvent(currentEvent, JSON.parse(line.slice(6)))
-          } catch {
-            // Ignore incomplete SSE data and continue reading the stream.
-          }
+            const payload = JSON.parse(line.slice(6))
+            handleEvent(sseEvent, payload)
+            sseEvent = ''
+          } catch {}
         }
       }
-      await scrollBottom()
     }
-  } catch {
-    aiMsg.content = '连接失败，请确认智能助手服务已经启动。'
-  } finally {
-    loading.value = false
-    aiMsg.time = timeNow()
-    await scrollBottom()
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      aiMsg.content += '\n\n<span class="error-msg">连接出错，请重试</span>'
+    }
   }
+  loading.value = false
+  aiMsg.time = timeNow()
+}
 
-  function handleEvent(event, payload) {
-    if (event === 'session') {
-      sessionId.value = payload.session_id
-    } else if (event === 'intent') {
-      aiMsg.steps.push({ tool: 'intent', status: 'ok' })
-    } else if (event === 'step') {
-      const runningIndex = aiMsg.steps.findIndex(step =>
-        step.tool === payload.tool && step.status === 'running'
-      )
-      if (payload.status !== 'running' && runningIndex >= 0) {
-        aiMsg.steps[runningIndex] = { tool: payload.tool, status: payload.status }
-      } else {
-        aiMsg.steps.push({ tool: payload.tool, status: payload.status })
+function handleEvent(event, payload) {
+  const aiMsg = messages.value[messages.value.length - 1]
+  if (!aiMsg || aiMsg.role !== 'ai') return
+
+  if (event === 'session') {
+    sessionId.value = payload.session_id
+  } else if (event === 'step') {
+    const data = typeof payload === 'string' ? JSON.parse(payload) : payload
+    aiMsg.steps.push({ tool: data.tool, status: data.status || 'ok' })
+    // Task 1: 从 step 事件中提取 recommendation_plan 数据
+    if (data.tool === 'recommendation_plan' && data.status === 'ok') {
+      const plan = data.result?.recommendation_plan
+      if (plan) {
+        recommendationPlan.value = plan
+        // Task 2: 渲染推荐卡片
+        recommendations.value = (plan.recommendations || []).map(item => ({
+          competition_id: item.competition_id,
+          competition_name: item.competition_name,
+          match_score: item.match_score,
+          match_reasons: (item.match_reasons || []).slice(0, 3),
+          ability_gaps: (item.ability_gaps || []).slice(0, 3),
+          deadline: item.deadline || '',
+          rank: item.rank
+        }))
       }
-    } else if (event === 'reasoning') {
-      const content = typeof payload === 'string' ? payload : (payload.content || '')
-      if (content) aiMsg.thinking += content
-    } else if (event === 'token') {
-      aiMsg.content += payload.token || ''
-    } else if (event === 'error') {
-      aiMsg.content += `\n服务错误：${payload.error}`
     }
+  } else if (event === 'token') {
+    const data = typeof payload === 'string' ? JSON.parse(payload) : payload
+    aiMsg.content += (data.content || data.token || '')
   }
+  scrollBottom()
 }
 
-async function scrollBottom() {
-  await nextTick()
-  if (bodyRef.value) bodyRef.value.scrollTop = bodyRef.value.scrollHeight
+function navigateToCompetition(rec) {
+  window.__pendingAgentContext = {
+    competition_id: rec.competition_id,
+    competition_name: rec.competition_name,
+    page_type: 'hall_detail'
+  }
+  router.push(`/student/hall/detail/${rec.competition_id}`)
+  emit('close')
 }
+
+// Q3: route watch 已在上面定义，处理当前页面上下文变化
+
+onUnmounted(() => {
+  if (abortController) abortController.abort()
+})
 </script>
 
 <style scoped>
-.agent-chat {
-  --agent-primary: #2563eb;
-  --agent-violet: #7c3aed;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  color: var(--el-text-color-primary, #172033);
-  background: var(--el-bg-color, #fff);
-}
+.agent-chat { display: flex; flex-direction: column; height: 100%; background: #fff; }
+.chat-header { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid #eef0f2; flex-shrink: 0; }
+.chat-header-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(99,102,241,.1); color: #6366f1; display: flex; align-items: center; justify-content: center; }
+.chat-header-text { margin-left: 10px; flex: 1; display: flex; flex-direction: column; }
+.chat-header-title { font-size: 15px; font-weight: 700; color: #1e293b; }
+.chat-header-sub { font-size: 11px; color: #94a3b8; }
+.chat-header-close { color: #94a3b8; cursor: pointer; flex-shrink: 0; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; min-height: 0; }
+.chat-msg { margin-bottom: 12px; display: flex; flex-direction: column; }
+.msg-bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+.user-bubble { align-self: flex-end; background: #6366f1; color: #fff; border-bottom-right-radius: 4px; }
+.ai-bubble { align-self: flex-start; background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; }
+.msg-steps { display: flex; gap: 4px; margin-top: 4px; margin-left: 14px; }
+.step-dot { width: 5px; height: 5px; border-radius: 50%; background: #cbd5e1; }
+.chat-typing { display: flex; gap: 4px; padding: 10px 16px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; animation: bounce 1.4s infinite ease-in-out both; }
+.dot:nth-child(1) { animation-delay: -.32s; }
+.dot:nth-child(2) { animation-delay: -.16s; }
+@keyframes bounce { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+.chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #eef0f2; flex-shrink: 0; }
+.error-msg { color: #ef4444; font-size: 12px; }
 
-.chat-header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 84px;
-  padding: 14px 20px;
-  color: #fff;
-  background:
-    radial-gradient(circle at 84% 10%, rgba(255, 255, 255, .2), transparent 32%),
-    linear-gradient(135deg, #2563eb 0%, #5b4ee8 52%, #7c3aed 100%);
-  box-shadow: 0 8px 24px rgba(67, 56, 202, .18);
-  flex-shrink: 0;
-}
-
-.assistant-identity { display: flex; align-items: center; gap: 12px; }
-.assistant-logo {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, .34);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, .18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .24);
-  backdrop-filter: blur(8px);
-}
-.assistant-identity h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: .02em; }
-.assistant-identity p { display: flex; align-items: center; gap: 6px; margin: 5px 0 0; font-size: 12px; color: rgba(255, 255, 255, .78); }
-.online-dot { width: 7px; height: 7px; border-radius: 50%; background: #6ee7b7; box-shadow: 0 0 0 3px rgba(110, 231, 183, .18); }
-.close-button {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  place-items: center;
-  color: rgba(255, 255, 255, .88);
-  border: 0;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, .1);
-  cursor: pointer;
-  transition: background .2s, transform .2s;
-}
-.close-button:hover { background: rgba(255, 255, 255, .2); transform: rotate(4deg); }
-
-.chat-body {
-  flex: 1;
-  min-height: 0;
-  padding: 24px 20px;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-  background:
-    radial-gradient(circle at 0 0, rgba(37, 99, 235, .055), transparent 28%),
-    var(--el-fill-color-extra-light, #f8fafc);
-}
-.chat-body::-webkit-scrollbar { width: 5px; }
-.chat-body::-webkit-scrollbar-thumb { border-radius: 10px; background: rgba(148, 163, 184, .45); }
-
-.welcome-panel { max-width: 390px; margin: 42px auto 0; text-align: center; }
-.welcome-orbit {
-  display: grid;
-  width: 92px;
-  height: 92px;
-  margin: 0 auto 22px;
-  place-items: center;
-  border: 1px solid rgba(99, 102, 241, .14);
-  border-radius: 50%;
-  background: rgba(99, 102, 241, .055);
-  box-shadow: 0 0 0 12px rgba(99, 102, 241, .025);
-}
-.welcome-logo {
-  display: grid;
-  width: 62px;
-  height: 62px;
-  place-items: center;
-  color: #fff;
-  border-radius: 21px;
-  background: linear-gradient(135deg, var(--agent-primary), var(--agent-violet));
-  box-shadow: 0 12px 28px rgba(79, 70, 229, .28);
-}
-.welcome-panel h2 { margin: 0; font-size: 20px; font-weight: 700; }
-.welcome-panel > p { max-width: 340px; margin: 11px auto 24px; color: var(--el-text-color-secondary, #64748b); font-size: 13px; line-height: 1.75; }
-.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
-.quick-actions button {
-  display: grid;
-  grid-template-columns: 28px 1fr auto;
-  align-items: center;
-  gap: 8px;
-  min-height: 58px;
-  padding: 10px 12px;
-  color: var(--el-text-color-regular, #334155);
-  font-size: 12px;
-  line-height: 1.4;
-  border: 1px solid var(--el-border-color-lighter, #e5eaf3);
-  border-radius: 14px;
-  background: var(--el-bg-color-overlay, #fff);
-  box-shadow: 0 3px 12px rgba(15, 23, 42, .035);
-  cursor: pointer;
-  transition: border-color .2s, box-shadow .2s, transform .2s;
-}
-.quick-actions button:hover { border-color: rgba(79, 70, 229, .32); box-shadow: 0 8px 20px rgba(79, 70, 229, .09); transform: translateY(-2px); }
-.quick-icon { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 9px; background: rgba(99, 102, 241, .08); }
-.quick-arrow { color: #94a3b8; font-size: 15px; }
-
-.chat-msg { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
-.chat-msg.user { justify-content: flex-end; }
-.msg-avatar {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-  place-items: center;
-  color: #fff;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--agent-primary), var(--agent-violet));
-  box-shadow: 0 5px 14px rgba(79, 70, 229, .2);
-}
-.msg-content { display: flex; max-width: 80%; flex-direction: column; }
-.chat-msg.user .msg-content { align-items: flex-end; }
-.msg-bubble {
-  padding: 11px 14px;
-  color: var(--el-text-color-primary, #1e293b);
-  font-size: 14px;
-  line-height: 1.7;
-  word-break: break-word;
-  border: 1px solid var(--el-border-color-extra-light, #eef2f7);
-  border-radius: 5px 16px 16px 16px;
-  background: var(--el-bg-color-overlay, #fff);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, .055);
-}
-.chat-msg.user .msg-bubble {
-  color: #fff;
-  border: 0;
-  border-radius: 16px 5px 16px 16px;
-  background: linear-gradient(135deg, #2f72e8, #4f46e5);
-  box-shadow: 0 7px 18px rgba(37, 99, 235, .18);
-}
-.msg-time { margin-top: 5px; padding: 0 4px; color: var(--el-text-color-placeholder, #94a3b8); font-size: 10px; }
-
-.msg-bubble :deep(.thinking-box) {
-  margin: 0 0 9px;
-  padding: 8px 10px;
-  color: var(--el-text-color-secondary, #64748b);
-  font-size: 11px;
-  border: 1px solid rgba(99, 102, 241, .14);
-  border-radius: 9px;
-  background: rgba(99, 102, 241, .055);
-}
-.msg-bubble :deep(.thinking-box summary) { color: #6366f1; font-weight: 600; cursor: pointer; }
-.msg-bubble :deep(.thinking-box summary:focus) { outline: none; }
-.msg-bubble :deep(.tool-step) { display: flex; align-items: center; gap: 7px; margin-top: 7px; }
-.msg-bubble :deep(.tool-step i) { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
-.msg-bubble :deep(.tool-step.is-error i) { background: #ef4444; }
-.msg-bubble :deep(p) { margin: 0 0 9px; }
-.msg-bubble :deep(p:last-child) { margin-bottom: 0; }
-.msg-bubble :deep(h1),
-.msg-bubble :deep(h2),
-.msg-bubble :deep(h3) { margin: 4px 0 9px; line-height: 1.4; }
-.msg-bubble :deep(h1) { font-size: 18px; }
-.msg-bubble :deep(h2) { font-size: 16px; }
-.msg-bubble :deep(h3) { font-size: 15px; }
-.msg-bubble :deep(ul),
-.msg-bubble :deep(ol) { margin: 7px 0; padding-left: 22px; }
-.msg-bubble :deep(li) { margin: 3px 0; }
-.msg-bubble :deep(code) {
-  padding: 2px 5px;
-  color: #7c3aed;
-  border-radius: 5px;
-  background: rgba(124, 58, 237, .08);
-  font-family: Consolas, Monaco, monospace;
-  font-size: .9em;
-}
-.msg-bubble :deep(pre) {
-  margin: 9px 0;
-  padding: 12px;
-  overflow-x: auto;
-  color: #e2e8f0;
-  border-radius: 10px;
-  background: #172033;
-}
-.msg-bubble :deep(pre code) { padding: 0; color: inherit; background: transparent; }
-.typing { display: flex; gap: 5px; padding: 15px 17px; }
-.typing span { width: 6px; height: 6px; border-radius: 50%; background: #818cf8; animation: pulse 1.25s infinite ease-in-out; }
-.typing span:nth-child(2) { animation-delay: .15s; }
-.typing span:nth-child(3) { animation-delay: .3s; }
-@keyframes pulse { 0%, 60%, 100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
-
-.chat-footer {
-  padding: 14px 18px 12px;
-  border-top: 1px solid var(--el-border-color-extra-light, #eef2f7);
-  background: var(--el-bg-color-overlay, #fff);
-  box-shadow: 0 -8px 24px rgba(15, 23, 42, .035);
-  flex-shrink: 0;
-}
-.composer {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  padding: 8px 8px 8px 14px;
-  border: 1px solid var(--el-border-color, #dbe2ea);
-  border-radius: 17px;
-  background: var(--el-fill-color-blank, #fff);
-  transition: border-color .2s, box-shadow .2s;
-}
-.composer.focused { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .1); }
-.composer :deep(.el-textarea__inner) { min-height: 36px !important; padding: 8px 0; line-height: 20px; border: 0; box-shadow: none; background: transparent; }
-.send-button {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  padding: 0;
-  place-items: center;
-  color: #fff;
-  border: 0;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--agent-primary), var(--agent-violet));
-  box-shadow: 0 6px 14px rgba(79, 70, 229, .22);
-  cursor: pointer;
-  transition: opacity .2s, transform .2s;
-}
-.send-button:hover:not(:disabled) { transform: translateY(-1px); }
-.send-button:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
-.composer-tip { margin: 7px 4px 0; color: var(--el-text-color-placeholder, #94a3b8); font-size: 10px; text-align: center; }
-
-@media (max-width: 640px) {
-  .chat-header { min-height: 76px; padding: 11px 15px; }
-  .assistant-logo { width: 44px; height: 44px; border-radius: 14px; }
-  .chat-body { padding: 20px 14px; }
-  .welcome-panel { margin-top: 26px; }
-  .quick-actions { grid-template-columns: 1fr; }
-  .msg-content { max-width: 86%; }
-  .chat-footer { padding: 11px 12px 9px; }
-}
+/* Task 2: 推荐卡片 */
+.rec-cards { margin: 12px 0; padding: 14px; background: linear-gradient(135deg, #f0f4ff, #e8eeff); border-radius: 16px; border: 1px solid rgba(99,102,241,.12); }
+.rec-cards-header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #4f46e5; }
+.rec-card { padding: 12px; margin-bottom: 8px; background: #fff; border-radius: 12px; cursor: pointer; transition: transform .15s, box-shadow .15s; border: 1px solid rgba(31,35,41,.06); }
+.rec-card:last-child { margin-bottom: 0; }
+.rec-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,.12); border-color: rgba(79,70,229,.2); }
+.rec-card-top { display: flex; align-items: center; gap: 8px; }
+.rec-rank { font-size: 12px; font-weight: 700; color: #6366f1; background: rgba(99,102,241,.1); padding: 2px 8px; border-radius: 6px; }
+.rec-name { flex: 1; font-size: 14px; font-weight: 600; color: #1e293b; }
+.rec-score { font-size: 13px; font-weight: 700; color: #6366f1; }
+.rec-reasons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.rec-tag { font-size: 11px; padding: 2px 8px; background: #eef2ff; color: #4f46e5; border-radius: 6px; }
+.rec-gaps { margin-top: 6px; font-size: 12px; }
+.gap-label { color: #94a3b8; }
+.gap-tag { display: inline-block; margin: 2px 4px 2px 0; padding: 1px 6px; background: #fef2f2; color: #dc2626; border-radius: 4px; font-size: 11px; }
+.rec-deadline { margin-top: 6px; font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px; }
+.rec-card-action { margin-top: 8px; text-align: right; font-size: 12px; color: #6366f1; font-weight: 600; }
 </style>

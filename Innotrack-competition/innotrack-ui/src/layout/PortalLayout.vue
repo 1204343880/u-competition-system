@@ -104,11 +104,31 @@ const permissionStore = usePermissionStore()
 const settingsStore = useSettingsStore()
 const tagsViewStore = useTagsViewStore()
 const cachedViews = computed(() => tagsViewStore.cachedViews)
-
 const chatVisible = ref(false)
 const showFab = computed(() => {
   const roles = userStore.roles || []
   return roles.some(r => r === 'student' || r === 'ROLE_STUDENT')
+})
+
+// Task 3: 监听 open-chat-with-context 事件
+const pendingAgentContext = ref(null)
+function onOpenChatWithContext(e) {
+  pendingAgentContext.value = e.detail
+  chatVisible.value = true
+}
+onMounted(() => {
+  window.addEventListener('open-chat-with-context', onOpenChatWithContext)
+})
+onUnmounted(() => {
+  window.removeEventListener('open-chat-with-context', onOpenChatWithContext)
+})
+watch(chatVisible, (visible) => {
+  if (visible && pendingAgentContext.value) {
+    nextTick(() => {
+      window.__pendingAgentContext = pendingAgentContext.value
+      pendingAgentContext.value = null
+    })
+  }
 })
 
 const navItems = computed(() => (permissionStore.topbarRouters || []).filter(r => !r.hidden && !r.meta?.hidden && r.path && r.path !== '/'))

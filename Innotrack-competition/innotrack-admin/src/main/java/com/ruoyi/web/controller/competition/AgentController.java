@@ -48,6 +48,9 @@ public class AgentController extends BaseController {
         agentRequest.put("stream", true);
         agentRequest.put("user_id", userId);
         agentRequest.put("session_id", request.getOrDefault("session_id", ""));
+        if (request.containsKey("context") && request.get("context") != null) {
+            agentRequest.put("context", request.get("context"));
+        }
 
         byte[] body = objectMapper.writeValueAsBytes(agentRequest);
 
