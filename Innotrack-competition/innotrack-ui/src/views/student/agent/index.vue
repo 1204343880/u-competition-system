@@ -12,11 +12,9 @@
     </div>
     <div class="chat-messages" ref="msgList">
       <div v-for="(msg, idx) in messages" :key="idx" class="chat-msg" :class="msg.role">
-        <div
-          v-if="msg.role === 'ai' && msg.content"
-          class="msg-bubble ai-bubble"
-          v-html="msg.content"
-        />
+        <div v-if="msg.role === 'ai' && msg.content" class="msg-bubble ai-bubble">
+          {{ msg.content }}
+        </div>
         <div v-if="msg.role === 'user'" class="msg-bubble user-bubble">
           {{ msg.content }}
         </div>
@@ -29,6 +27,12 @@
         <div class="rec-cards-header">
           <el-icon :size="16"><Trophy /></el-icon>
           <span>为你推荐的竞赛</span>
+        </div>
+        <div class="rec-context">
+          <span>当前策略：{{ recommendationPlan?.strategy_label || strategyLabel }}</span>
+          <span v-if="recommendationPlan?.applied_filters?.length">
+            当前约束：{{ recommendationPlan.applied_filters.join(' · ') }}
+          </span>
         </div>
         <div
           v-for="rec in recommendations"
@@ -64,6 +68,20 @@
       </div>
     </div>
     <div class="chat-input">
+      <div class="strategy-switcher">
+        <button
+          v-for="item in strategies"
+          :key="item.value"
+          type="button"
+          class="strategy-chip"
+          :class="{ active: currentStrategy === item.value }"
+          :disabled="loading"
+          @click="switchStrategy(item.value)"
+        >
+          {{ item.label }}
+        </button>
+      </div>
+      <div class="chat-input-row">
       <el-input
         v-model="input"
         placeholder="输入你的问题..."
@@ -73,12 +91,13 @@
       <el-button type="primary" :disabled="loading || !input.trim()" @click="send">
         <el-icon><Promotion /></el-icon>
       </el-button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick, onUnmounted, watch } from 'vue'
+import { ref, nextTick, onUnmounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowRight, ChatDotRound, Clock, Close, Promotion, Trophy } from '@element-plus/icons-vue'
 import { getToken } from '@/utils/auth'
@@ -95,6 +114,19 @@ const msgList = ref(null)
 const recommendationPlan = ref(null)
 const recommendations = ref([])
 const currentContext = ref(null)
+const currentStrategy = ref('balanced')
+const strategyOverrideActive = ref(false)
+const lastQuestion = ref('')
+const traceId = ref('')
+const strategies = [
+  { value: 'balanced', label: '综合收益' },
+  { value: 'winability', label: '获奖可行性' },
+  { value: 'prestige', label: '含金量成长' },
+  { value: 'short_cycle', label: '短周期参赛' },
+  { value: 'newbie', label: '新手友好' }
+]
+const strategyLabel = computed(() => strategies.find(item => item.value === currentStrategy.value)?.label || '综合收益')
+const baseApi = import.meta.env.VITE_APP_BASE_API || ''
 
 let abortController = null
 
@@ -121,11 +153,12 @@ async function scrollBottom() {
   }
 }
 
-async function send() {
-  const text = input.value.trim()
+async function send(overrideText = '', strategyOverride = '') {
+  const text = (typeof overrideText === 'string' ? overrideText : input.value).trim()
   if (!text || loading.value) return
 
   input.value = ''
+  lastQuestion.value = text
   loading.value = true
   recommendations.value = []
   recommendationPlan.value = null
@@ -140,11 +173,13 @@ async function send() {
   window.__pendingAgentContext = null
 
   const body = { message: text, session_id: sessionId.value }
+  const selectedStrategy = strategyOverride || (strategyOverrideActive.value ? currentStrategy.value : '')
+  if (selectedStrategy) body.recommendation_strategy = selectedStrategy
   if (context) body.context = context
 
   abortController = new AbortController()
   try {
-    const response = await fetch('/student/agent/chat', {
+    const response = await fetch(`${baseApi}/student/agent/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -153,6 +188,10 @@ async function send() {
       body: JSON.stringify(body),
       signal: abortController.signal
     })
+
+    if (!response.ok || !response.body) {
+      throw new Error(`HTTP ${response.status}`)
+    }
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
@@ -179,11 +218,21 @@ async function send() {
     }
   } catch (e) {
     if (e.name !== 'AbortError') {
-      aiMsg.content += '\n\n<span class="error-msg">连接出错，请重试</span>'
+      aiMsg.content += '\n\n连接出错，请重试'
+      recommendations.value = []
+      recommendationPlan.value = null
     }
   }
   loading.value = false
   aiMsg.time = timeNow()
+}
+
+function switchStrategy(strategy) {
+  currentStrategy.value = strategy
+  strategyOverrideActive.value = true
+  if (lastQuestion.value && !loading.value) {
+    send(lastQuestion.value, strategy)
+  }
 }
 
 function handleEvent(event, payload) {
@@ -192,14 +241,17 @@ function handleEvent(event, payload) {
 
   if (event === 'session') {
     sessionId.value = payload.session_id
+    traceId.value = payload.trace_id || ''
   } else if (event === 'step') {
     const data = typeof payload === 'string' ? JSON.parse(payload) : payload
     aiMsg.steps.push({ tool: data.tool, status: data.status || 'ok' })
     // Task 1: 从 step 事件中提取 recommendation_plan 数据
-    if (data.tool === 'recommendation_plan' && data.status === 'ok') {
+    if (data.tool === 'recommendation_plan' && ['ok', 'needs_clarification'].includes(data.status)) {
       const plan = data.result?.recommendation_plan
       if (plan) {
         recommendationPlan.value = plan
+        currentStrategy.value = plan.strategy || currentStrategy.value
+        traceId.value = plan.trace_id || traceId.value
         // Task 2: 渲染推荐卡片
         recommendations.value = (plan.recommendations || []).map(item => ({
           competition_id: item.competition_id,
@@ -215,6 +267,11 @@ function handleEvent(event, payload) {
   } else if (event === 'token') {
     const data = typeof payload === 'string' ? JSON.parse(payload) : payload
     aiMsg.content += (data.content || data.token || '')
+  } else if (event === 'error') {
+    const data = typeof payload === 'string' ? JSON.parse(payload) : payload
+    recommendations.value = []
+    recommendationPlan.value = null
+    aiMsg.content = data.error || 'Agent 服务暂不可用，请稍后重试'
   }
   scrollBottom()
 }
@@ -248,7 +305,7 @@ onUnmounted(() => {
 .chat-msg { margin-bottom: 12px; display: flex; flex-direction: column; }
 .msg-bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-break: break-word; }
 .user-bubble { align-self: flex-end; background: #6366f1; color: #fff; border-bottom-right-radius: 4px; }
-.ai-bubble { align-self: flex-start; background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; }
+.ai-bubble { align-self: flex-start; background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; white-space: pre-wrap; }
 .msg-steps { display: flex; gap: 4px; margin-top: 4px; margin-left: 14px; }
 .step-dot { width: 5px; height: 5px; border-radius: 50%; background: #cbd5e1; }
 .chat-typing { display: flex; gap: 4px; padding: 10px 16px; }
@@ -256,12 +313,18 @@ onUnmounted(() => {
 .dot:nth-child(1) { animation-delay: -.32s; }
 .dot:nth-child(2) { animation-delay: -.16s; }
 @keyframes bounce { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
-.chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #eef0f2; flex-shrink: 0; }
+.chat-input { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-top: 1px solid #eef0f2; flex-shrink: 0; }
+.chat-input-row { display: flex; gap: 8px; }
+.strategy-switcher { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.strategy-chip { border: 1px solid #e2e8f0; border-radius: 999px; background: #fff; color: #64748b; padding: 4px 9px; font-size: 11px; white-space: nowrap; cursor: pointer; }
+.strategy-chip.active { border-color: #6366f1; background: #eef2ff; color: #4f46e5; }
+.strategy-chip:disabled { cursor: not-allowed; opacity: .6; }
 .error-msg { color: #ef4444; font-size: 12px; }
 
 /* Task 2: 推荐卡片 */
 .rec-cards { margin: 12px 0; padding: 14px; background: linear-gradient(135deg, #f0f4ff, #e8eeff); border-radius: 16px; border: 1px solid rgba(99,102,241,.12); }
 .rec-cards-header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #4f46e5; }
+.rec-context { display: flex; flex-direction: column; gap: 3px; margin: -4px 0 10px; color: #64748b; font-size: 11px; }
 .rec-card { padding: 12px; margin-bottom: 8px; background: #fff; border-radius: 12px; cursor: pointer; transition: transform .15s, box-shadow .15s; border: 1px solid rgba(31,35,41,.06); }
 .rec-card:last-child { margin-bottom: 0; }
 .rec-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,.12); border-color: rgba(79,70,229,.2); }

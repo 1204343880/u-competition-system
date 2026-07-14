@@ -177,6 +177,6 @@ xss:
 # AI Agent 配置
 agent:
   python:
-    url: http://localhost:8500
+    url: ${AGENT_PYTHON_URL:http://localhost:8500}
   shared-secret: ${AGENT_SHARED_SECRET}
 
