@@ -89,6 +89,14 @@
           </el-timeline>
           <EmptyState v-else description="暂无时间信息" :show-image="false" />
         </div>
+        <div class="sidebar-card">
+          <h3 class="sidebar-title">竞赛助手</h3>
+          <p style="font-size: 13px; color: #64748b; margin: 0 0 12px;">想知道备赛方法、往届情况？</p>
+          <el-button type="primary" style="width: 100%" @click="openAgentWithContext">
+            <el-icon><ChatDotRound /></el-icon>
+            问助手
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -171,7 +179,7 @@
 </template>
 
 <script setup>
-import { UserFilled, OfficeBuilding, View, Avatar } from '@element-plus/icons-vue'
+import { UserFilled, OfficeBuilding, View, Avatar, ChatDotRound } from '@element-plus/icons-vue'
 import { useRouter, useRoute } from 'vue-router'
 import useUserStore from '@/store/modules/user'
 import { getCompetition, applyCompetition } from '@/api/competition/hall'
@@ -240,6 +248,16 @@ const timelineItems = computed(() => {
 
 function goBack() {
   router.back()
+}
+
+function openAgentWithContext() {
+  window.dispatchEvent(new CustomEvent('open-chat-with-context', {
+    detail: {
+      competition_id: detail.value.competitionId,
+      competition_name: detail.value.competitionName,
+      page_type: 'hall_detail'
+    }
+  }))
 }
 
 function formatViewCount(count) {

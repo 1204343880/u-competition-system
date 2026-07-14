@@ -64,11 +64,47 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       MQ_PASSWORD: ${MQ_PASSWORD}
       AGENT_SHARED_SECRET: ${AGENT_SHARED_SECRET}
+      AGENT_PYTHON_URL: http://agent:8500
       JAVA_OPTS: -Xms256m -Xmx512m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=256m
     deploy:
       resources:
         limits:
           memory: 800M
+
+  agent:
+    build:
+      context: ../../agent_king/Innotrack-agent
+    container_name: innotrack-agent
+    restart: always
+    expose:
+      - "8500"
+    depends_on:
+      - app
+    environment:
+      DATA_SOURCE: http
+      JAVA_BACKEND_URL: http://app:8080
+      AGENT_SHARED_SECRET: ${AGENT_SHARED_SECRET}
+      MEMORY_ENCRYPTION_KEY: ${MEMORY_ENCRYPTION_KEY}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      ZHIPU_API_KEY: ${ZHIPU_API_KEY}
+      AGENT_BUILD_VERSION: ${AGENT_BUILD_VERSION:-local}
+      AGENT_BUILD_COMMIT: ${AGENT_BUILD_COMMIT:-unknown}
+      OFFICIAL_EVIDENCE_API_URL: ${OFFICIAL_EVIDENCE_API_URL:-}
+      OFFICIAL_EVIDENCE_API_KEY: ${OFFICIAL_EVIDENCE_API_KEY:-}
+      OFFICIAL_EVIDENCE_ALLOWED_DOMAINS: ${OFFICIAL_EVIDENCE_ALLOWED_DOMAINS:-}
+      OFFICIAL_EVIDENCE_TIMEOUT_SECONDS: ${OFFICIAL_EVIDENCE_TIMEOUT_SECONDS:-5}
+    volumes:
+      - agent_data:/app/data
+      - agent_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8500/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 700M
 
   nginx:
     image: nginx:alpine
@@ -90,3 +126,5 @@ volumes:
   mysql_data:
   redis_data:
   rabbitmq_data:
+  agent_data:
+  agent_logs:

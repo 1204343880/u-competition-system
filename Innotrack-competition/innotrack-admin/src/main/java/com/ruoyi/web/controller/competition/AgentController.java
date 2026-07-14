@@ -48,6 +48,12 @@ public class AgentController extends BaseController {
         agentRequest.put("stream", true);
         agentRequest.put("user_id", userId);
         agentRequest.put("session_id", request.getOrDefault("session_id", ""));
+        if (request.containsKey("context") && request.get("context") != null) {
+            agentRequest.put("context", request.get("context"));
+        }
+        if (request.containsKey("recommendation_strategy") && request.get("recommendation_strategy") != null) {
+            agentRequest.put("recommendation_strategy", request.get("recommendation_strategy"));
+        }
 
         byte[] body = objectMapper.writeValueAsBytes(agentRequest);
 
@@ -70,7 +76,7 @@ public class AgentController extends BaseController {
             int status = conn.getResponseCode();
             if (status != 200) {
                 response.setStatus(500);
-                response.getWriter().write("data: {\"event\":\"error\",\"data\":{\"error\":\"Agent service error: " + status + "\"}}\n\n");
+                response.getWriter().write("event: error\ndata: {\"error\":\"Agent service error: " + status + "\"}\n\n");
                 response.getWriter().flush();
                 return;
             }
@@ -86,7 +92,7 @@ public class AgentController extends BaseController {
             }
         } catch (Exception e) {
             response.setStatus(200);
-            response.getWriter().write("data: {\"event\":\"error\",\"data\":{\"error\":\"Agent 服务未启动: " + e.getMessage() + "\"}}\n\n");
+            response.getWriter().write("event: error\ndata: {\"error\":\"Agent service is unavailable\"}\n\n");
             response.getWriter().flush();
         } finally {
             if (conn != null) {
